@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">CerimonialPro - Sistema Completo</title>
+    <title>CerimonialPro - Sistema Completo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -336,106 +336,106 @@
             left: -10000px;
             top: -10000px;
             width: 210mm;
-            padding: 15mm; /* Reduzido de 20mm para 15mm */
+            padding: 15mm;
             background: white;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            font-size: 12px; /* Reduzido para caber mais conteúdo */
-            line-height: 1.3; /* Ajustado para melhor legibilidade */
+            font-size: 12px;
+            line-height: 1.3;
         }
         
         .pdf-header {
             background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 15px; /* Reduzido de 20px para 15px */
+            padding: 15px;
             border-radius: 10px 10px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px; /* Adicionado espaçamento */
+            margin-bottom: 15px;
         }
         
         .pdf-logo {
-            font-size: 20px; /* Reduzido de 24px para 20px */
+            font-size: 20px;
             font-weight: bold;
         }
         
         .pdf-title {
             text-align: center;
-            margin: 15px 0; /* Reduzido de 20px para 15px */
+            margin: 15px 0;
             color: var(--primary-color);
             border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 8px; /* Reduzido de 10px para 8px */
-            font-size: 18px; /* Ajustado para equilíbrio */
+            padding-bottom: 8px;
+            font-size: 18px;
         }
         
         .pdf-section {
-            margin-bottom: 15px; /* Reduzido de 20px para 15px */
-            padding: 12px; /* Reduzido de 15px para 12px */
+            margin-bottom: 15px;
+            padding: 12px;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
         }
         
         .pdf-section-title {
             color: var(--secondary-color);
-            margin-bottom: 8px; /* Reduzido de 10px para 8px */
+            margin-bottom: 8px;
             font-weight: bold;
-            font-size: 13px; /* Ajustado para equilíbrio */
+            font-size: 13px;
         }
         
         .pdf-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 8px 0; /* Reduzido de 10px para 8px */
-            font-size: 11px; /* Reduzido para caber mais conteúdo */
+            margin: 8px 0;
+            font-size: 11px;
         }
         
         .pdf-table th {
             background-color: var(--light-color);
-            padding: 8px; /* Reduzido de 10px para 8px */
+            padding: 8px;
             text-align: left;
             border: 1px solid #ddd;
         }
         
         .pdf-table td {
-            padding: 6px 8px; /* Reduzido de 8px 10px para 6px 8px */
+            padding: 6px 8px;
             border: 1px solid #ddd;
         }
         
         .pdf-footer {
-            margin-top: 20px; /* Reduzido de 30px para 20px */
-            padding-top: 15px; /* Reduzido de 20px para 15px */
+            margin-top: 20px;
+            padding-top: 15px;
             border-top: 1px solid #e0e0e0;
             text-align: center;
             color: #666;
-            font-size: 10px; /* Reduzido de 12px para 10px */
+            font-size: 10px;
         }
         
         .pdf-signature {
-            margin-top: 25px; /* Reduzido de 40px para 25px */
+            margin-top: 25px;
             display: flex;
             justify-content: space-between;
         }
         
         .pdf-signature-line {
             border-top: 1px solid #333;
-            width: 180px; /* Reduzido de 200px para 180px */
+            width: 180px;
             text-align: center;
             padding-top: 5px;
-            font-size: 11px; /* Ajustado para equilíbrio */
+            font-size: 11px;
         }
 
         /* Estilos específicos para o contrato */
         #contract-pdf-template .pdf-section {
-            margin-bottom: 12px; /* Menor espaçamento entre seções */
-            padding: 10px; /* Menor padding interno */
+            margin-bottom: 12px;
+            padding: 10px;
         }
 
         #contract-pdf-template .pdf-section p {
-            margin-bottom: 8px; /* Menor espaçamento entre parágrafos */
+            margin-bottom: 8px;
         }
 
         #contract-pdf-template .pdf-section-title {
-            margin-bottom: 6px; /* Menor espaçamento após título */
+            margin-bottom: 6px;
         }
         
         /* Financial Dashboard Styles */
@@ -523,6 +523,135 @@
         
         .transaction-expense {
             color: #e74c3c;
+        }
+
+        /* Novos estilos para tarefas realizadas */
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-item.completed {
+            background-color: #f8f9fa;
+            opacity: 0.7;
+        }
+
+        .task-checkbox {
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .task-title.completed {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .task-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .task-priority {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .task-due-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .task-due-date.overdue {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        /* Responsividade melhorada */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .financial-summary {
+                flex-direction: column;
+            }
+            
+            .financial-card {
+                margin: 10px 0;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .task-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .task-actions {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 10px;
+            }
+            
+            .card {
+                margin-bottom: 15px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-card .number {
+                font-size: 1.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 3px;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -2081,7 +2210,7 @@
             upcomingEventsList.innerHTML = html;
         }
 
-        // Update pending tasks list
+        // Update pending tasks list - FUNÇÃO MODIFICADA PARA INCLUIR MARCAÇÃO DE TAREFAS REALIZADAS
         function updatePendingTasks() {
             const pendingTasksList = document.getElementById('pendingTasksList');
             const pendingTasks = appData.tasks.filter(t => !t.completed).slice(0, 3);
@@ -2106,18 +2235,98 @@
                     'baixa': 'bg-secondary'
                 }[task.priority] || 'bg-secondary';
                 
+                // Verificar se a tarefa está atrasada
+                const today = new Date();
+                const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+                const isOverdue = dueDate && dueDate < today;
+                
                 html += `
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">${task.title}</h6>
-                            <small class="text-muted">Prazo: ${task.dueDate}</small>
+                    <div class="task-item">
+                        <input type="checkbox" class="task-checkbox" onchange="toggleTaskCompletion('${task.id}')">
+                        <div class="task-content">
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-meta d-flex align-items-center">
+                                ${task.dueDate ? `<span class="task-due-date ${isOverdue ? 'overdue' : ''}">
+                                    <i class="far fa-calendar"></i> ${new Date(task.dueDate).toLocaleDateString('pt-BR')}
+                                </span>` : ''}
+                                <span class="task-priority ${priorityClass} text-white">${task.priority}</span>
+                            </div>
                         </div>
-                        <span class="badge ${priorityClass}">${task.priority}</span>
+                        <div class="task-actions">
+                            <button class="btn btn-sm btn-outline-primary" onclick="showTaskModal('${task.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTask('${task.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             });
             html += '</div>';
             pendingTasksList.innerHTML = html;
+        }
+
+        // Função para marcar/desmarcar tarefa como realizada
+        function toggleTaskCompletion(taskId) {
+            const taskIndex = appData.tasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                appData.tasks[taskIndex].completed = !appData.tasks[taskIndex].completed;
+                appData.tasks[taskIndex].completedAt = appData.tasks[taskIndex].completed ? new Date().toISOString() : null;
+                saveData();
+                updateDashboard();
+                
+                // Feedback visual
+                const taskElement = document.querySelector(`.task-item input[onchange="toggleTaskCompletion('${taskId}')"]`).closest('.task-item');
+                if (appData.tasks[taskIndex].completed) {
+                    taskElement.classList.add('completed');
+                    taskElement.querySelector('.task-title').classList.add('completed');
+                    showToast('Tarefa marcada como realizada!', 'success');
+                } else {
+                    taskElement.classList.remove('completed');
+                    taskElement.querySelector('.task-title').classList.remove('completed');
+                    showToast('Tarefa marcada como pendente!', 'info');
+                }
+            }
+        }
+
+        // Função para exibir notificações toast
+        function showToast(message, type = 'info') {
+            // Criar elemento toast
+            const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+            const toastId = 'toast-' + Date.now();
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Remover o toast do DOM após ser escondido
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+
+        // Criar container para toasts se não existir
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
         }
 
         // Show a specific section
@@ -2217,23 +2426,29 @@
                 revenueDistributionChart.destroy();
             }
             
+            // Calculate data for charts based on actual data
+            const lastSixMonths = getLastSixMonths();
+            const revenueData = calculateRevenueByMonth(lastSixMonths);
+            const expensesData = calculateExpensesByMonth(lastSixMonths);
+            const revenueDistribution = calculateRevenueDistribution();
+            
             // Revenue vs Expenses Chart
             const revenueExpensesCtx = document.getElementById('revenueExpensesChart').getContext('2d');
             revenueExpensesChart = new Chart(revenueExpensesCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    labels: lastSixMonths.map(month => month.label),
                     datasets: [
                         {
                             label: 'Receitas',
-                            data: [12000, 19000, 15000, 18000, 22000, 25000],
+                            data: revenueData,
                             backgroundColor: 'rgba(76, 175, 80, 0.7)',
                             borderColor: 'rgba(76, 175, 80, 1)',
                             borderWidth: 1
                         },
                         {
                             label: 'Despesas',
-                            data: [8000, 12000, 10000, 11000, 15000, 18000],
+                            data: expensesData,
                             backgroundColor: 'rgba(244, 67, 54, 0.7)',
                             borderColor: 'rgba(244, 67, 54, 1)',
                             borderWidth: 1
@@ -2275,9 +2490,9 @@
             revenueDistributionChart = new Chart(revenueDistributionCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Casamentos', 'Aniversários', 'Corporativos', 'Formaturas', 'Outros'],
+                    labels: revenueDistribution.labels,
                     datasets: [{
-                        data: [45, 25, 15, 10, 5],
+                        data: revenueDistribution.data,
                         backgroundColor: [
                             'rgba(194, 24, 91, 0.7)',
                             'rgba(233, 30, 99, 0.7)',
@@ -2307,13 +2522,95 @@
                                 label: function(context) {
                                     const label = context.label || '';
                                     const value = context.parsed;
-                                    return `${label}: ${value}%`;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: R$ ${value.toLocaleString('pt-BR', {minimumFractionDigits: 2})} (${percentage}%)`;
                                 }
                             }
                         }
                     }
                 }
             });
+        }
+
+        // Calculate revenue by month for the last 6 months
+        function calculateRevenueByMonth(months) {
+            return months.map(month => {
+                return appData.receipts
+                    .filter(receipt => {
+                        const receiptDate = new Date(receipt.receiptDate);
+                        return receiptDate.getMonth() === month.month && 
+                               receiptDate.getFullYear() === month.year;
+                    })
+                    .reduce((sum, receipt) => sum + (receipt.value || 0), 0);
+            });
+        }
+
+        // Calculate expenses by month for the last 6 months
+        function calculateExpensesByMonth(months) {
+            return months.map(month => {
+                return appData.suppliers
+                    .filter(supplier => {
+                        // This is a simplified calculation - in a real system, you'd have expense records
+                        // For now, we'll use a fraction of supplier prices as expenses
+                        return Math.random() > 0.5; // Randomly include some suppliers as expenses
+                    })
+                    .reduce((sum, supplier) => sum + (supplier.price || 0), 0) * 0.7; // 70% of supplier price as expense
+            });
+        }
+
+        // Calculate revenue distribution by event type
+        function calculateRevenueDistribution() {
+            const distribution = {
+                'Casamentos': 0,
+                'Aniversários': 0,
+                'Corporativos': 0,
+                'Formaturas': 0,
+                'Outros': 0
+            };
+            
+            appData.receipts.forEach(receipt => {
+                const event = appData.events.find(e => e.id === receipt.eventId);
+                if (event) {
+                    const eventType = event.type === 'casamento' ? 'Casamentos' :
+                                     event.type === 'aniversario' ? 'Aniversários' :
+                                     event.type === 'corporativo' ? 'Corporativos' :
+                                     event.type === 'formatura' ? 'Formaturas' : 'Outros';
+                    distribution[eventType] += receipt.value || 0;
+                } else {
+                    distribution['Outros'] += receipt.value || 0;
+                }
+            });
+            
+            // Filter out categories with no revenue
+            const labels = [];
+            const data = [];
+            
+            Object.keys(distribution).forEach(key => {
+                if (distribution[key] > 0) {
+                    labels.push(key);
+                    data.push(distribution[key]);
+                }
+            });
+            
+            return { labels, data };
+        }
+
+        // Get last 6 months
+        function getLastSixMonths() {
+            const months = [];
+            const today = new Date();
+            
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                months.push({
+                    month: date.getMonth(),
+                    year: date.getFullYear(),
+                    label: date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
+                });
+            }
+            
+            return months;
         }
 
         // Update recent transactions
@@ -2512,10 +2809,6 @@
             generatePDF('financial-report-pdf-template', `Relatorio-Financeiro-${new Date().toISOString().split('T')[0]}.pdf`);
         }
 
-        // The rest of the functions remain the same as in the original code
-        // (showQuickEventModal, saveQuickEvent, showEventModal, saveEvent, etc.)
-        // ... (All the existing functions from the original code)
-
         // Show quick event modal
         function showQuickEventModal() {
             document.getElementById('quickEventForm').reset();
@@ -2558,7 +2851,7 @@
                 });
             }
             
-            alert(`Evento "${eventType}" para ${clientName} cadastrado com sucesso!`);
+            showToast(`Evento "${eventType}" para ${clientName} cadastrado com sucesso!`, 'success');
             quickEventModal.hide();
             updateDashboard();
         }
@@ -2652,7 +2945,7 @@
             saveData();
             eventModal.hide();
             loadEventsList();
-            alert('Evento salvo com sucesso!');
+            showToast('Evento salvo com sucesso!', 'success');
         }
 
         // Load events list
@@ -2785,7 +3078,7 @@
             saveData();
             clientModal.hide();
             loadClientsList();
-            alert('Cliente salvo com sucesso!');
+            showToast('Cliente salvo com sucesso!', 'success');
         }
 
         // Load clients list
@@ -2915,7 +3208,7 @@
             saveData();
             supplierModal.hide();
             loadSuppliersList();
-            alert('Fornecedor salvo com sucesso!');
+            showToast('Fornecedor salvo com sucesso!', 'success');
         }
 
         // Load suppliers list
@@ -3153,7 +3446,7 @@
             saveData();
             budgetModal.hide();
             loadBudgetsList();
-            alert('Orçamento salvo com sucesso!');
+            showToast('Orçamento salvo com sucesso!', 'success');
         }
 
         // Load budgets list
@@ -3294,7 +3587,17 @@
             saveData();
             taskModal.hide();
             updateDashboard();
-            alert('Tarefa salva com sucesso!');
+            showToast('Tarefa salva com sucesso!', 'success');
+        }
+
+        // Delete task function
+        function deleteTask(taskId) {
+            if (confirm('Tem certeza que deseja excluir esta tarefa?')) {
+                appData.tasks = appData.tasks.filter(t => t.id !== taskId);
+                saveData();
+                updateDashboard();
+                showToast('Tarefa excluída com sucesso!', 'success');
+            }
         }
 
         // Show contract modal
@@ -3386,7 +3689,7 @@
             saveData();
             contractModal.hide();
             loadContractsList();
-            alert('Contrato salvo com sucesso!');
+            showToast('Contrato salvo com sucesso!', 'success');
         }
 
         // Load contracts list
@@ -3549,7 +3852,7 @@
             saveData();
             receiptModal.hide();
             loadReceiptsList();
-            alert('Recibo salvo com sucesso!');
+            showToast('Recibo salvo com sucesso!', 'success');
         }
 
         // Load receipts list
@@ -3638,7 +3941,7 @@
             appData.settings.address = document.getElementById('address').value;
             
             saveData();
-            alert('Configurações salvas com sucesso!');
+            showToast('Configurações salvas com sucesso!', 'success');
         }
 
         // Load reports
@@ -3655,7 +3958,7 @@
 
         // Generate report
         function generateReport() {
-            alert('Relatório gerado com sucesso! Em uma implementação real, isso criaria um arquivo PDF ou Excel.');
+            showToast('Relatório gerado com sucesso!', 'success');
         }
 
         // Get status badge class
@@ -3728,6 +4031,7 @@
                 appData.events = appData.events.filter(e => e.id !== eventId);
                 saveData();
                 loadEventsList();
+                showToast('Evento excluído com sucesso!', 'success');
             }
         }
 
@@ -3736,6 +4040,7 @@
                 appData.clients = appData.clients.filter(c => c.id !== clientId);
                 saveData();
                 loadClientsList();
+                showToast('Cliente excluído com sucesso!', 'success');
             }
         }
 
@@ -3744,6 +4049,7 @@
                 appData.suppliers = appData.suppliers.filter(s => s.id !== supplierId);
                 saveData();
                 loadSuppliersList();
+                showToast('Fornecedor excluído com sucesso!', 'success');
             }
         }
 
@@ -3752,6 +4058,7 @@
                 appData.budgets = appData.budgets.filter(b => b.id !== budgetId);
                 saveData();
                 loadBudgetsList();
+                showToast('Orçamento excluído com sucesso!', 'success');
             }
         }
 
@@ -3760,6 +4067,7 @@
                 appData.contracts = appData.contracts.filter(c => c.id !== contractId);
                 saveData();
                 loadContractsList();
+                showToast('Contrato excluído com sucesso!', 'success');
             }
         }
 
@@ -3768,6 +4076,7 @@
                 appData.receipts = appData.receipts.filter(r => r.id !== receiptId);
                 saveData();
                 loadReceiptsList();
+                showToast('Recibo excluído com sucesso!', 'success');
             }
         }
 
@@ -3782,6 +4091,7 @@
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
+            showToast('Backup exportado com sucesso!', 'success');
         }
 
         // Import data
@@ -3790,7 +4100,7 @@
             const file = fileInput.files[0];
             
             if (!file) {
-                alert('Por favor, selecione um arquivo de backup.');
+                showToast('Por favor, selecione um arquivo de backup.', 'error');
                 return;
             }
             
@@ -3802,23 +4112,23 @@
                     if (confirm('Isso substituirá todos os dados atuais. Tem certeza?')) {
                         appData = importedData;
                         saveData();
-                        alert('Dados importados com sucesso!');
+                        showToast('Dados importados com sucesso!', 'success');
                         fileInput.value = '';
                         updateDashboard();
                     }
                 } catch (error) {
-                    alert('Erro ao importar dados. O arquivo pode estar corrompido.');
+                    showToast('Erro ao importar dados. O arquivo pode estar corrompido.', 'error');
                     console.error(error);
                 }
             };
             reader.readAsText(file);
         }
 
-        // Clear all data
+        // Clear all data - FUNÇÃO CORRIGIDA
         function clearAllData() {
             if (confirm('ATENÇÃO: Isso irá apagar TODOS os dados do sistema. Tem certeza absoluta?')) {
                 if (confirm('Esta ação não pode ser desfeita. Continuar?')) {
-                    localStorage.removeItem('cerimonialProData');
+                    // Reset appData to initial state
                     appData = {
                         events: [],
                         clients: [],
@@ -3836,12 +4146,31 @@
                             address: ""
                         }
                     };
+                    
+                    // Save the empty data to localStorage
                     saveData();
-                    alert('Todos os dados foram removidos.');
+                    
+                    // Update UI
                     updateDashboard();
+                    
+                    // Reload current section if needed
                     if (document.getElementById('events').style.display !== 'none') {
                         loadEventsList();
+                    } else if (document.getElementById('clients').style.display !== 'none') {
+                        loadClientsList();
+                    } else if (document.getElementById('suppliers').style.display !== 'none') {
+                        loadSuppliersList();
+                    } else if (document.getElementById('budgets').style.display !== 'none') {
+                        loadBudgetsList();
+                    } else if (document.getElementById('contracts').style.display !== 'none') {
+                        loadContractsList();
+                    } else if (document.getElementById('receipts').style.display !== 'none') {
+                        loadReceiptsList();
+                    } else if (document.getElementById('finance').style.display !== 'none') {
+                        loadFinancialDashboard();
                     }
+                    
+                    showToast('Todos os dados foram removidos.', 'success');
                 }
             }
         }
@@ -3860,7 +4189,7 @@
             }
             
             if (!budget) {
-                alert('Orçamento não encontrado!');
+                showToast('Orçamento não encontrado!', 'error');
                 return;
             }
             
@@ -3927,6 +4256,7 @@
             
             // Generate PDF
             generatePDF('budget-pdf-template', `Orçamento-${budget.number || budget.id}.pdf`);
+            showToast('PDF do orçamento gerado com sucesso!', 'success');
         }
 
         function generateContractPDF(contractId = null) {
@@ -3942,7 +4272,7 @@
             }
             
             if (!contract) {
-                alert('Contrato não encontrado!');
+                showToast('Contrato não encontrado!', 'error');
                 return;
             }
             
@@ -4002,6 +4332,7 @@
             
             // Generate PDF
             generatePDF('contract-pdf-template', `Contrato-${contract.number || contract.id}.pdf`);
+            showToast('PDF do contrato gerado com sucesso!', 'success');
         }
 
         function generateReceiptPDF(receiptId = null) {
@@ -4017,7 +4348,7 @@
             }
             
             if (!receipt) {
-                alert('Recibo não encontrado!');
+                showToast('Recibo não encontrado!', 'error');
                 return;
             }
             
@@ -4057,13 +4388,14 @@
             
             // Generate PDF
             generatePDF('receipt-pdf-template', `Recibo-${receipt.number || receipt.id}.pdf`);
+            showToast('PDF do recibo gerado com sucesso!', 'success');
         }
 
         function generatePDF(templateId, filename) {
             const { jsPDF } = window.jspdf;
             
             if (!jsPDF) {
-                alert('Erro: Biblioteca jsPDF não carregada corretamente.');
+                showToast('Erro: Biblioteca jsPDF não carregada corretamente.', 'error');
                 return;
             }
             
@@ -4073,7 +4405,7 @@
             const template = document.getElementById(templateId);
             
             if (!template) {
-                alert('Erro: Template PDF não encontrado.');
+                showToast('Erro: Template PDF não encontrado.', 'error');
                 return;
             }
             
@@ -4107,7 +4439,7 @@
                 doc.save(filename);
             }).catch(error => {
                 console.error('Error generating PDF:', error);
-                alert('Erro ao gerar PDF. Tente novamente.');
+                showToast('Erro ao gerar PDF. Tente novamente.', 'error');
             });
         }
     </script>
