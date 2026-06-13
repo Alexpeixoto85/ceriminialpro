@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -240,6 +241,36 @@ a{color:inherit; text-decoration:none}
 .flex{display:flex;align-items:center;gap:10px}
 .spread{justify-content:space-between}
 .pdf-stage{position:fixed;left:-9999px;top:0}
+/* Agenda / calendar */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--plum);text-transform:capitalize}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{text-align:center;font-size:10px;font-weight:700;color:var(--faint);text-transform:uppercase;padding:4px 0}
+.cal .cell{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:5px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;position:relative;border:1px solid transparent}
+.cal .cell.muted{color:var(--faint)}
+.cal .cell.today{background:var(--plum-soft);color:var(--plum)}
+.cal .cell.sel{border-color:var(--plum);background:#fff}
+.cal .cell .dots{display:flex;gap:2px;margin-top:2px;flex-wrap:wrap;justify-content:center;max-width:90%}
+.cal .cell .d{width:5px;height:5px;border-radius:50%}
+.d-ev{background:var(--plum)}.d-tk{background:var(--gold)}.d-pay{background:var(--ok)}
+/* alerts */
+.alert-item{display:flex;gap:11px;padding:13px 4px;border-bottom:1px solid var(--line2);align-items:flex-start}
+.alert-item .ai{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;font-size:15px}
+.ai-warn{background:var(--warn-bg);color:var(--warn)}.ai-info{background:#e7eef7;color:#3a6ea5}.ai-ok{background:var(--ok-bg);color:var(--ok)}.ai-danger{background:#fbe9e7;color:#c0392b}
+.alert-item .at{font-weight:600;font-size:14px}.alert-item .as{font-size:12.5px;color:var(--muted);margin-top:1px}
+/* logo upload */
+.logo-box{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.logo-prev{width:74px;height:74px;border-radius:14px;border:1px solid var(--line);background:var(--bg);display:grid;place-items:center;overflow:hidden;flex-shrink:0}
+.logo-prev img{width:100%;height:100%;object-fit:contain}
+.logo-prev .ph{color:var(--faint);font-size:22px}
+.seg-radio{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.seg-radio label{flex:1;min-width:120px;border:1px solid var(--line);border-radius:11px;padding:11px 12px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:9px;color:var(--muted)}
+.seg-radio label.on{border-color:var(--plum);background:var(--plum-soft);color:var(--plum)}
+.seg-radio input{display:none}
+.switch{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--line2)}
+.switch .sw{width:44px;height:26px;border-radius:14px;background:var(--line);position:relative;transition:.2s;flex-shrink:0;cursor:pointer}
+.switch .sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.switch .sw.on{background:var(--plum)}.switch .sw.on::after{left:21px}
 @media(min-width:760px){
   .kpi-grid{grid-template-columns:repeat(4,1fr)}
 }
@@ -266,7 +297,8 @@ a{color:inherit; text-decoration:none}
 <div id="app">
   <header class="topbar">
     <button class="iconbtn" onclick="App.openDrawer()" aria-label="Menu"><i class="fas fa-bars"></i></button>
-    <div class="brand"><div class="logo"><i class="fas fa-ring"></i></div><span id="topCompany">CerimonialPro</span></div>
+    <div class="brand"><div class="logo" id="topLogo"><i class="fas fa-ring"></i></div><span id="topCompany">CerimonialPro</span></div>
+    <button class="iconbtn" onclick="App.openAlerts()" aria-label="Alertas" style="margin-left:auto"><i class="fas fa-bell"></i><span class="dot" id="alertDot" style="display:none"></span></button>
     <div class="sync-pill" id="syncPill" onclick="App.go('settings')"><i class="fas fa-cloud"></i><span id="syncLabel">Local</span></div>
   </header>
 
@@ -310,6 +342,21 @@ a{color:inherit; text-decoration:none}
         <div class="chip" data-f="done" onclick="App.evFilter(this)">Realizados</div>
       </div>
       <div id="eventsList"></div>
+    </section>
+
+    <!-- AGENDA -->
+    <section class="page" id="page-agenda">
+      <div class="page-head"><div><h1>Agenda</h1><div class="sub" id="agSub"></div></div></div>
+      <div class="cal-nav">
+        <button class="iconbtn" onclick="App.calMove(-1)"><i class="fas fa-chevron-left"></i></button>
+        <div class="cal-title" id="calTitle"></div>
+        <button class="iconbtn" onclick="App.calMove(1)"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div class="card"><div class="card-pad" style="padding:10px"><div class="cal" id="calGrid"></div></div></div>
+      <div class="card">
+        <div class="card-h"><h3 id="agDayTitle">Compromissos do dia</h3></div>
+        <div id="agDayList"></div>
+      </div>
     </section>
 
     <!-- CLIENTS -->
@@ -389,15 +436,40 @@ a{color:inherit; text-decoration:none}
       </div>
 
       <div class="card">
-        <div class="card-h"><h3><i class="fas fa-building" style="color:var(--plum);margin-right:7px"></i>Dados da empresa</h3></div>
+        <div class="card-h"><h3><i class="fas fa-building" style="color:var(--plum);margin-right:7px"></i>Dados do negócio</h3></div>
         <div class="card-pad">
+          <div class="logo-box">
+            <div class="logo-prev" id="logoPrev"><span class="ph"><i class="fas fa-image"></i></span></div>
+            <div style="flex:1">
+              <label class="btn btn-ghost btn-sm" style="display:inline-flex;cursor:pointer"><i class="fas fa-upload"></i> Enviar logomarca
+                <input type="file" accept="image/*" style="display:none" onchange="App.uploadLogo(event)"></label>
+              <button class="btn btn-ghost btn-sm" onclick="App.removeLogo()" id="logoDel" style="display:none;margin-top:6px"><i class="fas fa-trash"></i> Remover</button>
+              <div class="hint">PNG/JPG. Aparece nos documentos e no topo do app.</div>
+            </div>
+          </div>
           <div class="field"><label>Nome da empresa</label><input id="setCompany"></div>
+          <div class="field"><label>Slogan / assinatura <span class="muted small">(opcional)</span></label><input id="setSlogan" placeholder="Ex.: Realizando sonhos desde 2015"></div>
           <div class="field"><label>Responsável</label><input id="setUser"></div>
           <div class="row2 mb"><div class="field"><label>E-mail</label><input id="setEmail" type="email"></div><div class="field"><label>Telefone/WhatsApp</label><input id="setPhone" placeholder="55 11 99999-9999"></div></div>
           <div class="field"><label>CNPJ/CPF</label><input id="setDoc"></div>
           <div class="field"><label>Endereço</label><input id="setAddress"></div>
-          <div class="field"><label>Logo (URL ou cole imagem)</label><input id="setLogo" placeholder="https://..." oninput="App.previewLogo()"><div class="hint">Aparece nos PDFs de orçamento, contrato e recibo.</div></div>
           <button class="btn btn-primary btn-block" onclick="App.saveSettings()"><i class="fas fa-floppy-disk"></i> Salvar dados</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-file-lines" style="color:var(--plum);margin-right:7px"></i>Aparência dos documentos</h3></div>
+        <div class="card-pad">
+          <label class="small muted" style="display:block;margin-bottom:8px">Onde exibir os dados do negócio</label>
+          <div class="seg-radio" id="layoutSeg">
+            <label data-v="header"><input type="radio" name="docLayout" value="header"><i class="fas fa-window-maximize"></i> No cabeçalho</label>
+            <label data-v="footer"><input type="radio" name="docLayout" value="footer"><i class="fas fa-window-minimize"></i> No rodapé</label>
+          </div>
+          <div class="switch">
+            <div><div style="font-weight:600;font-size:14px">Marca d'água</div><div class="small muted">Selo elegante ao fundo dos documentos</div></div>
+            <div class="sw" id="wmSwitch" onclick="App.toggleWm()"></div>
+          </div>
+          <button class="btn btn-primary btn-block mt" onclick="App.saveSettings()"><i class="fas fa-floppy-disk"></i> Salvar aparência</button>
         </div>
       </div>
 
@@ -421,7 +493,7 @@ a{color:inherit; text-decoration:none}
     <a data-target="events" onclick="App.go('events')"><i class="fas fa-calendar-days"></i>Eventos</a>
     <a class="fab-tab" onclick="App.quickAdd()"><span class="fab"><i class="fas fa-plus"></i></span></a>
     <a data-target="budgets" onclick="App.go('budgets')"><i class="fas fa-file-invoice-dollar"></i>Orçar</a>
-    <a data-target="clients" onclick="App.go('clients')"><i class="fas fa-users"></i>Clientes</a>
+    <a data-target="agenda" onclick="App.go('agenda')"><i class="fas fa-calendar-check"></i>Agenda</a>
   </nav>
 </div>
 
@@ -437,6 +509,7 @@ a{color:inherit; text-decoration:none}
     <a data-target="dashboard" onclick="App.go('dashboard')"><i class="fas fa-house"></i> Dashboard</a>
     <div class="grp">Gestão</div>
     <a data-target="events" onclick="App.go('events')"><i class="fas fa-calendar-days"></i> Eventos</a>
+    <a data-target="agenda" onclick="App.go('agenda')"><i class="fas fa-calendar-check"></i> Agenda</a>
     <a data-target="clients" onclick="App.go('clients')"><i class="fas fa-users"></i> Clientes</a>
     <a data-target="suppliers" onclick="App.go('suppliers')"><i class="fas fa-handshake"></i> Fornecedores</a>
     <div class="grp">Financeiro & documentos</div>
@@ -470,7 +543,7 @@ a{color:inherit; text-decoration:none}
 const STORE_KEY='cerimonialProData';
 const SYNC_KEY='cerimonialProSync';
 let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],
-  settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},
+  settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c'},
   updatedAt:new Date().toISOString()};
 let syncCfg={token:'',gistId:'',auto:false,lastSync:null};
 
@@ -535,6 +608,9 @@ const App={
     document.getElementById('drCompany').textContent=s.companyName;
     document.getElementById('drUser').textContent=s.userName||'—';
     document.getElementById('pageTitle').textContent=s.companyName;
+    const tl=document.getElementById('topLogo');
+    if(tl)tl.innerHTML=s.logo?'<img src="'+s.logo+'" style="width:100%;height:100%;object-fit:cover;border-radius:9px">':'<i class="fas fa-ring"></i>';
+    this.refreshAlerts();
   },
   go(t){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -544,6 +620,7 @@ const App={
     window.scrollTo(0,0);
     if(t==='dashboard')this.renderDashboard();
     if(t==='events')this.renderEvents();
+    if(t==='agenda')this.renderAgenda();
     if(t==='clients')this.renderClients();
     if(t==='suppliers')this.renderSuppliers();
     if(t==='budgets')this.renderBudgets();
@@ -800,8 +877,9 @@ Object.assign(App,{
       '<label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block">Itens</label>'+
       '<table class="items-tbl"><thead><tr><th>Descrição</th><th class="colq">Qtd</th><th class="colp">Valor</th><th class="colx"></th></tr></thead><tbody id="f_bitems"></tbody></table>'+
       '<button class="btn btn-ghost btn-sm mt" onclick="App.addBItem()"><i class="fas fa-plus"></i> Adicionar item</button>'+
-      '<div class="flex spread mt" style="font-size:18px;font-weight:700;padding-top:12px;border-top:1px solid var(--line2)"><span>Total</span><span id="f_btotal" style="color:var(--plum)">R$ 0,00</span></div>'+
-      '<div class="field mt"><label>Observações / condições</label><textarea id="f_bobs">'+U.esc(b.observations)+'</textarea></div>',
+      '<div class="row2 mt"><div class="field"><label>Desconto (R$)</label><input type="number" step="0.01" min="0" id="f_bdiscount" value="'+(b.discount||'')+'" oninput="App.calcBTotal()" placeholder="0,00"></div><div class="field"><label>&nbsp;</label><div class="flex spread" style="font-size:18px;font-weight:700;padding:9px 0"><span style="font-size:13px;color:var(--muted)">Total</span><span id="f_btotal" style="color:var(--plum)">R$ 0,00</span></div></div></div>'+
+      '<div class="field"><label>Condições de pagamento</label><input id="f_bpayment" value="'+U.esc(b.payment)+'" placeholder="Ex.: 50% na assinatura, 50% no evento"></div>'+
+      '<div class="field"><label>Observações</label><textarea id="f_bobs">'+U.esc(b.observations)+'</textarea></div>',
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveBudget()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
     (b.items&&b.items.length?b.items:[{}]).forEach(it=>this.addBItem(it));
     this.calcBTotal();
@@ -816,6 +894,8 @@ Object.assign(App,{
   },
   calcBTotal(){
     let t=0; document.querySelectorAll('#f_bitems tr').forEach(r=>{const q=parseFloat(r.querySelector('.bi-q').value)||0,p=parseFloat(r.querySelector('.bi-p').value)||0;t+=q*p;});
+    const dEl=document.getElementById('f_bdiscount'); const disc=dEl?parseFloat(dEl.value)||0:0;
+    t=Math.max(0,t-disc);
     document.getElementById('f_btotal').textContent=U.money(t); return t;
   },
   saveBudget(){
@@ -823,9 +903,10 @@ Object.assign(App,{
     if(!cid)return this.toast('Selecione o cliente','err');
     const items=[]; document.querySelectorAll('#f_bitems tr').forEach(r=>{const d=r.querySelector('.bi-d').value.trim(),q=parseFloat(r.querySelector('.bi-q').value)||0,p=parseFloat(r.querySelector('.bi-p').value)||0;if(d&&q>0)items.push({description:d,quantity:q,unitPrice:p,total:q*p});});
     if(!items.length)return this.toast('Adicione ao menos um item','err');
-    const total=items.reduce((s,i)=>s+i.total,0);
+    const disc=parseFloat(document.getElementById('f_bdiscount').value)||0;
+    const total=Math.max(0,items.reduce((s,i)=>s+i.total,0)-disc);
     const o={clientId:cid,eventId:document.getElementById('f_bevent').value,validUntil:document.getElementById('f_bvalid').value,
-      status:document.getElementById('f_bstatus').value,items,total,observations:document.getElementById('f_bobs').value.trim(),updatedAt:new Date().toISOString()};
+      status:document.getElementById('f_bstatus').value,items,discount:disc,payment:document.getElementById('f_bpayment').value.trim(),total,observations:document.getElementById('f_bobs').value.trim(),updatedAt:new Date().toISOString()};
     if(id){const i=data.budgets.findIndex(x=>x.id===id);o.number=data.budgets[i].number;data.budgets[i]={...data.budgets[i],...o};}
     else{o.id=U.id('bu');o.createdAt=new Date().toISOString();o.number='ORC-'+String(data.budgets.length+1).padStart(4,'0');data.budgets.push(o);}
     saveStore();this.closeSheet();this.renderBudgets();this.toast('Orçamento salvo','ok');
@@ -949,34 +1030,182 @@ Object.assign(App,{
   saveTask(){
     const title=document.getElementById('f_ttitle').value.trim(); if(!title)return this.toast('Informe a tarefa','err');
     data.tasks.push({id:U.id('tk'),title,due:document.getElementById('f_tdue').value,eventId:document.getElementById('f_tevent').value,done:false,createdAt:new Date().toISOString()});
-    saveStore();this.closeSheet();this.renderDashboard();this.toast('Tarefa adicionada','ok');
+    saveStore();this.closeSheet();this.renderDashboard();this.refreshAlerts();this.toast('Tarefa adicionada','ok');
   },
 });
+
+/* ===== AGENDA / CALENDÁRIO ===== */
+Object.assign(App,{
+  calRef:null, calSel:null,
+  renderAgenda(){
+    const now=new Date();
+    if(!this.calRef)this.calRef={y:now.getFullYear(),m:now.getMonth()};
+    if(!this.calSel)this.calSel=now.toISOString().slice(0,10);
+    const {y,m}=this.calRef;
+    document.getElementById('calTitle').textContent=new Date(y,m,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    const first=new Date(y,m,1), startDow=first.getDay(), days=new Date(y,m+1,0).getDate();
+    const prevDays=new Date(y,m,0).getDate();
+    const dayMap=this.calDayMap();
+    let html='<div class="dow">D</div><div class="dow">S</div><div class="dow">T</div><div class="dow">Q</div><div class="dow">Q</div><div class="dow">S</div><div class="dow">S</div>';
+    const todayStr=now.toISOString().slice(0,10);
+    const cell=(dnum,mo,yr,muted)=>{
+      const ds=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(dnum).padStart(2,'0');
+      const info=dayMap[ds]||{};
+      let dots='';
+      if(info.ev)dots+='<span class="d d-ev"></span>';
+      if(info.tk)dots+='<span class="d d-tk"></span>';
+      if(info.pay)dots+='<span class="d d-pay"></span>';
+      const cls=['cell'];if(muted)cls.push('muted');if(ds===todayStr)cls.push('today');if(ds===this.calSel)cls.push('sel');
+      return '<div class="'+cls.join(' ')+'" onclick="App.calSelect(\''+ds+'\')">'+dnum+(dots?'<div class="dots">'+dots+'</div>':'')+'</div>';
+    };
+    for(let i=startDow-1;i>=0;i--)html+=cell(prevDays-i,(m+11)%12,m===0?y-1:y,true);
+    for(let d=1;d<=days;d++)html+=cell(d,m,y,false);
+    const rem=(7-((startDow+days)%7))%7;
+    for(let d=1;d<=rem;d++)html+=cell(d,(m+1)%12,m===11?y+1:y,true);
+    document.getElementById('calGrid').innerHTML=html;
+    const evc=data.events.filter(e=>e.date&&e.date.slice(0,7)===y+'-'+String(m+1).padStart(2,'0')).length;
+    document.getElementById('agSub').textContent=evc+' evento(s) neste mês';
+    this.renderAgendaDay();
+  },
+  calDayMap(){
+    const map={};
+    const mark=(d,k)=>{if(!d)return;d=d.slice(0,10);(map[d]=map[d]||{})[k]=true;};
+    data.events.forEach(e=>e.status!=='cancelled'&&mark(e.date,'ev'));
+    data.tasks.forEach(t=>!t.done&&mark(t.due,'tk'));
+    data.receipts.forEach(r=>mark(r.receiptDate,'pay'));
+    return map;
+  },
+  calMove(delta){let{y,m}=this.calRef;m+=delta;if(m<0){m=11;y--;}if(m>11){m=0;y++;}this.calRef={y,m};this.renderAgenda();},
+  calSelect(ds){this.calSel=ds;this.renderAgenda();},
+  renderAgendaDay(){
+    const ds=this.calSel;
+    document.getElementById('agDayTitle').textContent=U.dateLong(ds);
+    let items=[];
+    data.events.filter(e=>e.date===ds&&e.status!=='cancelled').forEach(e=>{const cl=data.clients.find(c=>c.id===e.clientId);
+      items.push({ic:'fa-calendar-star',cls:'ai-info',t:e.type+(cl?' · '+cl.name:''),s:(e.time?e.time+' · ':'')+(e.location||'Evento'),sort:e.time||'00:00'});});
+    data.tasks.filter(t=>t.due===ds).forEach(t=>items.push({ic:t.done?'fa-circle-check':'fa-list-check',cls:t.done?'ai-ok':'ai-warn',t:t.title,s:t.done?'Concluída':'Tarefa pendente',sort:'08:00'}));
+    data.receipts.filter(r=>r.receiptDate===ds).forEach(r=>{const cl=data.clients.find(c=>c.id===r.clientId);
+      items.push({ic:'fa-receipt',cls:'ai-ok',t:'Recebimento '+U.money(r.value),s:(cl?cl.name+' · ':'')+(r.paymentMethod||''),sort:'09:00'});});
+    items.sort((a,b)=>a.sort.localeCompare(b.sort));
+    document.getElementById('agDayList').innerHTML=items.length?
+      '<div class="card-pad" style="padding-top:4px">'+items.map(i=>'<div class="alert-item"><div class="ai '+i.cls+'"><i class="fas '+i.ic+'"></i></div><div><div class="at">'+U.esc(i.t)+'</div><div class="as">'+U.esc(i.s)+'</div></div></div>').join('')+'</div>'
+      :'<div class="empty" style="padding:26px"><p style="margin:0">Nenhum compromisso neste dia</p></div>';
+  },
+});
+
+/* ===== ALERTAS & LEMBRETES ===== */
+Object.assign(App,{
+  computeAlerts(){
+    const A=[];
+    data.events.filter(e=>e.status!=='cancelled'&&e.status!=='done'&&e.date).forEach(e=>{
+      const d=U.daysTo(e.date),cl=data.clients.find(c=>c.id===e.clientId);
+      if(d!==null&&d>=0&&d<=14)A.push({ic:'fa-calendar-star',cls:d<=2?'ai-danger':'ai-info',t:e.type+(cl?' · '+cl.name:''),s:d===0?'É hoje!':d===1?'É amanhã':'Em '+d+' dias · '+U.date(e.date),sort:d,go:'events'});
+      else if(d!==null&&d<0&&e.status==='confirmed')A.push({ic:'fa-triangle-exclamation',cls:'ai-warn',t:e.type+(cl?' · '+cl.name:''),s:'Evento passou — atualize o status',sort:d,go:'events'});
+    });
+    data.tasks.filter(t=>!t.done&&t.due).forEach(t=>{const d=U.daysTo(t.due);
+      if(d!==null&&d<=7)A.push({ic:'fa-list-check',cls:d<0?'ai-danger':'ai-warn',t:t.title,s:d<0?'Atrasada '+(-d)+' dia(s)':d===0?'Vence hoje':'Vence em '+d+' dia(s)',sort:d,go:'dashboard'});});
+    data.budgets.filter(b=>b.status==='sent'&&b.validUntil).forEach(b=>{const d=U.daysTo(b.validUntil),cl=data.clients.find(c=>c.id===b.clientId);
+      if(d!==null&&d<=5)A.push({ic:'fa-file-invoice-dollar',cls:d<0?'ai-danger':'ai-warn',t:'Orçamento '+(b.number||'')+(cl?' · '+cl.name:''),s:d<0?'Validade expirada':'Validade expira em '+d+' dia(s)',sort:d,go:'budgets'});});
+    data.contracts.filter(c=>c.status!=='cancelled').forEach(c=>{
+      const recv=data.receipts.filter(r=>r.contractId===c.id||r.clientId===c.clientId).reduce((s,r)=>s+(r.value||0),0);
+      const cl=data.clients.find(x=>x.id===c.clientId);
+      if((c.value||0)-recv>0.5&&c.status==='signed')A.push({ic:'fa-sack-dollar',cls:'ai-info',t:'A receber'+(cl?' · '+cl.name:''),s:U.money((c.value||0)-recv)+' pendente',sort:50,go:'receipts'});});
+    return A.sort((a,b)=>a.sort-b.sort);
+  },
+  refreshAlerts(){
+    const dot=document.getElementById('alertDot'); if(!dot)return;
+    const n=this.computeAlerts().filter(a=>a.cls==='ai-danger'||a.cls==='ai-warn').length;
+    dot.style.display=n>0?'block':'none';
+  },
+  openAlerts(){
+    const A=this.computeAlerts();
+    const body=A.length?'<div style="margin:-4px 0">'+A.map(a=>'<div class="alert-item" onclick="App.closeSheet();App.go(\''+a.go+'\')"><div class="ai '+a.cls+'"><i class="fas '+a.ic+'"></i></div><div><div class="at">'+U.esc(a.t)+'</div><div class="as">'+U.esc(a.s)+'</div></div></div>').join('')+'</div>'
+      :'<div class="empty" style="padding:34px"><div class="empty-ic"><i class="fas fa-bell-slash"></i></div><p>Nenhum alerta no momento ✨</p></div>';
+    this.openSheet('Alertas & lembretes',body,'<button class="btn btn-primary btn-block" onclick="App.closeSheet()">Fechar</button>');
+  },
+});
+
+/* ===== Valor por extenso (pt-BR) ===== */
+const Extenso={
+  u:['zero','um','dois','três','quatro','cinco','seis','sete','oito','nove','dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'],
+  d:['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'],
+  c:['','cento','duzentos','trezentos','quatrocentos','quinhentos','seiscentos','setecentos','oitocentos','novecentos'],
+  tri(n){
+    if(n===0)return '';
+    if(n===100)return 'cem';
+    let s='';
+    const c=Math.floor(n/100), r=n%100;
+    if(c>0)s+=this.c[c];
+    if(r>0){if(s)s+=' e ';
+      if(r<20)s+=this.u[r];
+      else{const dz=Math.floor(r/10),un=r%10;s+=this.d[dz]+(un>0?' e '+this.u[un]:'');}}
+    return s;
+  },
+  conv(n){
+    n=Math.floor(n);
+    if(n===0)return 'zero';
+    const mi=Math.floor(n/1000000), mil=Math.floor((n%1000000)/1000), res=n%1000;
+    let parts=[];
+    if(mi>0)parts.push(mi===1?'um milhão':this.tri(mi)+' milhões');
+    if(mil>0)parts.push(mil===1?'mil':this.tri(mil)+' mil');
+    if(res>0)parts.push(this.tri(res));
+    return parts.join(parts.length>1&&res>0&&res<100?' e ':' ').replace(/\s+/g,' ').trim();
+  },
+  reais(v){
+    v=Math.round((Number(v)||0)*100)/100;
+    const i=Math.floor(v), c=Math.round((v-i)*100);
+    let s=this.conv(i)+(i===1?' real':' reais');
+    if(c>0)s+=' e '+this.conv(c)+(c===1?' centavo':' centavos');
+    return s.charAt(0).toUpperCase()+s.slice(1);
+  },
+};
 
 /* ===== SETTINGS ===== */
 Object.assign(App,{
   loadSettings(){
     const s=data.settings;
     document.getElementById('setCompany').value=s.companyName||'';
+    document.getElementById('setSlogan').value=s.slogan||'';
     document.getElementById('setUser').value=s.userName||'';
     document.getElementById('setEmail').value=s.email||'';
     document.getElementById('setPhone').value=s.phone||'';
     document.getElementById('setDoc').value=s.doc||'';
     document.getElementById('setAddress').value=s.address||'';
-    document.getElementById('setLogo').value=s.logo||'';
     document.getElementById('setGhToken').value=syncCfg.token||'';
     document.getElementById('setGistId').value=syncCfg.gistId||'';
     document.getElementById('setAutoSync').checked=!!syncCfg.auto;
+    this.renderLogoPrev(); this.renderDocOpts();
     Sync.updateStatus();
   },
+  renderLogoPrev(){
+    const box=document.getElementById('logoPrev'), del=document.getElementById('logoDel');
+    if(data.settings.logo){box.innerHTML='<img src="'+data.settings.logo+'" alt="logo">';if(del)del.style.display='inline-flex';}
+    else{box.innerHTML='<span class="ph"><i class="fas fa-image"></i></span>';if(del)del.style.display='none';}
+  },
+  renderDocOpts(){
+    const lay=data.settings.docLayout||'header';
+    document.querySelectorAll('#layoutSeg label').forEach(l=>{const on=l.dataset.v===lay;l.classList.toggle('on',on);l.querySelector('input').checked=on;});
+    document.getElementById('wmSwitch').classList.toggle('on',data.settings.watermark!==false);
+  },
+  toggleWm(){data.settings.watermark=!(data.settings.watermark!==false);this.renderDocOpts();},
+  uploadLogo(ev){
+    const f=ev.target.files[0]; if(!f)return;
+    if(f.size>1.5*1024*1024){this.toast('Imagem muito grande (máx 1,5MB)','err');return;}
+    const rd=new FileReader();
+    rd.onload=e=>{data.settings.logo=e.target.result;this.renderLogoPrev();this.refreshChrome();this.toast('Logomarca carregada — salve para confirmar','ok');};
+    rd.readAsDataURL(f); ev.target.value='';
+  },
+  removeLogo(){data.settings.logo='';this.renderLogoPrev();this.refreshChrome();},
   saveSettings(){
+    const lay=document.querySelector('input[name="docLayout"]:checked');
     Object.assign(data.settings,{companyName:document.getElementById('setCompany').value.trim()||'CerimonialPro',
+      slogan:document.getElementById('setSlogan').value.trim(),
       userName:document.getElementById('setUser').value.trim(),email:document.getElementById('setEmail').value.trim(),
       phone:document.getElementById('setPhone').value.trim(),doc:document.getElementById('setDoc').value.trim(),
-      address:document.getElementById('setAddress').value.trim(),logo:document.getElementById('setLogo').value.trim()});
-    saveStore();this.refreshChrome();this.toast('Dados salvos','ok');
+      address:document.getElementById('setAddress').value.trim(),
+      docLayout:lay?lay.value:(data.settings.docLayout||'header')});
+    saveStore();this.refreshChrome();this.toast('Configurações salvas','ok');
   },
-  previewLogo(){},
   exportData(){
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -1032,97 +1261,190 @@ Object.assign(App,{
 });
 
 /* ===== PDF GENERATION ===== */
+/* ===== PDF GENERATION — motor profissional ===== */
 const PDF={
+  rgb(h){h=(h||'#6b2d5c').replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];},
+  decorate(doc){
+    const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+    const [r,g,b]=this.rgb(data.settings.accent);
+    doc.setDrawColor(r,g,b);doc.setLineWidth(1.1);doc.rect(8,8,W-16,H-16);
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.4);doc.rect(11,11,W-22,H-22);
+    doc.setLineWidth(0.7);
+    [[11,11,1,1],[W-11,11,-1,1],[11,H-11,1,-1],[W-11,H-11,-1,-1]].forEach(p=>{
+      doc.line(p[0],p[1],p[0]+p[2]*9,p[1]);doc.line(p[0],p[1],p[0],p[1]+p[3]*9);});
+    doc.setLineWidth(0.2);
+    this.watermark(doc);
+  },
+  watermark(doc){
+    if(data.settings.watermark===false)return;
+    const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),cx=W/2,cy=H/2-6;
+    doc.setDrawColor(222,206,180);doc.setLineWidth(1.3);
+    doc.circle(cx-14,cy,28,'S');doc.circle(cx+14,cy,28,'S');
+    doc.setFont('times','bold');doc.setFontSize(26);doc.setTextColor(238,231,238);
+    doc.text((data.settings.companyName||'CerimonialPro').toUpperCase(),cx,cy+56,{align:'center'});
+    doc.setLineWidth(0.2);doc.setTextColor(40,35,48);doc.setFont('helvetica','normal');
+  },
+  logo(doc,x,y,sz){
+    const s=data.settings; if(!s.logo)return false;
+    try{
+      let fmt='JPEG';
+      if(s.logo.indexOf('image/png')>=0)fmt='PNG';
+      else if(s.logo.indexOf('image/webp')>=0)fmt='WEBP';
+      let w=sz,h=sz;
+      try{const pr=doc.getImageProperties(s.logo); if(pr&&pr.width&&pr.height){if(pr.width>pr.height){h=sz*pr.height/pr.width;}else{w=sz*pr.width/pr.height;}}}catch(e){}
+      doc.addImage(s.logo,fmt,x,y,w,h);
+      return true;
+    }catch(e){return false;}
+  },
   header(doc,title,number){
-    const s=data.settings, W=doc.internal.pageSize.getWidth();
-    doc.setFillColor(107,45,92); doc.rect(0,0,W,34,'F');
-    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(17);
-    doc.text(s.companyName||'CerimonialPro',14,16);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    const sub=[s.email,s.phone].filter(Boolean).join('  •  ');
-    if(sub)doc.text(sub,14,24);
-    if(s.doc)doc.text('CNPJ/CPF: '+s.doc,14,29);
-    doc.setTextColor(189,154,60); doc.setFont('helvetica','bold'); doc.setFontSize(11);
-    doc.text(title.toUpperCase(),W-14,16,{align:'right'});
-    if(number){doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(number,W-14,22,{align:'right'});}
-    doc.setTextColor(40,35,48);
-    return 44;
+    const s=data.settings,W=doc.internal.pageSize.getWidth();
+    const [r,g,b]=this.rgb(s.accent);
+    const inHeader=(s.docLayout||'header')==='header';
+    const hasLogo=this.logo(doc,18,15,22);
+    const tx=hasLogo?44:18;
+    doc.setTextColor(r,g,b);doc.setFont('times','bold');doc.setFontSize(19);
+    doc.text(s.companyName||'CerimonialPro',tx,23);
+    let yy=23;
+    if(s.slogan){doc.setFont('times','italic');doc.setFontSize(9.5);doc.setTextColor(150,138,154);doc.text(s.slogan,tx,29);yy=29;}
+    if(inHeader){
+      doc.setFont('helvetica','normal');doc.setFontSize(8.3);doc.setTextColor(92,84,98);
+      const ln=[s.address,[s.phone,s.email].filter(Boolean).join('   •   '),s.doc?'CNPJ/CPF: '+s.doc:''].filter(Boolean);
+      ln.forEach((l,i)=>doc.text(l,tx,yy+5.5+i*4.3));
+      yy=yy+5.5+ln.length*4.3;
+    }
+    doc.setFillColor(r,g,b);doc.roundedRect(W-74,15,56,17,2.5,2.5,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11);
+    doc.text(title.toUpperCase(),W-46,number?22:25,{align:'center'});
+    if(number){doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.text(number,W-46,28,{align:'center'});}
+    const dY=Math.max(yy+5,40);
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.6);doc.line(18,dY,W-18,dY);doc.setLineWidth(0.2);
+    doc.setTextColor(40,35,48);doc.setFont('helvetica','normal');
+    return dY+9;
   },
-  footer(doc){
-    const s=data.settings, W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
-    doc.setDrawColor(230,224,230); doc.line(14,H-18,W-14,H-18);
-    doc.setFontSize(8); doc.setTextColor(140,128,144);
-    doc.text((s.companyName||'CerimonialPro')+(s.address?' · '+s.address:''),14,H-12);
-    doc.text(new Date().toLocaleDateString('pt-BR'),W-14,H-12,{align:'right'});
+  footer(doc,page){
+    const s=data.settings,W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+    const inFooter=(s.docLayout||'header')==='footer';
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.4);
+    if(inFooter){
+      doc.line(18,H-32,W-18,H-32);
+      doc.setFontSize(8);doc.setTextColor(110,100,118);
+      const parts=[s.companyName,[s.doc?'CNPJ/CPF: '+s.doc:'',s.address].filter(Boolean).join('  •  '),[s.phone,s.email].filter(Boolean).join('  •  ')].filter(Boolean);
+      parts.forEach((p,i)=>doc.text(p,W/2,H-27+i*3.8,{align:'center'}));
+    }else{
+      doc.line(18,H-20,W-18,H-20);
+      doc.setFontSize(7.6);doc.setTextColor(140,128,146);
+      doc.text((s.companyName||'')+(s.address?' · '+s.address:''),18,H-15);
+      doc.text(new Date().toLocaleDateString('pt-BR'),W-18,H-15,{align:'right'});
+    }
+    doc.setLineWidth(0.2);doc.setTextColor(40,35,48);
   },
-  open(doc,name){
-    try{ doc.save(name); }catch(e){ window.open(doc.output('bloburl'),'_blank'); }
-  },
+  open(doc,name){try{doc.save(name);}catch(e){window.open(doc.output('bloburl'),'_blank');}},
 };
 Object.assign(App,{
   pdfBudget(id){
     const b=data.budgets.find(x=>x.id===id), cl=data.clients.find(c=>c.id===b.clientId)||{}, ev=data.events.find(e=>e.id===b.eventId);
     const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth();
-    let y=PDF.header(doc,'Orçamento',b.number);
-    doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text('Cliente',14,y); doc.setFont('helvetica','normal');
-    doc.text(cl.name||'—',14,y+6); if(cl.phone)doc.text(cl.phone,14,y+11); if(cl.email)doc.text(cl.email,14,y+16);
-    doc.setFont('helvetica','bold'); doc.text('Data',W-60,y); doc.setFont('helvetica','normal');
-    doc.text(U.date(b.createdAt?b.createdAt.slice(0,10):''),W-60,y+6);
-    if(b.validUntil){doc.setFont('helvetica','bold');doc.text('Válido até',W-60,y+13);doc.setFont('helvetica','normal');doc.text(U.date(b.validUntil),W-60,y+19);}
-    if(ev){doc.text('Evento: '+ev.type+' · '+U.date(ev.date),14,y+21);}
-    y+=30;
-    // table head
-    doc.setFillColor(243,233,240); doc.rect(14,y,W-28,9,'F'); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(74,31,64);
-    doc.text('DESCRIÇÃO',17,y+6); doc.text('QTD',W-78,y+6); doc.text('UNIT.',W-58,y+6); doc.text('TOTAL',W-17,y+6,{align:'right'});
-    y+=9; doc.setTextColor(40,35,48); doc.setFont('helvetica','normal');
-    b.items.forEach(it=>{
-      if(y>250){PDF.footer(doc);doc.addPage();y=20;}
-      const lines=doc.splitTextToSize(it.description,W-110);
-      doc.text(lines,17,y+6); doc.text(String(it.quantity),W-78,y+6);
-      doc.text(U.money(it.unitPrice).replace('R$ ',''),W-58,y+6); doc.text(U.money(it.total).replace('R$ ',''),W-17,y+6,{align:'right'});
-      y+=Math.max(8,lines.length*5+3); doc.setDrawColor(238,232,238); doc.line(14,y,W-14,y);
+    PDF.decorate(doc); let y=PDF.header(doc,'Orçamento',b.number);
+    doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.setTextColor(74,31,64);doc.text('DADOS DO CLIENTE',18,y);
+    doc.setTextColor(40,35,48);doc.setFont('helvetica','normal');doc.setFontSize(10);
+    doc.text(cl.name||'—',18,y+6); let cy=y+6;
+    if(cl.phone){cy+=5;doc.text('Tel: '+cl.phone,18,cy);} if(cl.email){cy+=5;doc.text(cl.email,18,cy);}
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(74,31,64);doc.text('DATA',W-72,y);
+    if(b.validUntil)doc.text('VÁLIDO ATÉ',W-40,y);
+    doc.setTextColor(40,35,48);doc.setFont('helvetica','normal');doc.setFontSize(10);
+    doc.text(U.date(b.createdAt?b.createdAt.slice(0,10):''),W-72,y+6);
+    if(b.validUntil)doc.text(U.date(b.validUntil),W-40,y+6);
+    if(ev){doc.setFontSize(9);doc.setTextColor(110,100,118);doc.text('Evento: '+ev.type+' · '+U.dateLong(ev.date),W-72,y+13);doc.setTextColor(40,35,48);}
+    y=Math.max(cy,y+16)+8;
+    const [r,g,bb]=PDF.rgb(data.settings.accent);
+    doc.setFillColor(r,g,bb);doc.rect(18,y,W-36,9,'F');doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(255,255,255);
+    doc.text('DESCRIÇÃO',21,y+6);doc.text('QTD',W-82,y+6,{align:'center'});doc.text('UNITÁRIO',W-58,y+6,{align:'right'});doc.text('TOTAL',W-21,y+6,{align:'right'});
+    y+=9;doc.setTextColor(40,35,48);doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+    let alt=false;
+    (b.items||[]).forEach(it=>{
+      if(y>250){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+      const lines=doc.splitTextToSize(it.description||'',W-104);const rh=Math.max(9,lines.length*5+3);
+      if(alt){doc.setFillColor(248,244,247);doc.rect(18,y,W-36,rh,'F');} alt=!alt;
+      doc.text(lines,21,y+6);doc.text(String(it.quantity||1),W-82,y+6,{align:'center'});
+      doc.text(U.money(it.unitPrice).replace('R$',''),W-58,y+6,{align:'right'});doc.text(U.money(it.total).replace('R$',''),W-21,y+6,{align:'right'});
+      y+=rh;doc.setDrawColor(236,228,236);doc.line(18,y,W-18,y);
     });
-    y+=4; doc.setFillColor(107,45,92); doc.rect(W-90,y,76,12,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(11);
-    doc.text('TOTAL',W-86,y+8); doc.text(U.money(b.total),W-17,y+8,{align:'right'}); y+=20; doc.setTextColor(40,35,48);
-    if(b.observations){doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Observações',14,y);doc.setFont('helvetica','normal');doc.text(doc.splitTextToSize(b.observations,W-28),14,y+6);}
-    PDF.footer(doc); PDF.open(doc,(b.number||'orcamento')+'.pdf'); this.toast('PDF gerado','ok');
+    y+=5;
+    const disc=b.discount||0, sub=(b.items||[]).reduce((s,i)=>s+(i.total||0),0);
+    if(disc>0){doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(90,82,96);
+      doc.text('Subtotal',W-70,y);doc.text(U.money(sub),W-21,y,{align:'right'});y+=6;
+      doc.text('Desconto',W-70,y);doc.text('- '+U.money(disc),W-21,y,{align:'right'});y+=3;doc.setTextColor(40,35,48);}
+    doc.setFillColor(r,g,bb);doc.roundedRect(W-94,y,76,13,2,2,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11.5);
+    doc.text('TOTAL',W-90,y+8.5);doc.text(U.money(b.total),W-21,y+8.5,{align:'right'});y+=20;doc.setTextColor(40,35,48);
+    if(b.payment){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text('Condições de pagamento',18,y);doc.setFont('helvetica','normal');
+      doc.text(doc.splitTextToSize(b.payment,W-36),18,y+6);y+=6+doc.splitTextToSize(b.payment,W-36).length*5+4;}
+    if(b.observations){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text('Observações',18,y);doc.setFont('helvetica','normal');
+      doc.text(doc.splitTextToSize(b.observations,W-36),18,y+6);y+=6+doc.splitTextToSize(b.observations,W-36).length*5+4;}
+    doc.setFont('times','italic');doc.setFontSize(10);doc.setTextColor(r,g,bb);
+    doc.text('Será uma honra cuidar de cada detalhe do seu evento.',W/2,y+6,{align:'center'});doc.setTextColor(40,35,48);
+    PDF.footer(doc);PDF.open(doc,(b.number||'orcamento')+'.pdf');this.toast('PDF gerado','ok');
   },
   pdfContract(id){
     const c=data.contracts.find(x=>x.id===id), cl=data.clients.find(x=>x.id===c.clientId)||{}, ev=data.events.find(e=>e.id===c.eventId), s=data.settings;
-    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth();
-    let y=PDF.header(doc,'Contrato',c.number);
-    doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS',W/2,y,{align:'center'}); y+=10;
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    const parties='CONTRATADA: '+(s.companyName||'')+(s.doc?', inscrita sob '+s.doc:'')+(s.address?', '+s.address:'')+'.\n\nCONTRATANTE: '+(cl.name||'—')+(cl.doc?', inscrito(a) sob '+cl.doc:'')+(cl.address?', '+cl.address:'')+(cl.phone?', telefone '+cl.phone:'')+'.';
-    doc.text(doc.splitTextToSize(parties,W-28),14,y); y+=doc.splitTextToSize(parties,W-28).length*5+6;
-    if(ev){doc.setFont('helvetica','bold');doc.text('OBJETO',14,y);doc.setFont('helvetica','normal');
-      const obj='Prestação de serviços de cerimonial e organização do evento '+ev.type+', a ser realizado em '+U.dateLong(ev.date)+(ev.time?' às '+ev.time:'')+(ev.location?', no local '+ev.location:'')+'.';
-      doc.text(doc.splitTextToSize(obj,W-28),14,y+6); y+=doc.splitTextToSize(obj,W-28).length*5+8;}
-    doc.setFont('helvetica','bold'); doc.text('VALOR E PAGAMENTO',14,y); doc.setFont('helvetica','normal');
-    const pay='Valor total dos serviços: '+U.money(c.value)+'.'+(c.payment?' Condições: '+c.payment+'.':''); doc.text(doc.splitTextToSize(pay,W-28),14,y+6); y+=doc.splitTextToSize(pay,W-28).length*5+8;
-    if(c.terms){doc.setFont('helvetica','bold');doc.text('CLÁUSULAS',14,y);doc.setFont('helvetica','normal');
-      const tl=doc.splitTextToSize(c.terms,W-28); tl.forEach(line=>{if(y>250){PDF.footer(doc);doc.addPage();y=20;}y+=5;doc.text(line,14,y);}); y+=10;}
-    if(y>235){PDF.footer(doc);doc.addPage();y=30;}
-    y+=14; doc.text((s.address?s.address.split(',')[0]:'____________')+', '+U.dateLong(c.contractDate),14,y); y+=24;
-    doc.line(20,y,90,y); doc.line(W-90,y,W-20,y); y+=5;
-    doc.setFontSize(8); doc.text(s.companyName||'Contratada',55,y,{align:'center'}); doc.text(cl.name||'Contratante',W-55,y,{align:'center'});
-    PDF.footer(doc); PDF.open(doc,(c.number||'contrato')+'.pdf'); this.toast('PDF gerado','ok');
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth(), M=18, CW=W-36;
+    PDF.decorate(doc); let y=PDF.header(doc,'Contrato',c.number);
+    const [r,g,bb]=PDF.rgb(s.accent);
+    doc.setFont('times','bold');doc.setFontSize(13);doc.setTextColor(r,g,bb);
+    doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS',W/2,y,{align:'center'});doc.setTextColor(40,35,48);y+=4;
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.3);doc.line(W/2-45,y,W/2+45,y);y+=9;
+    const para=(label,txt,gap)=>{
+      if(y>262){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+      if(label){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text(label,M,y);y+=5;}
+      doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+      const L=doc.splitTextToSize(txt,CW);
+      L.forEach(line=>{if(y>270){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}doc.text(line,M,y);y+=4.8;});
+      y+=(gap||4);
+    };
+    para('','Pelo presente instrumento particular, as partes abaixo qualificadas têm entre si justo e contratado o seguinte:',5);
+    para('CONTRATADA',(s.companyName||'')+(s.doc?', inscrita sob o nº '+s.doc:'')+(s.address?', com sede em '+s.address:'')+(s.phone?', telefone '+s.phone:'')+'.');
+    para('CONTRATANTE',(cl.name||'—')+(cl.doc?', inscrito(a) sob o nº '+cl.doc:'')+(cl.address?', residente em '+cl.address:'')+(cl.phone?', telefone '+cl.phone:'')+'.');
+    if(ev)para('CLÁUSULA 1ª — DO OBJETO','O presente contrato tem por objeto a prestação de serviços de cerimonial e organização do evento '+ev.type+', a ser realizado em '+U.dateLong(ev.date)+(ev.time?', às '+ev.time:'')+(ev.location?', no local '+ev.location:'')+'.');
+    else para('CLÁUSULA 1ª — DO OBJETO','O presente contrato tem por objeto a prestação de serviços de cerimonial e organização de evento conforme condições ajustadas entre as partes.');
+    para('CLÁUSULA 2ª — DO VALOR E PAGAMENTO','Pelos serviços ora contratados, a CONTRATANTE pagará à CONTRATADA o valor total de '+U.money(c.value)+' ('+Extenso.reais(c.value)+').'+(c.payment?' Condições de pagamento: '+c.payment+'.':''));
+    if(c.terms){
+      const extra=c.terms.split(/\n+/).filter(x=>x.trim());
+      extra.forEach((t,i)=>para('CLÁUSULA '+(i+3)+'ª',t.trim()));
+    }else{
+      para('CLÁUSULA 3ª — DAS OBRIGAÇÕES','A CONTRATADA compromete-se a executar os serviços com zelo e profissionalismo. A CONTRATANTE compromete-se a fornecer as informações necessárias e efetuar os pagamentos nas datas acordadas.');
+      para('CLÁUSULA 4ª — DA RESCISÃO','O descumprimento de qualquer cláusula faculta à parte prejudicada a rescisão, observadas as condições e eventuais multas previstas neste instrumento.');
+      para('CLÁUSULA 5ª — DO FORO','Fica eleito o foro da comarca da CONTRATADA para dirimir quaisquer questões oriundas do presente contrato.');
+    }
+    if(y>235){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=28;}
+    y+=6;
+    const city=(s.address?s.address.split(',').slice(-2,-1)[0]||s.address.split(',')[0]:'__________');
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(city.trim()+', '+U.dateLong(c.contractDate||new Date().toISOString().slice(0,10))+'.',M,y);y+=22;
+    doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);
+    doc.line(M+6,y,M+76,y);doc.line(W-M-76,y,W-M-6,y);y+=5;
+    doc.setFontSize(8.5);doc.text((s.companyName||'Contratada'),M+41,y,{align:'center'});doc.text((cl.name||'Contratante'),W-M-41,y,{align:'center'});
+    doc.setFontSize(7.5);doc.setTextColor(120,110,126);doc.text('CONTRATADA',M+41,y+4,{align:'center'});doc.text('CONTRATANTE',W-M-41,y+4,{align:'center'});doc.setTextColor(40,35,48);
+    y+=18;doc.setFontSize(8);doc.setTextColor(120,110,126);doc.text('Testemunhas:',M,y);y+=10;
+    doc.setDrawColor(180,170,186);doc.line(M+6,y,M+70,y);doc.line(W-M-70,y,W-M-6,y);
+    PDF.footer(doc);PDF.open(doc,(c.number||'contrato')+'.pdf');this.toast('PDF gerado','ok');
   },
   pdfReceipt(id){
     const r=data.receipts.find(x=>x.id===id), cl=data.clients.find(c=>c.id===r.clientId)||{}, s=data.settings;
-    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth();
-    let y=PDF.header(doc,'Recibo',r.number);
-    doc.setFillColor(243,233,240); doc.roundedRect(14,y,W-28,18,3,3,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(107,45,92);
-    doc.text(U.money(r.value),W/2,y+12,{align:'center'}); doc.setTextColor(40,35,48); y+=28;
-    doc.setFontSize(10); doc.setFont('helvetica','normal');
-    const txt='Recebi de '+(cl.name||'—')+(cl.doc?' ('+cl.doc+')':'')+' a importância de '+U.money(r.value)+' ('+(r.paymentMethod||'pagamento')+')'+(r.description?', referente a: '+r.description:'')+'.';
-    doc.text(doc.splitTextToSize(txt,W-28),14,y); y+=doc.splitTextToSize(txt,W-28).length*6+10;
-    doc.setFont('helvetica','bold'); doc.text('Data:',14,y); doc.setFont('helvetica','normal'); doc.text(U.dateLong(r.receiptDate),30,y);
-    doc.setFont('helvetica','bold'); doc.text('Forma:',W-70,y); doc.setFont('helvetica','normal'); doc.text(r.paymentMethod||'—',W-52,y); y+=40;
-    doc.line(W/2-40,y,W/2+40,y); doc.setFontSize(9); doc.text(s.companyName||'',W/2,y+6,{align:'center'});
-    if(s.doc)doc.text(s.doc,W/2,y+11,{align:'center'});
-    PDF.footer(doc); PDF.open(doc,(r.number||'recibo')+'.pdf'); this.toast('PDF gerado','ok');
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth(), M=18;
+    PDF.decorate(doc); let y=PDF.header(doc,'Recibo',r.number);
+    const [pr,pg,pb]=PDF.rgb(s.accent);
+    doc.setFillColor(247,239,214);doc.setDrawColor(189,154,60);doc.setLineWidth(0.5);doc.roundedRect(M,y,W-2*M,16,3,3,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(17);doc.setTextColor(pr,pg,pb);
+    doc.text(U.money(r.value),W/2,y+11,{align:'center'});doc.setTextColor(40,35,48);y+=26;
+    doc.setFont('helvetica','normal');doc.setFontSize(10.5);
+    const txt='Recebi(emos) de '+(cl.name||'—')+(cl.doc?', inscrito(a) sob o nº '+cl.doc+',':'')+' a importância de '+U.money(r.value)+' ('+Extenso.reais(r.value)+'), '+(r.description?'referente a '+r.description:'referente aos serviços prestados')+'.';
+    const L=doc.splitTextToSize(txt,W-2*M);doc.text(L,M,y);y+=L.length*6+8;
+    doc.text('Para clareza e como prova de quitação, firmo(amos) o presente recibo.',M,y);y+=14;
+    doc.setFont('helvetica','bold');doc.text('Forma de pagamento:',M,y);doc.setFont('helvetica','normal');doc.text(r.paymentMethod||'—',M+42,y);y+=18;
+    const city=(s.address?(s.address.split(',').slice(-2,-1)[0]||s.address.split(',')[0]):'__________');
+    doc.text(city.trim()+', '+U.dateLong(r.receiptDate)+'.',W-M,y,{align:'right'});y+=24;
+    doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);doc.line(W/2-42,y,W/2+42,y);y+=5;
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(s.companyName||'',W/2,y,{align:'center'});
+    if(s.doc){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120,110,126);doc.text('CNPJ/CPF: '+s.doc,W/2,y+4.5,{align:'center'});doc.setTextColor(40,35,48);}
+    PDF.footer(doc);PDF.open(doc,(r.number||'recibo')+'.pdf');this.toast('PDF gerado','ok');
   },
 });
 
@@ -1205,7 +1527,7 @@ const Sync={
 };
 
 /* ===== INIT ===== */
-window.App=App; window.Sync=Sync; window.U=U;
+window.App=App; window.Sync=Sync; window.U=U; window.Extenso=Extenso;
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('loginCompany').addEventListener('keydown',e=>{if(e.key==='Enter')App.enter();});
   App.init();
