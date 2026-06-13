@@ -134,6 +134,7 @@ a{color:inherit; text-decoration:none}
 .abtn:active{transform:scale(.92)}
 .abtn.wa{color:#25D366;border-color:#cdefd9}
 .abtn.pdf{color:var(--danger);border-color:#f3d3cf}
+.abtn.pdf[title]{color:var(--info);border-color:#d3e2f2}
 .abtn.ed{color:var(--info);border-color:#d3e2f2}
 .abtn.del{color:var(--danger);border-color:#f3d3cf}
 
@@ -218,12 +219,128 @@ a{color:inherit; text-decoration:none}
 .toast.ok{background:#1f6b41}.toast.err{background:#a8281b}.toast i{font-size:15px}
 @keyframes toastin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
+
+/* ===== Doc Preview Modal ===== */
+#docPreviewScrim{position:fixed;inset:0;background:rgba(20,15,28,.72);z-index:200;opacity:0;visibility:hidden;transition:.22s;backdrop-filter:blur(4px)}
+#docPreviewScrim.open{opacity:1;visibility:visible}
+#docPreview{
+  position:fixed;inset:0;z-index:210;display:flex;flex-direction:column;
+  opacity:0;visibility:hidden;transition:.22s;transform:translateY(18px)
+}
+#docPreview.open{opacity:1;visibility:visible;transform:none}
+.dp-topbar{
+  background:var(--plum);color:#fff;
+  padding:calc(10px + var(--safe-t)) 14px 10px;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+  box-shadow:0 2px 12px rgba(0,0,0,.3)
+}
+.dp-topbar h2{font-family:"Fraunces",serif;font-size:17px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dp-body{flex:1;display:flex;overflow:hidden;background:#e8e4ec}
+/* Left panel: editable fields */
+.dp-sidebar{
+  width:300px;min-width:260px;max-width:340px;background:var(--surface);
+  display:flex;flex-direction:column;border-right:1px solid var(--line);
+  overflow:hidden;flex-shrink:0
+}
+@media(max-width:700px){
+  .dp-body{flex-direction:column}
+  .dp-sidebar{width:100%;max-width:none;min-width:0;max-height:45vh;border-right:none;border-bottom:1px solid var(--line)}
+}
+.dp-sidebar-head{
+  padding:12px 16px;border-bottom:1px solid var(--line2);
+  font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;
+  display:flex;align-items:center;gap:8px
+}
+.dp-sidebar-body{flex:1;overflow-y:auto;padding:12px 14px}
+.dp-field{margin-bottom:12px}
+.dp-field label{display:block;font-size:12px;font-weight:600;color:var(--ink);margin-bottom:5px}
+.dp-field input,.dp-field textarea,.dp-field select{
+  width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;
+  background:var(--bg);font-size:13.5px;color:var(--ink);outline:none;transition:.15s
+}
+.dp-field input:focus,.dp-field textarea:focus{border-color:var(--plum);background:#fff;box-shadow:0 0 0 3px var(--plum-soft)}
+.dp-field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.dp-field .dp-hint{font-size:11px;color:var(--muted);margin-top:4px}
+/* Right panel: document preview */
+.dp-preview-wrap{flex:1;overflow:auto;display:flex;justify-content:center;padding:24px 16px}
+.dp-page{
+  background:#fff;width:210mm;min-height:297mm;
+  box-shadow:0 4px 32px rgba(0,0,0,.22);
+  border-radius:3px;padding:18mm 18mm 20mm;
+  font-family:"Inter",sans-serif;font-size:10pt;color:#2a2330;
+  line-height:1.55;position:relative;flex-shrink:0
+}
+@media(max-width:700px){
+  .dp-page{width:100%;min-height:auto;padding:12mm 10mm 14mm}
+}
+/* doc inner styles */
+.dp-page .doc-border{position:absolute;inset:8px;border:1.2px solid #6b2d5c;border-radius:1px;pointer-events:none}
+.dp-page .doc-border2{position:absolute;inset:11px;border:.5px solid #bd9a3c;border-radius:1px;pointer-events:none}
+.dp-page .doc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6mm;padding-bottom:4mm;border-bottom:1.5px solid #bd9a3c}
+.dp-page .doc-co{font-family:"Fraunces",Georgia,serif;font-size:18pt;font-weight:700;color:#6b2d5c}
+.dp-page .doc-slogan{font-size:8.5pt;color:#9a8ca4;font-style:italic;margin-top:1mm}
+.dp-page .doc-meta{font-size:8pt;color:#6a6070;line-height:1.6}
+.dp-page .doc-badge{background:#6b2d5c;color:#fff;padding:4px 14px;border-radius:4px;font-size:11pt;font-weight:700;text-align:center;white-space:nowrap}
+.dp-page .doc-badgesub{font-size:7.5pt;color:#e0d0dc;text-align:center;margin-top:2px}
+.dp-page .doc-title{text-align:center;font-family:"Fraunces",Georgia,serif;font-size:14pt;font-weight:700;color:#6b2d5c;margin:5mm 0 1mm}
+.dp-page .doc-line{border:none;border-top:1.5px solid #bd9a3c;margin:0 auto 5mm;width:80mm}
+.dp-page .section-label{font-size:8.5pt;font-weight:700;color:#2a2330;margin:3mm 0 1.5mm;display:block}
+.dp-page .clause-head{font-size:8.5pt;font-weight:700;color:#4a1f40;margin:3.5mm 0 1mm;display:block}
+.dp-page .clause-body{font-size:9pt;color:#3a3340;line-height:1.6;margin-bottom:1mm}
+.dp-page .doc-sign-area{margin-top:8mm;border-top:1px solid #e0d8e8;padding-top:6mm}
+.dp-page .doc-sign-row{display:flex;justify-content:space-between;align-items:flex-end;gap:10mm;margin-top:4mm}
+.dp-page .doc-sign-col{flex:1;text-align:center}
+.dp-page .doc-sign-line{border-top:1px solid #3c3744;margin:0 6mm 2mm}
+.dp-page .doc-sign-name{font-size:8.5pt;font-weight:700}
+.dp-page .doc-sign-role{font-size:7pt;color:#8a8090;text-transform:uppercase;letter-spacing:.05em}
+.dp-page .doc-wit{margin-top:5mm;font-size:8pt;color:#9a9098}
+.dp-page .doc-wit-lines{display:flex;gap:20mm;margin-top:3mm}
+.dp-page .doc-wit-line{flex:1;border-top:1px solid #c0b8c8}
+.dp-page .doc-footer{position:absolute;bottom:10mm;left:18mm;right:18mm;border-top:1px solid #bd9a3c;padding-top:3mm;font-size:7pt;color:#9a9098;display:flex;justify-content:space-between}
+/* receipt specific */
+.dp-page .rc-amount{background:#f7efd6;border:1px solid #bd9a3c;border-radius:4px;padding:4mm 8mm;text-align:center;font-family:"Fraunces",serif;font-size:19pt;font-weight:700;color:#9a7c2a;margin:4mm 0}
+.dp-page .rc-body{font-size:10pt;line-height:1.7;margin-bottom:4mm}
+/* budget specific */
+.dp-page .bu-table{width:100%;border-collapse:collapse;margin:3mm 0;font-size:8.5pt}
+.dp-page .bu-table th{background:#6b2d5c;color:#fff;padding:3mm 2mm;text-align:left;font-size:8pt}
+.dp-page .bu-table th:last-child,.dp-page .bu-table td:last-child{text-align:right}
+.dp-page .bu-table td{padding:2.5mm 2mm;border-bottom:1px solid #ece4ec;font-size:8.5pt}
+.dp-page .bu-table tr:nth-child(even) td{background:#f8f4f7}
+.dp-page .bu-total{text-align:right;margin:2mm 0 4mm}
+.dp-page .bu-total-box{display:inline-block;background:#6b2d5c;color:#fff;padding:2mm 5mm;border-radius:3px;font-weight:700;font-size:10pt}
+.dp-page .cond-list{font-size:8pt;color:#4a4252;line-height:1.8;margin:2mm 0}
+.dp-page .italic-tag{text-align:center;font-family:Georgia,serif;font-style:italic;font-size:9.5pt;color:#9a7c2a;margin:4mm 0}
+/* bottom actions */
+.dp-actions{
+  background:var(--surface);border-top:1px solid var(--line);
+  padding:12px 16px calc(12px + var(--safe-b));
+  display:flex;gap:10px;justify-content:flex-end;flex-shrink:0
+}
+.dp-actions .btn{min-width:120px}
+
 /* ===== Login ===== */
-#login{position:fixed;inset:0;z-index:300;background:linear-gradient(150deg,var(--plum),var(--plum-deep));display:grid;place-items:center;padding:24px}
+#login{position:fixed;inset:0;z-index:300;background:linear-gradient(150deg,var(--plum),var(--plum-deep));display:grid;place-items:center;padding:24px;overflow-y:auto}
 .login-card{background:var(--surface);border-radius:24px;padding:34px 26px;width:100%;max-width:380px;box-shadow:var(--shadow-lg);text-align:center}
 .login-card .logo{width:64px;height:64px;border-radius:19px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;display:grid;place-items:center;font-size:28px;margin:0 auto 16px}
 .login-card h1{font-size:26px;margin-bottom:5px}
 .login-card p{color:var(--muted);font-size:13.5px;margin-bottom:22px}
+.login-tab-bar{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:22px;gap:4px}
+.login-tab{flex:1;padding:9px 0;border-radius:9px;border:none;background:none;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+.login-tab.active{background:var(--surface);color:var(--plum);box-shadow:0 1px 4px rgba(74,31,64,.12)}
+.register-panel,.login-panel{display:none}
+.register-panel.active,.login-panel.active{display:block}
+.divider-line{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--faint);font-size:12px}
+.divider-line::before,.divider-line::after{content:'';flex:1;height:1px;background:var(--line)}
+.account-selector{margin-bottom:16px}
+.acc-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;text-align:left;background:var(--bg);transition:.15s;width:100%}
+.acc-item:hover{border-color:var(--plum);background:var(--plum-soft)}
+.acc-item.selected{border-color:var(--plum);background:var(--plum-soft)}
+.acc-avatar{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--plum),var(--plum-deep));color:#fff;display:grid;place-items:center;font-size:14px;font-weight:700;flex-shrink:0}
+.acc-info{flex:1;min-width:0}
+.acc-name{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-email{font-size:12px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pw-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--line);overflow:hidden}
+.pw-strength-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0}
 
 /* ===== reports ===== */
 .chart-wrap{position:relative;height:240px}
@@ -274,6 +391,28 @@ a{color:inherit; text-decoration:none}
 @media(min-width:760px){
   .kpi-grid{grid-template-columns:repeat(4,1fr)}
 }
+/* signature pad */
+.sig-pad{border:1.5px dashed var(--line);border-radius:12px;background:#fff;touch-action:none;width:100%;display:block}
+.sig-wrap{position:relative}
+.sig-hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:var(--faint);font-size:12px;pointer-events:none}
+.sig-prev{border:1px solid var(--line);border-radius:12px;background:#fbfaff;padding:8px;text-align:center}
+.sig-prev img{max-height:90px;max-width:100%}
+/* attachments + quotes */
+.att{display:flex;align-items:center;gap:10px;padding:10px 11px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px;background:#fff}
+.att .aic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;font-size:15px;background:var(--plum-soft);color:var(--plum)}
+.att .anm{flex:1;min-width:0;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.att .ak{font-size:11px;color:var(--muted);font-weight:500}
+.att .ax{background:none;border:none;color:var(--faint);font-size:15px;cursor:pointer;padding:4px}
+.qrow{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px}
+.qrow .qv{font-weight:700;color:var(--plum);white-space:nowrap}
+.qrow .qb{font-size:13.5px;font-weight:600}
+.qrow .qs{font-size:11.5px;color:var(--muted)}
+.supchip{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px}
+.supchip input{flex:1;border:none;background:transparent;font-size:13.5px;padding:0}
+.supchip .scv{width:96px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px}
+/* file viewer */
+.viewer-frame{width:100%;height:62vh;border:1px solid var(--line);border-radius:12px;background:#fff}
+.viewer-img{max-width:100%;max-height:62vh;display:block;margin:0 auto;border-radius:10px}
 </style>
 </head>
 <body>
@@ -284,11 +423,81 @@ a{color:inherit; text-decoration:none}
     <div class="logo"><i class="fas fa-ring"></i></div>
     <h1>CerimonialPro</h1>
     <p>Gestão completa de eventos & cerimonial</p>
-    <div class="field" style="text-align:left">
-      <label>Nome da empresa / profissional</label>
-      <input id="loginCompany" placeholder="Ex.: Ateliê de Eventos Bella">
+
+    <!-- Tab bar -->
+    <div class="login-tab-bar">
+      <button class="login-tab active" id="tabLogin" onclick="Auth.switchTab('login')">Entrar</button>
+      <button class="login-tab" id="tabRegister" onclick="Auth.switchTab('register')">Criar conta</button>
     </div>
-    <button class="btn btn-primary btn-block" onclick="App.enter()"><i class="fas fa-arrow-right-to-bracket"></i> Acessar painel</button>
+
+    <!-- ── LOGIN PANEL ── -->
+    <div class="login-panel active" id="loginPanel">
+      <!-- Account selector (shown when multiple accounts exist) -->
+      <div id="accountSelector" style="display:none">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:10px;text-align:left">Selecione sua conta:</p>
+        <div id="accountList" class="account-selector"></div>
+        <div class="divider-line">ou entre com e-mail</div>
+      </div>
+
+      <div id="loginSetup" style="display:none;background:var(--gold-soft);border:1px solid var(--gold);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--gold-deep);margin-bottom:16px;text-align:left"><i class="fas fa-shield-halved"></i> <strong>Primeira vez?</strong> Crie uma conta para proteger o acesso.</div>
+
+      <div class="field" style="text-align:left">
+        <label>E-mail</label>
+        <input type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
+      </div>
+      <div class="field" style="text-align:left">
+        <label>Senha</label>
+        <div style="position:relative">
+          <input type="password" id="loginPass" placeholder="Digite sua senha" style="padding-right:44px" onkeydown="if(event.key==='Enter')Auth.login()">
+          <button type="button" onclick="Auth.toggleVis('loginPass','passEyeIcon')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:4px"><i class="fas fa-eye" id="passEyeIcon"></i></button>
+        </div>
+      </div>
+
+      <div id="loginErr" style="display:none;background:var(--danger-bg);color:var(--danger);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px;text-align:left"></div>
+      <button class="btn btn-primary btn-block" onclick="Auth.login()"><i class="fas fa-arrow-right-to-bracket"></i> Entrar</button>
+
+      <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <button type="button" onclick="Auth.switchTab('register')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;padding:0">Criar conta</button>
+        <button type="button" onclick="Auth.forgotPass()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:underline;padding:0">Esqueci a senha</button>
+      </div>
+    </div>
+
+    <!-- ── REGISTER PANEL ── -->
+    <div class="register-panel" id="registerPanel">
+      <div class="field" style="text-align:left">
+        <label>Nome da empresa / profissional <span style="color:var(--danger)">*</span></label>
+        <input id="regCompany" placeholder="Ex.: Ateliê de Eventos Bella" onkeydown="if(event.key==='Enter')document.getElementById('regEmail').focus()">
+      </div>
+      <div class="field" style="text-align:left">
+        <label>Responsável</label>
+        <input id="regUser" placeholder="Seu nome" onkeydown="if(event.key==='Enter')document.getElementById('regEmail').focus()">
+      </div>
+      <div class="field" style="text-align:left">
+        <label>E-mail <span style="color:var(--danger)">*</span></label>
+        <input type="email" id="regEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')document.getElementById('regPass').focus()">
+      </div>
+      <div class="field" style="text-align:left">
+        <label>Senha <span style="color:var(--danger)">*</span></label>
+        <div style="position:relative">
+          <input type="password" id="regPass" placeholder="Mínimo 6 caracteres" style="padding-right:44px" oninput="Auth.pwStrength(this.value)" onkeydown="if(event.key==='Enter')document.getElementById('regPassConfirm').focus()">
+          <button type="button" onclick="Auth.toggleVis('regPass','regPassEye')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:4px"><i class="fas fa-eye" id="regPassEye"></i></button>
+        </div>
+        <div class="pw-strength"><div class="pw-strength-bar" id="pwBar"></div></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="pwLabel"></div>
+      </div>
+      <div class="field" style="text-align:left">
+        <label>Confirmar senha <span style="color:var(--danger)">*</span></label>
+        <input type="password" id="regPassConfirm" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')Auth.register()">
+      </div>
+
+      <div id="registerErr" style="display:none;background:var(--danger-bg);color:var(--danger);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px;text-align:left"></div>
+      <button class="btn btn-primary btn-block" onclick="Auth.register()"><i class="fas fa-user-plus"></i> Criar conta e entrar</button>
+
+      <div style="margin-top:14px;text-align:center">
+        <button type="button" onclick="Auth.switchTab('login')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;padding:0">Já tenho conta → Entrar</button>
+      </div>
+    </div>
+
     <p class="small muted" style="margin:16px 0 0">Seus dados ficam salvos neste dispositivo.<br>Ative a sincronização para acessá-los em qualquer lugar.</p>
   </div>
 </div>
@@ -405,6 +614,13 @@ a{color:inherit; text-decoration:none}
       </div>
       <div class="card"><div class="card-h"><h3>Receita por mês</h3></div><div class="card-pad"><div class="chart-wrap"><canvas id="chartRevenue"></canvas></div></div></div>
       <div class="card"><div class="card-h"><h3>Eventos por tipo</h3></div><div class="card-pad"><div class="chart-wrap"><canvas id="chartTypes"></canvas></div></div></div>
+      <div class="card"><div class="card-h"><h3><i class="fas fa-chart-pie" style="color:var(--plum);margin-right:7px"></i>Custos por evento</h3></div>
+        <div class="card-pad">
+          <p class="small muted mb">Selecione um evento para ver o relatório de custos (cliente, fornecedores, margem e saldo).</p>
+          <div class="field" style="margin-bottom:10px"><select id="rEventSel"></select></div>
+          <button class="btn btn-primary btn-block" onclick="App.openEventReportFromSelect()"><i class="fas fa-eye"></i> Ver relatório</button>
+        </div>
+      </div>
       <div class="card"><div class="card-h"><h3>Resumo</h3></div><div class="card-pad" id="reportSummary"></div></div>
     </section>
 
@@ -424,7 +640,7 @@ a{color:inherit; text-decoration:none}
             <li>Clique em <b>Enviar</b> para criar seu Gist privado.</li>
           </ol>
           <div class="field"><label>Token de acesso do GitHub</label><input id="setGhToken" type="password" placeholder="ghp_..." autocomplete="off"></div>
-          <div class="field"><label>ID do Gist <span class="muted small">(deixe vazio para criar um novo)</span></label><input id="setGistId" placeholder="ex.: 3f9a2b...”"></div>
+          <div class="field"><label>ID do Gist <span class="muted small">(deixe vazio para criar um novo)</span></label><input id="setGistId" placeholder="ex.: 3f9a2b..."></div>
           <label class="flex" style="gap:9px;font-size:14px;margin-bottom:14px"><input type="checkbox" id="setAutoSync" style="width:auto"> Sincronizar automaticamente ao salvar</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <button class="btn btn-primary" onclick="Sync.push()"><i class="fas fa-cloud-arrow-up"></i> Enviar</button>
@@ -474,6 +690,31 @@ a{color:inherit; text-decoration:none}
       </div>
 
       <div class="card">
+        <div class="card-h"><h3><i class="fas fa-signature" style="color:var(--plum);margin-right:7px"></i>Assinatura manuscrita</h3></div>
+        <div class="card-pad">
+          <p class="small muted mb">Desenhe sua assinatura abaixo (use o dedo no celular). Ela aparecerá em azul, com traço expressivo, em todos os documentos.</p>
+          <div id="sigCurrent"></div>
+          <div class="sig-wrap mb">
+            <canvas id="sigPad" class="sig-pad" height="170"></canvas>
+            <div class="sig-hint" id="sigHint">assine aqui</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button class="btn btn-ghost" onclick="App.sigClear()"><i class="fas fa-eraser"></i> Limpar</button>
+            <button class="btn btn-primary" onclick="App.sigSave()"><i class="fas fa-floppy-disk"></i> Salvar assinatura</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h3><i class="fab fa-whatsapp" style="color:var(--ok);margin-right:7px"></i>Mensagem de lembrete (orçamento)</h3></div>
+        <div class="card-pad">
+          <p class="small muted mb">Enviada ao cliente quando um orçamento está perto de vencer. Use {cliente}, {numero}, {validade} e {empresa}.</p>
+          <div class="field"><textarea id="setReminderMsg" style="min-height:120px"></textarea></div>
+          <button class="btn btn-primary btn-block" onclick="App.saveReminderMsg()"><i class="fas fa-floppy-disk"></i> Salvar mensagem</button>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-h"><h3><i class="fas fa-database" style="color:var(--plum);margin-right:7px"></i>Backup local</h3></div>
         <div class="card-pad">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -495,6 +736,32 @@ a{color:inherit; text-decoration:none}
     <a data-target="budgets" onclick="App.go('budgets')"><i class="fas fa-file-invoice-dollar"></i>Orçar</a>
     <a data-target="agenda" onclick="App.go('agenda')"><i class="fas fa-calendar-check"></i>Agenda</a>
   </nav>
+</div>
+
+
+<!-- DOC PREVIEW MODAL -->
+<div id="docPreviewScrim" onclick="DocPreview.close()"></div>
+<div id="docPreview">
+  <div class="dp-topbar">
+    <button class="iconbtn" onclick="DocPreview.close()" style="background:rgba(255,255,255,.14)"><i class="fas fa-arrow-left"></i></button>
+    <h2 id="dpTitle">Visualizar documento</h2>
+    <button class="iconbtn" onclick="DocPreview.refresh()" style="background:rgba(255,255,255,.14)" title="Atualizar preview"><i class="fas fa-rotate-right"></i></button>
+  </div>
+  <div class="dp-body">
+    <!-- Sidebar: edit fields -->
+    <div class="dp-sidebar">
+      <div class="dp-sidebar-head"><i class="fas fa-pen" style="color:var(--gold)"></i> Editar documento</div>
+      <div class="dp-sidebar-body" id="dpFields"></div>
+    </div>
+    <!-- Preview pane -->
+    <div class="dp-preview-wrap" id="dpPreviewWrap">
+      <div class="dp-page" id="dpPage"></div>
+    </div>
+  </div>
+  <div class="dp-actions">
+    <button class="btn btn-ghost" onclick="DocPreview.close()"><i class="fas fa-xmark"></i> Fechar</button>
+    <button class="btn btn-gold" onclick="DocPreview.download()"><i class="fas fa-download"></i> Baixar PDF</button>
+  </div>
 </div>
 
 <!-- DRAWER -->
@@ -520,7 +787,7 @@ a{color:inherit; text-decoration:none}
     <div class="grp">Sistema</div>
     <a data-target="settings" onclick="App.go('settings')"><i class="fas fa-gear"></i> Configurações</a>
   </nav>
-  <div class="drawer-foot">CerimonialPro v2 · <span id="drSync">Local</span></div>
+  <div class="drawer-foot" style="display:flex;align-items:center;justify-content:space-between">CerimonialPro v2 · <span id="drSync">Local</span><button onclick="App.logout()" style="background:none;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--danger);cursor:pointer;font-weight:600"><i class="fas fa-right-from-bracket"></i> Sair</button></div>
 </aside>
 
 <!-- DYNAMIC SHEET (modal) -->
@@ -543,7 +810,7 @@ a{color:inherit; text-decoration:none}
 const STORE_KEY='cerimonialProData';
 const SYNC_KEY='cerimonialProSync';
 let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],
-  settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c'},
+  settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}'},
   updatedAt:new Date().toISOString()};
 let syncCfg={token:'',gistId:'',auto:false,lastSync:null};
 
@@ -557,7 +824,8 @@ function loadStore(){
 }
 function saveStore(silent){
   data.updatedAt=new Date().toISOString();
-  localStorage.setItem(STORE_KEY,JSON.stringify(data));
+  const key=window._currentEmail?'cpData_'+window._currentEmail:STORE_KEY;
+  localStorage.setItem(key,JSON.stringify(data));
   if(!silent && syncCfg.auto && syncCfg.token){ Sync.push(true); }
 }
 function saveSync(){localStorage.setItem(SYNC_KEY,JSON.stringify(syncCfg));}
@@ -582,20 +850,230 @@ const BSTATUS={draft:{t:'Rascunho',c:'b-muted'},sent:{t:'Enviado',c:'b-info'},ap
 const CSTATUS={draft:{t:'Rascunho',c:'b-muted'},sent:{t:'Enviado',c:'b-info'},signed:{t:'Assinado',c:'b-ok'},cancelled:{t:'Cancelado',c:'b-danger'}};
 
 /* ============================================================
+   Auth — multi-account login & registration
+   Accounts stored in localStorage as 'cp_accounts' (array)
+   Active session stored as 'cp_session' (email)
+   Per-account data stored as 'cpData_<email>'
+============================================================ */
+const ACCOUNTS_KEY='cp_accounts';
+const SESSION_KEY='cp_session';
+
+const Auth={
+  _accounts(){
+    try{return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)||'[]');}catch{return [];}
+  },
+  _saveAccounts(arr){localStorage.setItem(ACCOUNTS_KEY,JSON.stringify(arr));},
+  _hash(s){return btoa(unescape(encodeURIComponent(s)));},
+  _initials(name){const p=(name||'').trim().split(/\s+/);return ((p[0]?.[0]||'')+(p.length>1?p[p.length-1][0]:'')).toUpperCase()||'?';},
+
+  init(){
+    // Migration: if old single-account system exists, convert it
+    const oldPass=localStorage.getItem('cp_pass');
+    const oldLoggedIn=localStorage.getItem('cp_loggedin');
+    const oldData=localStorage.getItem(STORE_KEY);
+    if((oldPass || oldData) && this._accounts().length===0){
+      let companyName='CerimonialPro';
+      let userName='Cerimonialista';
+      try{const d=JSON.parse(oldData||'{}');companyName=d.settings?.companyName||companyName;userName=d.settings?.userName||userName;}catch{}
+      const migratedEmail='admin@local';
+      const migrated={email:migratedEmail,name:companyName,userName,hash:oldPass||'',createdAt:new Date().toISOString()};
+      this._saveAccounts([migrated]);
+      if(oldData) localStorage.setItem('cpData_'+migratedEmail, oldData);
+      localStorage.removeItem('cp_pass');
+      localStorage.removeItem('cp_loggedin');
+      // If user was already logged in OR had no password set, restore session automatically
+      if(oldLoggedIn==='1' || !oldPass){
+        localStorage.setItem(SESSION_KEY, migratedEmail);
+        this._loadSession(migratedEmail);
+        return;
+      }
+    }
+
+    const session=localStorage.getItem(SESSION_KEY);
+    if(session){ this._loadSession(session); return; }
+
+    this._renderLoginUI();
+  },
+
+  _renderLoginUI(){
+    const accounts=this._accounts();
+    if(accounts.length===0){
+      // No accounts — push user to register
+      this.switchTab('register');
+      return;
+    }
+    // Show account selector
+    if(accounts.length>0){
+      const sel=document.getElementById('accountSelector');
+      const list=document.getElementById('accountList');
+      sel.style.display='block';
+      list.innerHTML=accounts.map(a=>`
+        <button class="acc-item" onclick="Auth._pickAccount('${a.email}')">
+          <div class="acc-avatar">${this._initials(a.name)}</div>
+          <div class="acc-info">
+            <div class="acc-name">${U.esc(a.name)}</div>
+            <div class="acc-email">${U.esc(a.email)}</div>
+          </div>
+          <i class="fas fa-chevron-right" style="color:var(--faint);font-size:12px"></i>
+        </button>`).join('');
+    }
+  },
+
+  _pickAccount(email){
+    document.getElementById('loginEmail').value=email;
+    document.getElementById('loginPass').focus();
+    // highlight selected
+    document.querySelectorAll('.acc-item').forEach(el=>el.classList.remove('selected'));
+    const accounts=this._accounts();
+    const idx=accounts.findIndex(a=>a.email===email);
+    const items=document.querySelectorAll('.acc-item');
+    if(items[idx])items[idx].classList.add('selected');
+  },
+
+  switchTab(tab){
+    document.getElementById('loginPanel').classList.toggle('active',tab==='login');
+    document.getElementById('registerPanel').classList.toggle('active',tab==='register');
+    document.getElementById('tabLogin').classList.toggle('active',tab==='login');
+    document.getElementById('tabRegister').classList.toggle('active',tab==='register');
+    document.getElementById('loginErr').style.display='none';
+    document.getElementById('registerErr').style.display='none';
+  },
+
+  toggleVis(inputId,iconId){
+    const inp=document.getElementById(inputId);
+    const ic=document.getElementById(iconId);
+    if(inp.type==='password'){inp.type='text';ic.className='fas fa-eye-slash';}
+    else{inp.type='password';ic.className='fas fa-eye';}
+  },
+
+  pwStrength(val){
+    const bar=document.getElementById('pwBar');
+    const lbl=document.getElementById('pwLabel');
+    let score=0;
+    if(val.length>=6)score++;
+    if(val.length>=10)score++;
+    if(/[A-Z]/.test(val))score++;
+    if(/[0-9]/.test(val))score++;
+    if(/[^A-Za-z0-9]/.test(val))score++;
+    const levels=[
+      {w:'0%',bg:'transparent',t:''},
+      {w:'25%',bg:'var(--danger)',t:'Fraca'},
+      {w:'50%',bg:'var(--warn)',t:'Razoável'},
+      {w:'75%',bg:'var(--gold)',t:'Boa'},
+      {w:'100%',bg:'var(--ok)',t:'Forte'},
+    ];
+    const l=levels[Math.min(score,4)];
+    bar.style.width=l.w; bar.style.background=l.bg; lbl.textContent=l.t;
+  },
+
+  login(){
+    const errEl=document.getElementById('loginErr'); errEl.style.display='none';
+    const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+    const pass=document.getElementById('loginPass').value;
+    if(!email){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Informe o e-mail.';return;}
+    if(!pass){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Informe a senha.';return;}
+    const accounts=this._accounts();
+    const acc=accounts.find(a=>a.email===email);
+    if(!acc){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Conta não encontrada. <button type="button" onclick="Auth.switchTab(\'register\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Criar conta?</button>';return;}
+    if(this._hash(pass)!==acc.hash){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Senha incorreta. Tente novamente.';return;}
+    localStorage.setItem(SESSION_KEY,email);
+    this._loadSession(email);
+  },
+
+  register(){
+    const errEl=document.getElementById('registerErr'); errEl.style.display='none';
+    const company=document.getElementById('regCompany').value.trim();
+    const user=document.getElementById('regUser').value.trim();
+    const email=document.getElementById('regEmail').value.trim().toLowerCase();
+    const pass=document.getElementById('regPass').value;
+    const pass2=document.getElementById('regPassConfirm').value;
+    const showErr=msg=>{errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> '+msg;};
+    if(!company){showErr('Informe o nome da empresa ou profissional.');return;}
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr('Informe um e-mail válido.');return;}
+    if(pass.length<6){showErr('A senha deve ter pelo menos 6 caracteres.');return;}
+    if(pass!==pass2){showErr('As senhas não coincidem.');return;}
+    const accounts=this._accounts();
+    if(accounts.find(a=>a.email===email)){showErr('Este e-mail já está cadastrado. <button type="button" onclick="Auth.switchTab(\'login\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Entrar?</button>');return;}
+    const newAcc={email,name:company,userName:user||company,hash:this._hash(pass),createdAt:new Date().toISOString()};
+    accounts.push(newAcc);
+    this._saveAccounts(accounts);
+    // Pre-populate settings for new account
+    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],
+      settings:{companyName:company,userName:user||company,email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}'},
+      updatedAt:new Date().toISOString()};
+    localStorage.setItem('cpData_'+email,JSON.stringify(accData));
+    localStorage.setItem(SESSION_KEY,email);
+    this._loadSession(email);
+  },
+
+  _loadSession(email){
+    // Load per-account data store
+    const raw=localStorage.getItem('cpData_'+email);
+    if(raw){
+      try{
+        const p=JSON.parse(raw);
+        data=Object.assign(data,p);
+        data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
+        ['events','clients','suppliers','budgets','contracts','receipts','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+      }catch(e){console.warn(e);}
+    }
+    // Override saveStore to use namespaced key
+    window._currentEmail=email;
+    App.start();
+  },
+
+  forgotPass(){
+    const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+    if(!email){
+      document.getElementById('loginErr').style.display='block';
+      document.getElementById('loginErr').innerHTML='<i class="fas fa-circle-exclamation"></i> Informe o e-mail da conta para redefinir a senha.';
+      return;
+    }
+    const accounts=this._accounts();
+    const idx=accounts.findIndex(a=>a.email===email);
+    if(idx===-1){
+      document.getElementById('loginErr').style.display='block';
+      document.getElementById('loginErr').innerHTML='<i class="fas fa-circle-exclamation"></i> Conta não encontrada com esse e-mail.';
+      return;
+    }
+    if(confirm('Redefinir senha da conta "'+accounts[idx].name+'" ('+email+')?\n\nVocê precisará criar uma nova senha. Os dados permanecem intactos.')){
+      accounts.splice(idx,1);
+      this._saveAccounts(accounts);
+      // Keep data, just remove account so user re-registers with same email
+      // Actually let them re-create password only:
+      // Re-add with blank hash so they can re-register
+      alert('Senha removida. Crie sua conta novamente com o mesmo e-mail para acessar seus dados.');
+      this.switchTab('register');
+      document.getElementById('regEmail').value=email;
+    }
+  },
+
+  logout(){
+    if(confirm('Deseja sair do sistema? Seus dados permanecem salvos.')){
+      // Save current data before logout
+      if(window._currentEmail){
+        data.updatedAt=new Date().toISOString();
+        localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data));
+      }
+      localStorage.removeItem(SESSION_KEY);
+      location.reload();
+    }
+  },
+};
+
+/* ============================================================
    App — UI shell
 ============================================================ */
 const App={
   curFilter:'all',
   init(){
-    loadStore();
-    if(localStorage.getItem('cp_loggedin')==='1'){ this.start(); }
-    else { document.getElementById('loginCompany').value=data.settings.companyName==='CerimonialPro'?'':data.settings.companyName; }
+    Auth.init();
   },
-  enter(){
-    const name=document.getElementById('loginCompany').value.trim();
-    if(name){data.settings.companyName=name; if(data.settings.userName==='Cerimonialista')data.settings.userName=name;}
-    localStorage.setItem('cp_loggedin','1'); saveStore(true); this.start();
-  },
+  // Legacy stubs kept for any inline onclick references
+  togglePassVis(){ Auth.toggleVis('loginPass','passEyeIcon'); },
+  forgotPass(){ Auth.forgotPass(); },
+  enter(){ Auth.login(); },
+  logout(){ Auth.logout(); },
   start(){
     document.getElementById('login').style.display='none';
     document.getElementById('app').style.display='block';
@@ -731,7 +1209,8 @@ Object.assign(App,{
       '<div class="field"><label>Local</label><input id="f_eloc" value="'+U.esc(e.location)+'" placeholder="Salão / endereço"></div>'+
       '<div class="row2 mb"><div class="field"><label>Convidados</label><input type="number" id="f_eguests" value="'+(e.guests||'')+'"></div><div class="field"><label>Valor (R$)</label><input type="number" step="0.01" id="f_ebudget" value="'+(e.budget||'')+'"></div></div>'+
       '<div class="field"><label>Status</label><select id="f_estatus">'+sts+'</select></div>'+
-      '<div class="field"><label>Observações</label><textarea id="f_eobs">'+U.esc(e.observations)+'</textarea></div>',
+      '<div class="field"><label>Observações</label><textarea id="f_eobs">'+U.esc(e.observations)+'</textarea></div>'+
+      (id?'<button class="btn btn-ghost btn-block mb" onclick="App.eventCostReport(\''+id+'\')"><i class="fas fa-chart-pie"></i> Relatório de custos do evento</button>':''),
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveEvent()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
   },
   saveEvent(){
@@ -753,6 +1232,67 @@ Object.assign(App,{
     if(!cl||!cl.phone)return this.toast('Cliente sem WhatsApp','err');
     const msg='Olá '+cl.name+'! 🎉\nLembrete do seu evento:\n\n📋 '+e.type+'\n📅 '+U.dateLong(e.date)+(e.time?' às '+e.time:'')+'\n'+(e.location?'📍 '+e.location+'\n':'')+'\nQualquer dúvida estou à disposição!\n— '+data.settings.companyName;
     window.open(U.waLink(cl.phone,msg),'_blank');
+  },
+  costReportData(eventId){
+    const e=data.events.find(x=>x.id===eventId); if(!e)return null;
+    const cl=data.clients.find(c=>c.id===e.clientId)||{};
+    const buds=data.budgets.filter(b=>b.eventId===eventId);
+    const basis=buds.find(b=>b.status==='approved')||buds.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0]||null;
+    const contract=data.contracts.find(c=>c.eventId===eventId&&c.status!=='cancelled');
+    const suppliers=basis?(basis.suppliers||[]):[];
+    const supplierCost=suppliers.reduce((s,x)=>s+(x.value||0),0);
+    const clientValue=(contract&&contract.value)?contract.value:(basis&&basis.total?basis.total:(e.budget||0));
+    const received=data.receipts.filter(r=>r.eventId===eventId).reduce((s,r)=>s+(r.value||0),0);
+    const pending=Math.max(0,clientValue-received);
+    const result=clientValue-supplierCost;
+    const margin=clientValue>0?(result/clientValue*100):0;
+    return {e,cl,basis,contract,suppliers,supplierCost,clientValue,received,pending,result,margin};
+  },
+  eventCostReport(eventId){
+    const d=this.costReportData(eventId); if(!d)return;
+    const row=(label,val,strong,color)=>'<div class="flex spread" style="padding:9px 0;border-bottom:1px solid var(--line2)"><span style="font-size:13.5px;color:var(--muted)'+(strong?';font-weight:700;color:var(--ink)':'')+'">'+label+'</span><span style="font-weight:700'+(color?';color:'+color:'')+'">'+val+'</span></div>';
+    let supHtml=d.suppliers.length?'<div style="margin:6px 0 2px">'+d.suppliers.map(s=>'<div class="flex spread" style="padding:6px 0;font-size:12.5px"><span class="muted">'+U.esc(s.name)+(s.category?' · '+U.esc(s.category):'')+'</span><span>'+U.money(s.value)+'</span></div>').join('')+'</div>':'<div class="hint" style="margin:4px 0">Nenhum fornecedor lançado no orçamento deste evento.</div>';
+    const body='<div style="font-size:14px;font-weight:700;margin-bottom:2px">'+U.esc(d.e.type)+(d.cl.name?' · '+U.esc(d.cl.name):'')+'</div>'+
+      '<div class="small muted mb">'+U.dateLong(d.e.date)+(d.e.guests?' · '+d.e.guests+' convidados':'')+'</div>'+
+      row('Valor cobrado do cliente',U.money(d.clientValue),true)+
+      '<div style="padding:8px 0;border-bottom:1px solid var(--line2)"><div style="font-size:13.5px;color:var(--muted);font-weight:700;color:var(--ink);margin-bottom:2px">Custos com fornecedores</div>'+supHtml+'<div class="flex spread" style="font-weight:700"><span>Total fornecedores</span><span style="color:var(--err)">'+U.money(d.supplierCost)+'</span></div></div>'+
+      row('Resultado (cliente − fornecedores)',U.money(d.result),true,'var(--ok)')+
+      row('Margem',d.margin.toFixed(1).replace('.',',')+'%',false,'var(--ok)')+
+      '<div style="height:10px"></div>'+
+      row('Recebido até agora',U.money(d.received),false,'var(--ok)')+
+      row('A receber',U.money(d.pending),false,d.pending>0?'var(--warn)':'var(--ok)')+
+      (d.contract?'':'<div class="hint" style="margin-top:8px">Dica: vincule um contrato e os recibos a este evento para um cálculo mais preciso.</div>');
+    this.openSheet('Relatório de custos',body,
+      '<button class="btn btn-ghost" onclick="App.eventModal(\''+eventId+'\')">Voltar</button><button class="btn btn-primary" onclick="App.pdfEventReport(\''+eventId+'\')"><i class="fas fa-file-pdf"></i> Gerar PDF</button>');
+  },
+  pdfEventReport(eventId){
+    const d=this.costReportData(eventId); if(!d)return;
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth(), M=18;
+    PDF.decorate(doc); let y=PDF.header(doc,'Relatório',d.e.type);
+    const [r,g,bb]=PDF.rgb(data.settings.accent);
+    doc.setFont('times','bold');doc.setFontSize(13);doc.setTextColor(r,g,bb);
+    doc.text('RELATÓRIO DE CUSTOS DO EVENTO',W/2,y,{align:'center'});doc.setTextColor(40,35,48);y+=4;
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.3);doc.line(W/2-50,y,W/2+50,y);y+=9;
+    doc.setFont('helvetica','normal');doc.setFontSize(10);
+    doc.text((d.cl.name?'Cliente: '+d.cl.name:'')+'',M,y);y+=6;
+    doc.text('Evento: '+d.e.type+' · '+U.dateLong(d.e.date)+(d.e.guests?' · '+d.e.guests+' convidados':''),M,y);y+=10;
+    const line=(lbl,val,bold,col)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(10.5);
+      if(col){const c=PDF.rgb(col);doc.setTextColor(c[0],c[1],c[2]);}else doc.setTextColor(40,35,48);
+      doc.text(lbl,M,y);doc.text(val,W-M,y,{align:'right'});doc.setTextColor(40,35,48);
+      doc.setDrawColor(236,228,236);doc.setLineWidth(0.2);doc.line(M,y+2.5,W-M,y+2.5);y+=8;};
+    line('Valor cobrado do cliente',U.money(d.clientValue),true);
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(74,31,64);doc.text('CUSTOS COM FORNECEDORES',M,y);doc.setTextColor(40,35,48);y+=6;
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+    if(d.suppliers.length)d.suppliers.forEach(s=>{doc.text(s.name+(s.category?' · '+s.category:''),M+3,y);doc.text(U.money(s.value),W-M,y,{align:'right'});y+=6;});
+    else{doc.setTextColor(120,110,126);doc.text('Nenhum fornecedor lançado.',M+3,y);doc.setTextColor(40,35,48);y+=6;}
+    y+=1;line('Total de fornecedores',U.money(d.supplierCost),true,'#b03a2e');
+    line('RESULTADO (cliente − fornecedores)',U.money(d.result),true,'#2e8b57');
+    line('Margem',d.margin.toFixed(1).replace('.',',')+'%',false,'#2e8b57');
+    y+=4;line('Recebido até agora',U.money(d.received),false,'#2e8b57');
+    line('A receber',U.money(d.pending),true,d.pending>0?'#c8851b':'#2e8b57');
+    y+=6;doc.setFont('times','italic');doc.setFontSize(9);doc.setTextColor(120,110,126);
+    doc.text('Relatório gerencial — uso interno.',W/2,y,{align:'center'});doc.setTextColor(40,35,48);
+    PDF.footer(doc);PDF.open(doc,'relatorio-custos-'+(d.e.type||'evento').toLowerCase().replace(/\s+/g,'-')+'.pdf');this.toast('PDF gerado','ok');
   },
 });
 
@@ -809,30 +1349,82 @@ Object.assign(App,{
     list.sort((a,b)=>a.name.localeCompare(b.name));
     document.getElementById('suCount').textContent=data.suppliers.length+' fornecedor(es)';
     const el=document.getElementById('suppliersList');
-    if(!list.length){el.innerHTML=this.emptyState('fa-handshake','Nenhum fornecedor','Cadastre buffet, decoração, fotografia e parceiros.','<button class="btn btn-primary btn-sm" onclick="App.supplierModal()">Novo fornecedor</button>');return;}
-    el.innerHTML='<div class="card">'+list.map(s=>
-      '<div class="list-item">'+
+    if(!list.length){el.innerHTML=this.emptyState('fa-handshake','Nenhum fornecedor','Cadastre buffet, decoração, fotografia e parceiros, com cotações e documentos.','<button class="btn btn-primary btn-sm" onclick="App.supplierModal()">Novo fornecedor</button>');return;}
+    el.innerHTML='<div class="card">'+list.map(s=>{
+      const nq=(s.quotes||[]).length, nf=(s.files||[]).length;
+      const meta=[s.category||'Geral']; if(s.phone)meta.push(s.phone);
+      let tags=''; if(nq)tags+='<span class="badge b-info" style="margin-right:5px"><i class="fas fa-file-invoice-dollar"></i> '+nq+'</span>';
+      if(nf)tags+='<span class="badge b-muted"><i class="fas fa-paperclip"></i> '+nf+'</span>';
+      return '<div class="list-item">'+
       '<div class="li-ic" style="background:var(--info-bg);color:var(--info)"><i class="fas fa-store"></i></div>'+
-      '<div class="li-body" onclick="App.supplierModal(\''+s.id+'\')"><div class="li-title">'+U.esc(s.name)+'</div><div class="li-sub">'+U.esc(s.category||'Geral')+(s.phone?' · '+U.esc(s.phone):'')+'</div></div>'+
-      '<div class="li-actions">'+(s.phone?'<button class="abtn wa" onclick="App.waSupplier(\''+s.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'suppliers\',\''+s.id+'\')"><i class="fas fa-trash"></i></button></div></div>'
-    ).join('')+'</div>';
+      '<div class="li-body" onclick="App.supplierModal(\''+s.id+'\')"><div class="li-title">'+U.esc(s.name)+'</div><div class="li-sub">'+U.esc(meta.join(' · '))+'</div>'+(tags?'<div style="margin-top:5px">'+tags+'</div>':'')+'</div>'+
+      '<div class="li-actions">'+(s.phone?'<button class="abtn wa" onclick="App.waSupplier(\''+s.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'suppliers\',\''+s.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
+    }).join('')+'</div>';
   },
   supplierModal(id){
     const s=id?data.suppliers.find(x=>x.id===id):{};
+    this._sup={id:s.id||'',quotes:JSON.parse(JSON.stringify(s.quotes||[])),files:JSON.parse(JSON.stringify(s.files||[]))};
     const cats=['Buffet','Decoração','Fotografia','Filmagem','Música/DJ','Espaço','Doces','Bolo','Convites','Flores','Iluminação','Segurança','Transporte','Outro'];
     this.openSheet(id?'Editar fornecedor':'Novo fornecedor',
       '<input type="hidden" id="f_sid" value="'+(s.id||'')+'">'+
       '<div class="field"><label>Nome <span class="req">*</span></label><input id="f_sname" value="'+U.esc(s.name)+'"></div>'+
       '<div class="field"><label>Categoria</label><select id="f_scat">'+cats.map(c=>'<option '+(s.category===c?'selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
       '<div class="row2 mb"><div class="field"><label>WhatsApp</label><input id="f_sphone" value="'+U.esc(s.phone)+'"></div><div class="field"><label>E-mail</label><input id="f_semail" value="'+U.esc(s.email)+'"></div></div>'+
-      '<div class="field"><label>Observações / valores</label><textarea id="f_sobs">'+U.esc(s.observations)+'</textarea></div>',
+      '<div class="field"><label>Observações</label><textarea id="f_sobs">'+U.esc(s.observations)+'</textarea></div>'+
+      '<label style="font-size:13px;font-weight:700;margin:6px 0 8px;display:block"><i class="fas fa-file-invoice-dollar" style="color:var(--plum)"></i> Cotações recebidas</label>'+
+      '<div id="f_squotes"></div>'+
+      '<div class="row2 mb" style="grid-template-columns:1fr 110px"><div class="field" style="margin:0"><input id="f_sqdesc" placeholder="Descrição (ex.: Buffet 100 pessoas)"></div><div class="field" style="margin:0"><input id="f_sqval" type="number" step="0.01" min="0" placeholder="Valor R$"></div></div>'+
+      '<button class="btn btn-ghost btn-sm mb" onclick="App.addSupQuote()"><i class="fas fa-plus"></i> Adicionar cotação</button>'+
+      '<label style="font-size:13px;font-weight:700;margin:6px 0 8px;display:block"><i class="fas fa-paperclip" style="color:var(--plum)"></i> Documentos anexados</label>'+
+      '<div id="f_sfiles"></div>'+
+      '<div class="row2 mb" style="grid-template-columns:130px 1fr"><div class="field" style="margin:0"><select id="f_sfkind"><option value="contract">Contrato</option><option value="budget">Orçamento</option><option value="receipt">Recibo</option><option value="other">Outro</option></select></div>'+
+      '<label class="btn btn-ghost btn-sm" style="margin:0;cursor:pointer;display:flex"><i class="fas fa-upload"></i> Anexar arquivo<input type="file" accept="image/*,application/pdf" style="display:none" onchange="App.uploadSupFile(event)"></label></div>'+
+      '<div class="hint">PDF ou imagem (até 3MB). Toque no anexo para visualizar em tela.</div>',
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveSupplier()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
+    this.renderSupQuotes(); this.renderSupFiles();
+  },
+  renderSupQuotes(){
+    const el=document.getElementById('f_squotes'); if(!el)return;
+    const qs=this._sup.quotes;
+    el.innerHTML=qs.length?qs.map((q,i)=>'<div class="qrow"><div style="flex:1"><div class="qb">'+U.esc(q.desc)+'</div><div class="qs">'+U.date((q.createdAt||'').slice(0,10))+'</div></div><div class="qv">'+U.money(q.value)+'</div><button class="ax" onclick="App.removeSupQuote('+i+')"><i class="fas fa-xmark"></i></button></div>').join(''):'<div class="hint" style="margin-bottom:8px">Nenhuma cotação registrada ainda.</div>';
+  },
+  addSupQuote(){
+    const desc=document.getElementById('f_sqdesc').value.trim(), val=parseFloat(document.getElementById('f_sqval').value)||0;
+    if(!desc||val<=0)return this.toast('Informe descrição e valor da cotação','err');
+    this._sup.quotes.push({id:U.id('sq'),desc,value:val,createdAt:new Date().toISOString()});
+    document.getElementById('f_sqdesc').value=''; document.getElementById('f_sqval').value='';
+    this.renderSupQuotes();
+  },
+  removeSupQuote(i){this._sup.quotes.splice(i,1);this.renderSupQuotes();},
+  renderSupFiles(){
+    const el=document.getElementById('f_sfiles'); if(!el)return;
+    const kindLbl={contract:'Contrato',budget:'Orçamento',receipt:'Recibo',other:'Documento'};
+    const kindIc={contract:'fa-file-signature',budget:'fa-file-invoice-dollar',receipt:'fa-receipt',other:'fa-file'};
+    const fs=this._sup.files;
+    el.innerHTML=fs.length?fs.map((f,i)=>'<div class="att"><div class="aic"><i class="fas '+(kindIc[f.kind]||'fa-file')+'"></i></div><div class="anm" onclick="App.viewSupFile('+i+')">'+U.esc(f.name)+'<div class="ak">'+(kindLbl[f.kind]||'Documento')+'</div></div><button class="ax" onclick="App.viewSupFile('+i+')"><i class="fas fa-eye"></i></button><button class="ax" onclick="App.removeSupFile('+i+')"><i class="fas fa-trash"></i></button></div>').join(''):'<div class="hint" style="margin-bottom:8px">Nenhum documento anexado.</div>';
+  },
+  uploadSupFile(ev){
+    const f=ev.target.files[0]; if(!f)return;
+    if(f.size>3*1024*1024){this.toast('Arquivo muito grande (máx 3MB)','err');ev.target.value='';return;}
+    const kind=document.getElementById('f_sfkind').value;
+    const rd=new FileReader();
+    rd.onload=e=>{this._sup.files.push({id:U.id('sf'),name:f.name,mime:f.type,kind,data:e.target.result,addedAt:new Date().toISOString()});this.renderSupFiles();this.toast('Documento anexado','ok');};
+    rd.readAsDataURL(f); ev.target.value='';
+  },
+  removeSupFile(i){if(!confirm('Remover este anexo?'))return;this._sup.files.splice(i,1);this.renderSupFiles();},
+  viewSupFile(i){
+    const f=this._sup.files[i]; if(!f)return;
+    const isImg=(f.mime||'').startsWith('image/');
+    const body=isImg?'<img class="viewer-img" src="'+f.data+'" alt="'+U.esc(f.name)+'">'
+      :'<embed class="viewer-frame" src="'+f.data+'" type="application/pdf">';
+    this.openSheet(f.name,body,'<a class="btn btn-ghost" href="'+f.data+'" download="'+U.esc(f.name)+'"><i class="fas fa-download"></i> Baixar</a><button class="btn btn-primary" onclick="App.supplierModal(App._sup.id)">Voltar</button>');
   },
   saveSupplier(){
     const id=document.getElementById('f_sid').value, name=document.getElementById('f_sname').value.trim();
     if(!name)return this.toast('Informe o nome','err');
     const o={name,category:document.getElementById('f_scat').value,phone:document.getElementById('f_sphone').value.trim(),
-      email:document.getElementById('f_semail').value.trim(),observations:document.getElementById('f_sobs').value.trim(),updatedAt:new Date().toISOString()};
+      email:document.getElementById('f_semail').value.trim(),observations:document.getElementById('f_sobs').value.trim(),
+      quotes:this._sup.quotes,files:this._sup.files,updatedAt:new Date().toISOString()};
     if(id){const i=data.suppliers.findIndex(x=>x.id===id);data.suppliers[i]={...data.suppliers[i],...o};}
     else{o.id=U.id('su');o.createdAt=new Date().toISOString();data.suppliers.push(o);}
     saveStore();this.closeSheet();this.renderSuppliers();this.toast('Fornecedor salvo','ok');
@@ -861,7 +1453,7 @@ Object.assign(App,{
       return '<div class="list-item">'+
         '<div class="li-ic" style="background:var(--gold-soft);color:var(--gold-deep)"><i class="fas fa-file-invoice-dollar"></i></div>'+
         '<div class="li-body" onclick="App.budgetModal(\''+b.id+'\')"><div class="li-title">'+U.esc(b.number||'Orçamento')+(cl?' · '+U.esc(cl.name):'')+'</div><div class="li-sub">'+U.money(b.total)+' · '+(b.items?b.items.length:0)+' item(ns)</div><div style="margin-top:5px"><span class="badge '+st.c+'">'+st.t+'</span></div></div>'+
-        '<div class="li-actions"><button class="abtn pdf" onclick="App.pdfBudget(\''+b.id+'\')"><i class="fas fa-file-pdf"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waBudget(\''+b.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'budgets\',\''+b.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
+        '<div class="li-actions"><button class="abtn pdf" onclick="DocPreview.open(\'budget\',\''+b.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waBudget(\''+b.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'budgets\',\''+b.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
     }).join('')+'</div>';
   },
   budgetModal(id){
@@ -877,11 +1469,30 @@ Object.assign(App,{
       '<label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block">Itens</label>'+
       '<table class="items-tbl"><thead><tr><th>Descrição</th><th class="colq">Qtd</th><th class="colp">Valor</th><th class="colx"></th></tr></thead><tbody id="f_bitems"></tbody></table>'+
       '<button class="btn btn-ghost btn-sm mt" onclick="App.addBItem()"><i class="fas fa-plus"></i> Adicionar item</button>'+
+      '<label style="font-size:13px;font-weight:700;margin:16px 0 7px;display:block"><i class="fas fa-handshake" style="color:var(--plum)"></i> Fornecedores contratados</label>'+
+      '<div class="hint" style="margin-bottom:8px">Inclua os custos dos fornecedores para gerar um relatório completo ao cliente.</div>'+
+      '<div id="f_bsuppliers"></div>'+
+      '<button class="btn btn-ghost btn-sm mb" onclick="App.addBSupplier()"><i class="fas fa-plus"></i> Adicionar fornecedor</button>'+
       '<div class="row2 mt"><div class="field"><label>Desconto (R$)</label><input type="number" step="0.01" min="0" id="f_bdiscount" value="'+(b.discount||'')+'" oninput="App.calcBTotal()" placeholder="0,00"></div><div class="field"><label>&nbsp;</label><div class="flex spread" style="font-size:18px;font-weight:700;padding:9px 0"><span style="font-size:13px;color:var(--muted)">Total</span><span id="f_btotal" style="color:var(--plum)">R$ 0,00</span></div></div></div>'+
       '<div class="field"><label>Condições de pagamento</label><input id="f_bpayment" value="'+U.esc(b.payment)+'" placeholder="Ex.: 50% na assinatura, 50% no evento"></div>'+
       '<div class="field"><label>Observações</label><textarea id="f_bobs">'+U.esc(b.observations)+'</textarea></div>',
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveBudget()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
     (b.items&&b.items.length?b.items:[{}]).forEach(it=>this.addBItem(it));
+    (b.suppliers||[]).forEach(sp=>this.addBSupplier(sp));
+    this.calcBTotal();
+  },
+  addBSupplier(sp={}){
+    const wrap=document.getElementById('f_bsuppliers'); const row=document.createElement('div'); row.className='supchip';
+    const opts=data.suppliers.map(s=>'<option value="'+s.id+'" '+(sp.supplierId===s.id?'selected':'')+'>'+U.esc(s.name)+' ('+U.esc(s.category||'Geral')+')</option>').join('');
+    row.innerHTML='<select class="bsup-id" onchange="App.bsupPick(this)" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13px"><option value="">— fornecedor —</option>'+opts+'</select>'+
+      '<input class="bsup-v" type="number" step="0.01" min="0" placeholder="R$" value="'+(sp.value||'')+'" oninput="App.calcBTotal()">'+
+      '<button class="ax" onclick="this.closest(\'.supchip\').remove();App.calcBTotal()"><i class="fas fa-xmark"></i></button>';
+    wrap.appendChild(row);
+  },
+  bsupPick(sel){
+    const row=sel.closest('.supchip'), s=data.suppliers.find(x=>x.id===sel.value);
+    const vEl=row.querySelector('.bsup-v');
+    if(s&&(s.quotes||[]).length&&!parseFloat(vEl.value)){vEl.value=s.quotes[s.quotes.length-1].value;}
     this.calcBTotal();
   },
   addBItem(it={}){
@@ -894,6 +1505,7 @@ Object.assign(App,{
   },
   calcBTotal(){
     let t=0; document.querySelectorAll('#f_bitems tr').forEach(r=>{const q=parseFloat(r.querySelector('.bi-q').value)||0,p=parseFloat(r.querySelector('.bi-p').value)||0;t+=q*p;});
+    document.querySelectorAll('#f_bsuppliers .supchip').forEach(r=>{t+=parseFloat(r.querySelector('.bsup-v').value)||0;});
     const dEl=document.getElementById('f_bdiscount'); const disc=dEl?parseFloat(dEl.value)||0:0;
     t=Math.max(0,t-disc);
     document.getElementById('f_btotal').textContent=U.money(t); return t;
@@ -903,10 +1515,13 @@ Object.assign(App,{
     if(!cid)return this.toast('Selecione o cliente','err');
     const items=[]; document.querySelectorAll('#f_bitems tr').forEach(r=>{const d=r.querySelector('.bi-d').value.trim(),q=parseFloat(r.querySelector('.bi-q').value)||0,p=parseFloat(r.querySelector('.bi-p').value)||0;if(d&&q>0)items.push({description:d,quantity:q,unitPrice:p,total:q*p});});
     if(!items.length)return this.toast('Adicione ao menos um item','err');
+    const sups=[]; document.querySelectorAll('#f_bsuppliers .supchip').forEach(r=>{const sid=r.querySelector('.bsup-id').value,v=parseFloat(r.querySelector('.bsup-v').value)||0;
+      const s=data.suppliers.find(x=>x.id===sid); if(s&&v>0)sups.push({supplierId:sid,name:s.name,category:s.category||'',value:v});});
     const disc=parseFloat(document.getElementById('f_bdiscount').value)||0;
-    const total=Math.max(0,items.reduce((s,i)=>s+i.total,0)-disc);
+    const subItems=items.reduce((s,i)=>s+i.total,0), subSup=sups.reduce((s,x)=>s+x.value,0);
+    const total=Math.max(0,subItems+subSup-disc);
     const o={clientId:cid,eventId:document.getElementById('f_bevent').value,validUntil:document.getElementById('f_bvalid').value,
-      status:document.getElementById('f_bstatus').value,items,discount:disc,payment:document.getElementById('f_bpayment').value.trim(),total,observations:document.getElementById('f_bobs').value.trim(),updatedAt:new Date().toISOString()};
+      status:document.getElementById('f_bstatus').value,items,suppliers:sups,discount:disc,payment:document.getElementById('f_bpayment').value.trim(),total,observations:document.getElementById('f_bobs').value.trim(),updatedAt:new Date().toISOString()};
     if(id){const i=data.budgets.findIndex(x=>x.id===id);o.number=data.budgets[i].number;data.budgets[i]={...data.budgets[i],...o};}
     else{o.id=U.id('bu');o.createdAt=new Date().toISOString();o.number='ORC-'+String(data.budgets.length+1).padStart(4,'0');data.budgets.push(o);}
     saveStore();this.closeSheet();this.renderBudgets();this.toast('Orçamento salvo','ok');
@@ -935,7 +1550,7 @@ Object.assign(App,{
       return '<div class="list-item">'+
         '<div class="li-ic" style="background:var(--info-bg);color:var(--info)"><i class="fas fa-file-signature"></i></div>'+
         '<div class="li-body" onclick="App.contractModal(\''+c.id+'\')"><div class="li-title">'+U.esc(c.number||'Contrato')+(cl?' · '+U.esc(cl.name):'')+'</div><div class="li-sub">'+U.money(c.value)+' · '+U.date(c.contractDate)+'</div><div style="margin-top:5px"><span class="badge '+st.c+'">'+st.t+'</span></div></div>'+
-        '<div class="li-actions"><button class="abtn pdf" onclick="App.pdfContract(\''+c.id+'\')"><i class="fas fa-file-pdf"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waDoc(\'contract\',\''+c.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'contracts\',\''+c.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
+        '<div class="li-actions"><button class="abtn pdf" onclick="DocPreview.open(\'contract\',\''+c.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waDoc(\'contract\',\''+c.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'contracts\',\''+c.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
     }).join('')+'</div>';
   },
   contractModal(id){
@@ -943,14 +1558,14 @@ Object.assign(App,{
     const cls=data.clients.map(x=>'<option value="'+x.id+'" '+(c.clientId===x.id?'selected':'')+'>'+U.esc(x.name)+'</option>').join('');
     const evs=data.events.map(e=>{const cl=data.clients.find(x=>x.id===e.clientId);return '<option value="'+e.id+'" '+(c.eventId===e.id?'selected':'')+'>'+U.esc(e.type)+(cl?' - '+U.esc(cl.name):'')+' ('+U.date(e.date)+')</option>';}).join('');
     const sts=Object.entries(CSTATUS).map(([k,v])=>'<option value="'+k+'" '+(c.status===k?'selected':'')+'>'+v.t+'</option>').join('');
-    const defTerms=c.terms||'1. O presente contrato tem por objeto a prestação de serviços de cerimonial e organização do evento descrito.\n2. O pagamento será realizado conforme condições acordadas entre as partes.\n3. Em caso de cancelamento, aplicam-se as cláusulas de rescisão previstas.\n4. As partes elegem o foro da comarca local para dirimir quaisquer dúvidas.';
     this.openSheet(id?'Editar contrato':'Novo contrato',
       '<input type="hidden" id="f_coid" value="'+(c.id||'')+'">'+
       '<div class="field"><label>Cliente (contratante) <span class="req">*</span></label><select id="f_coclient"><option value="">— selecione —</option>'+cls+'</select></div>'+
       '<div class="field"><label>Evento</label><select id="f_coevent"><option value="">— opcional —</option>'+evs+'</select></div>'+
       '<div class="row2 mb"><div class="field"><label>Data</label><input type="date" id="f_codate" value="'+(c.contractDate||new Date().toISOString().slice(0,10))+'"></div><div class="field"><label>Valor (R$)</label><input type="number" step="0.01" id="f_covalue" value="'+(c.value||'')+'"></div></div>'+
       '<div class="row2 mb"><div class="field"><label>Forma de pagamento</label><input id="f_copay" value="'+U.esc(c.payment)+'" placeholder="Ex.: 50% entrada + 50% no evento"></div><div class="field"><label>Status</label><select id="f_costatus">'+sts+'</select></div></div>'+
-      '<div class="field"><label>Cláusulas / termos</label><textarea id="f_coterms" style="min-height:160px">'+U.esc(defTerms)+'</textarea></div>',
+      '<div class="field"><label>Multa por cancelamento (%)</label><input type="number" min="0" max="100" id="f_cofine" value="'+(c.fine!=null?c.fine:30)+'" placeholder="Ex.: 30"></div>'+
+      '<div class="field"><label>Cláusulas adicionais <span class="muted small">(opcional)</span></label><textarea id="f_coterms" style="min-height:110px" placeholder="As cláusulas padrão (objeto, valor, obrigações, rescisão, foro etc.) já são geradas automaticamente. Escreva aqui apenas cláusulas extras, uma por linha.">'+U.esc(c.terms)+'</textarea></div>',
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveContract()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
   },
   saveContract(){
@@ -958,6 +1573,7 @@ Object.assign(App,{
     if(!cid)return this.toast('Selecione o cliente','err');
     const o={clientId:cid,eventId:document.getElementById('f_coevent').value,contractDate:document.getElementById('f_codate').value,
       value:parseFloat(document.getElementById('f_covalue').value)||0,payment:document.getElementById('f_copay').value.trim(),
+      fine:parseFloat(document.getElementById('f_cofine').value)||0,
       status:document.getElementById('f_costatus').value,terms:document.getElementById('f_coterms').value.trim(),updatedAt:new Date().toISOString()};
     if(id){const i=data.contracts.findIndex(x=>x.id===id);o.number=data.contracts[i].number;data.contracts[i]={...data.contracts[i],...o};}
     else{o.id=U.id('co');o.createdAt=new Date().toISOString();o.number='CT-'+String(data.contracts.length+1).padStart(4,'0');data.contracts.push(o);}
@@ -980,7 +1596,7 @@ Object.assign(App,{
         '<div class="li-ic" style="background:var(--ok-bg);color:var(--ok)"><i class="fas fa-receipt"></i></div>'+
         '<div class="li-body" onclick="App.receiptModal(\''+r.id+'\')"><div class="li-title">'+U.esc(r.number||'Recibo')+(cl?' · '+U.esc(cl.name):'')+'</div><div class="li-sub">'+U.date(r.receiptDate)+' · '+U.esc(r.paymentMethod||'')+'</div></div>'+
         '<div class="li-end"><div class="li-val" style="color:var(--ok)">'+U.money(r.value)+'</div></div>'+
-        '<div class="li-actions"><button class="abtn pdf" onclick="App.pdfReceipt(\''+r.id+'\')"><i class="fas fa-file-pdf"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waDoc(\'receipt\',\''+r.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'receipts\',\''+r.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
+        '<div class="li-actions"><button class="abtn pdf" onclick="DocPreview.open(\'receipt\',\''+r.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waDoc(\'receipt\',\''+r.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'receipts\',\''+r.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
     }).join('')+'</div>';
   },
   receiptModal(id){
@@ -1105,7 +1721,7 @@ Object.assign(App,{
     data.tasks.filter(t=>!t.done&&t.due).forEach(t=>{const d=U.daysTo(t.due);
       if(d!==null&&d<=7)A.push({ic:'fa-list-check',cls:d<0?'ai-danger':'ai-warn',t:t.title,s:d<0?'Atrasada '+(-d)+' dia(s)':d===0?'Vence hoje':'Vence em '+d+' dia(s)',sort:d,go:'dashboard'});});
     data.budgets.filter(b=>b.status==='sent'&&b.validUntil).forEach(b=>{const d=U.daysTo(b.validUntil),cl=data.clients.find(c=>c.id===b.clientId);
-      if(d!==null&&d<=5)A.push({ic:'fa-file-invoice-dollar',cls:d<0?'ai-danger':'ai-warn',t:'Orçamento '+(b.number||'')+(cl?' · '+cl.name:''),s:d<0?'Validade expirada':'Validade expira em '+d+' dia(s)',sort:d,go:'budgets'});});
+      if(d!==null&&d<=5)A.push({ic:'fa-file-invoice-dollar',cls:d<0?'ai-danger':'ai-warn',t:'Orçamento '+(b.number||'')+(cl?' · '+cl.name:''),s:d<0?'Validade expirada':d===0?'Vence hoje':'Vence em '+d+' dia(s)',sort:d,go:'budgets',budgetId:(cl&&cl.phone?b.id:'')});});
     data.contracts.filter(c=>c.status!=='cancelled').forEach(c=>{
       const recv=data.receipts.filter(r=>r.contractId===c.id||r.clientId===c.clientId).reduce((s,r)=>s+(r.value||0),0);
       const cl=data.clients.find(x=>x.id===c.clientId);
@@ -1119,9 +1735,20 @@ Object.assign(App,{
   },
   openAlerts(){
     const A=this.computeAlerts();
-    const body=A.length?'<div style="margin:-4px 0">'+A.map(a=>'<div class="alert-item" onclick="App.closeSheet();App.go(\''+a.go+'\')"><div class="ai '+a.cls+'"><i class="fas '+a.ic+'"></i></div><div><div class="at">'+U.esc(a.t)+'</div><div class="as">'+U.esc(a.s)+'</div></div></div>').join('')+'</div>'
+    const body=A.length?'<div style="margin:-4px 0">'+A.map(a=>{
+      const wa=a.budgetId?'<button class="abtn wa" style="margin-left:auto;flex-shrink:0" onclick="event.stopPropagation();App.waBudgetReminder(\''+a.budgetId+'\')"><i class="fab fa-whatsapp"></i></button>':'';
+      return '<div class="alert-item" onclick="App.closeSheet();App.go(\''+a.go+'\')"><div class="ai '+a.cls+'"><i class="fas '+a.ic+'"></i></div><div style="flex:1"><div class="at">'+U.esc(a.t)+'</div><div class="as">'+U.esc(a.s)+'</div></div>'+wa+'</div>';
+    }).join('')+'</div>'
       :'<div class="empty" style="padding:34px"><div class="empty-ic"><i class="fas fa-bell-slash"></i></div><p>Nenhum alerta no momento ✨</p></div>';
     this.openSheet('Alertas & lembretes',body,'<button class="btn btn-primary btn-block" onclick="App.closeSheet()">Fechar</button>');
+  },
+  waBudgetReminder(id){
+    const b=data.budgets.find(x=>x.id===id); if(!b)return;
+    const cl=data.clients.find(c=>c.id===b.clientId);
+    if(!cl||!cl.phone)return this.toast('Cliente sem WhatsApp','err');
+    const tpl=data.settings.budgetReminderMsg||'Olá {cliente}! O orçamento {numero} é válido até {validade}. Fico à disposição. — {empresa}';
+    const msg=tpl.replace(/{cliente}/g,cl.name).replace(/{numero}/g,b.number||'').replace(/{validade}/g,U.date(b.validUntil)).replace(/{empresa}/g,data.settings.companyName||'');
+    window.open(U.waLink(cl.phone,msg),'_blank');
   },
 });
 
@@ -1174,8 +1801,42 @@ Object.assign(App,{
     document.getElementById('setGhToken').value=syncCfg.token||'';
     document.getElementById('setGistId').value=syncCfg.gistId||'';
     document.getElementById('setAutoSync').checked=!!syncCfg.auto;
-    this.renderLogoPrev(); this.renderDocOpts();
+    document.getElementById('setReminderMsg').value=s.budgetReminderMsg||'';
+    this.renderLogoPrev(); this.renderDocOpts(); this.renderSigCurrent(); this.sigInit();
     Sync.updateStatus();
+  },
+  renderSigCurrent(){
+    const el=document.getElementById('sigCurrent'); if(!el)return;
+    el.innerHTML=data.settings.signature?'<div class="sig-prev mb"><img src="'+data.settings.signature+'" alt="assinatura"><div class="small muted" style="margin-top:4px">Assinatura atual — desenhe abaixo para substituir</div></div>':'';
+  },
+  sigInit(){
+    const c=document.getElementById('sigPad'); if(!c||c._init)return;
+    const ctx=c.getContext&&c.getContext('2d'); if(!ctx)return; c._init=true;
+    const fit=()=>{const w=c.clientWidth||c.parentElement.clientWidth||300;c.width=w;};
+    fit();
+    ctx.strokeStyle='#16399c'; ctx.lineWidth=2.6; ctx.lineCap='round'; ctx.lineJoin='round';
+    let drawing=false,last=null;
+    const pos=e=>{const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return {x:t.clientX-r.left,y:t.clientY-r.top};};
+    const start=e=>{drawing=true;last=pos(e);c._dirty=true;document.getElementById('sigHint').style.display='none';e.preventDefault();};
+    const move=e=>{if(!drawing)return;const p=pos(e);
+      // velocity-based width for expressive strokes
+      const d=Math.hypot(p.x-last.x,p.y-last.y);ctx.lineWidth=Math.max(1.6,3.6-d*0.08);
+      ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;e.preventDefault();};
+    const end=()=>{drawing=false;};
+    c.addEventListener('mousedown',start);c.addEventListener('mousemove',move);window.addEventListener('mouseup',end);
+    c.addEventListener('touchstart',start,{passive:false});c.addEventListener('touchmove',move,{passive:false});c.addEventListener('touchend',end);
+    c._ctx=ctx;
+  },
+  sigClear(){const c=document.getElementById('sigPad');if(!c)return;const ctx=c.getContext&&c.getContext('2d');if(ctx)ctx.clearRect(0,0,c.width,c.height);c._dirty=false;const h=document.getElementById('sigHint');if(h)h.style.display='block';},
+  sigSave(){
+    const c=document.getElementById('sigPad'); if(!c)return;
+    if(!c._dirty)return this.toast('Desenhe a assinatura primeiro','err');
+    data.settings.signature=c.toDataURL('image/png');
+    saveStore();this.renderSigCurrent();this.toast('Assinatura salva','ok');
+  },
+  saveReminderMsg(){
+    data.settings.budgetReminderMsg=document.getElementById('setReminderMsg').value.trim();
+    saveStore();this.toast('Mensagem salva','ok');
   },
   renderLogoPrev(){
     const box=document.getElementById('logoPrev'), del=document.getElementById('logoDel');
@@ -1256,6 +1917,13 @@ Object.assign(App,{
       this.statRow('Orçamentos enviados',data.budgets.filter(b=>b.status==='sent'||b.status==='approved').length)+
       this.statRow('Contratos assinados',data.contracts.filter(c=>c.status==='signed').length)+
       this.statRow('Ticket médio',U.money(data.contracts.length?fin.contracted/data.contracts.filter(c=>c.status!=='cancelled').length:0));
+    const sel=document.getElementById('rEventSel');
+    if(sel){const evs=data.events.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+      sel.innerHTML=evs.length?evs.map(e=>{const cl=data.clients.find(c=>c.id===e.clientId);return '<option value="'+e.id+'">'+U.esc(e.type)+(cl?' · '+U.esc(cl.name):'')+' ('+U.date(e.date)+')</option>';}).join(''):'<option value="">Nenhum evento cadastrado</option>';}
+  },
+  openEventReportFromSelect(){
+    const sel=document.getElementById('rEventSel'); if(!sel||!sel.value)return this.toast('Cadastre um evento primeiro','err');
+    this.eventCostReport(sel.value);
   },
   statRow(k,v){return '<div class="stat-row"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';},
 });
@@ -1278,10 +1946,18 @@ const PDF={
   watermark(doc){
     if(data.settings.watermark===false)return;
     const W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight(),cx=W/2,cy=H/2-6;
-    doc.setDrawColor(222,206,180);doc.setLineWidth(1.3);
-    doc.circle(cx-14,cy,28,'S');doc.circle(cx+14,cy,28,'S');
-    doc.setFont('times','bold');doc.setFontSize(26);doc.setTextColor(238,231,238);
-    doc.text((data.settings.companyName||'CerimonialPro').toUpperCase(),cx,cy+56,{align:'center'});
+    let gs=false;
+    try{ if(doc.GState&&doc.setGState){doc.saveGraphicsState();doc.setGState(new doc.GState({opacity:0.012}));gs=true;} }catch(e){gs=false;}
+    if(gs){
+      // With GState: ultra-transparent rings
+      doc.setDrawColor(210,185,120);doc.setLineWidth(0.3);
+      doc.circle(cx-13,cy,24,'S');doc.circle(cx+13,cy,24,'S');
+      try{doc.restoreGraphicsState();}catch(e){}
+    }else{
+      // Fallback: rings almost invisible — color very close to white page (255,255,255)
+      doc.setDrawColor(248,246,244);doc.setLineWidth(0.25);
+      doc.circle(cx-13,cy,24,'S');doc.circle(cx+13,cy,24,'S');
+    }
     doc.setLineWidth(0.2);doc.setTextColor(40,35,48);doc.setFont('helvetica','normal');
   },
   logo(doc,x,y,sz){
@@ -1338,6 +2014,15 @@ const PDF={
     }
     doc.setLineWidth(0.2);doc.setTextColor(40,35,48);
   },
+  sign(doc,cx,lineY,w){
+    const s=data.settings; if(!s.signature)return;
+    try{
+      let ww=w||58, h=ww*0.40;            // sensible default width if none passed
+      try{const pr=doc.getImageProperties(s.signature);if(pr&&pr.width&&pr.height){h=ww*pr.height/pr.width; if(h>24){h=24;ww=h*pr.width/pr.height;}}}catch(e){}
+      if(!isFinite(ww)||!isFinite(h)||ww<=0||h<=0){ww=58;h=22;}
+      doc.addImage(s.signature,'PNG',cx-ww/2,lineY-h-1.5,ww,h);
+    }catch(e){}
+  },
   open(doc,name){try{doc.save(name);}catch(e){window.open(doc.output('bloburl'),'_blank');}},
 };
 Object.assign(App,{
@@ -1370,18 +2055,55 @@ Object.assign(App,{
       y+=rh;doc.setDrawColor(236,228,236);doc.line(18,y,W-18,y);
     });
     y+=5;
-    const disc=b.discount||0, sub=(b.items||[]).reduce((s,i)=>s+(i.total||0),0);
-    if(disc>0){doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(90,82,96);
-      doc.text('Subtotal',W-70,y);doc.text(U.money(sub),W-21,y,{align:'right'});y+=6;
-      doc.text('Desconto',W-70,y);doc.text('- '+U.money(disc),W-21,y,{align:'right'});y+=3;doc.setTextColor(40,35,48);}
+    const sups=b.suppliers||[];
+    if(sups.length){
+      if(y>240){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+      doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(74,31,64);
+      doc.text('FORNECEDORES / SERVIÇOS CONTRATADOS',18,y);doc.setTextColor(40,35,48);y+=4;
+      doc.setDrawColor(189,154,60);doc.setLineWidth(0.4);doc.line(18,y,W-18,y);y+=6;
+      doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+      sups.forEach(sp=>{
+        if(y>258){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+        doc.text(sp.name+(sp.category?' · '+sp.category:''),21,y);
+        doc.text(U.money(sp.value),W-21,y,{align:'right'});y+=6.5;
+        doc.setDrawColor(238,232,238);doc.line(18,y-2,W-18,y-2);
+      });
+      y+=4;
+    }
+    const disc=b.discount||0;
+    const subItems=(b.items||[]).reduce((s,i)=>s+(i.total||0),0), subSup=sups.reduce((s,x)=>s+(x.value||0),0);
+    if(disc>0||sups.length){doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(90,82,96);
+      doc.text('Serviços de cerimonial',W-78,y);doc.text(U.money(subItems),W-21,y,{align:'right'});y+=6;
+      if(subSup>0){doc.text('Fornecedores',W-78,y);doc.text(U.money(subSup),W-21,y,{align:'right'});y+=6;}
+      if(disc>0){doc.text('Desconto',W-78,y);doc.text('- '+U.money(disc),W-21,y,{align:'right'});y+=6;}
+      y+=1;doc.setTextColor(40,35,48);}
     doc.setFillColor(r,g,bb);doc.roundedRect(W-94,y,76,13,2,2,'F');doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11.5);
     doc.text('TOTAL',W-90,y+8.5);doc.text(U.money(b.total),W-21,y+8.5,{align:'right'});y+=20;doc.setTextColor(40,35,48);
     if(b.payment){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text('Condições de pagamento',18,y);doc.setFont('helvetica','normal');
       doc.text(doc.splitTextToSize(b.payment,W-36),18,y+6);y+=6+doc.splitTextToSize(b.payment,W-36).length*5+4;}
     if(b.observations){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text('Observações',18,y);doc.setFont('helvetica','normal');
       doc.text(doc.splitTextToSize(b.observations,W-36),18,y+6);y+=6+doc.splitTextToSize(b.observations,W-36).length*5+4;}
+    // condições gerais
+    if(y>238){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(74,31,64);doc.text('CONDIÇÕES GERAIS',18,y);doc.setTextColor(40,35,48);y+=4;
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.4);doc.line(18,y,W-18,y);y+=6;
+    const cond=[
+      'Validade da proposta: '+(b.validUntil?U.date(b.validUntil):'conforme combinado')+'. Após esse prazo, os valores estão sujeitos a reajuste.',
+      'A reserva da data ocorre somente após a assinatura do contrato e o pagamento do sinal acordado.',
+      'Os valores de fornecedores são estimados conforme cotações vigentes e podem variar conforme disponibilidade e data do evento.',
+      'Eventuais serviços não descritos nesta proposta serão orçados à parte.',
+      (b.payment?'Condições de pagamento: '+b.payment+'.':'Condições de pagamento a combinar.')
+    ];
+    doc.setFont('helvetica','normal');doc.setFontSize(8.8);doc.setTextColor(70,62,76);
+    cond.forEach(t=>{const L=doc.splitTextToSize('•  '+t,W-36);L.forEach(ln=>{if(y>270){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}doc.text(ln,18,y);y+=4.4;});y+=1.5;});
+    doc.setTextColor(40,35,48);y+=3;
     doc.setFont('times','italic');doc.setFontSize(10);doc.setTextColor(r,g,bb);
-    doc.text('Será uma honra cuidar de cada detalhe do seu evento.',W/2,y+6,{align:'center'});doc.setTextColor(40,35,48);
+    doc.text('Será uma honra cuidar de cada detalhe do seu evento.',W/2,y+6,{align:'center'});doc.setTextColor(40,35,48);y+=12;
+    if(data.settings.signature){
+      if(y>250){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=30;}
+      y+=14;doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);PDF.sign(doc,W/2,y);doc.line(W/2-38,y,W/2+38,y);y+=5;
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(40,35,48);doc.text(data.settings.companyName||'',W/2,y,{align:'center'});
+    }
     PDF.footer(doc);PDF.open(doc,(b.number||'orcamento')+'.pdf');this.toast('PDF gerado','ok');
   },
   pdfContract(id){
@@ -1400,25 +2122,33 @@ Object.assign(App,{
       L.forEach(line=>{if(y>270){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}doc.text(line,M,y);y+=4.8;});
       y+=(gap||4);
     };
-    para('','Pelo presente instrumento particular, as partes abaixo qualificadas têm entre si justo e contratado o seguinte:',5);
-    para('CONTRATADA',(s.companyName||'')+(s.doc?', inscrita sob o nº '+s.doc:'')+(s.address?', com sede em '+s.address:'')+(s.phone?', telefone '+s.phone:'')+'.');
-    para('CONTRATANTE',(cl.name||'—')+(cl.doc?', inscrito(a) sob o nº '+cl.doc:'')+(cl.address?', residente em '+cl.address:'')+(cl.phone?', telefone '+cl.phone:'')+'.');
-    if(ev)para('CLÁUSULA 1ª — DO OBJETO','O presente contrato tem por objeto a prestação de serviços de cerimonial e organização do evento '+ev.type+', a ser realizado em '+U.dateLong(ev.date)+(ev.time?', às '+ev.time:'')+(ev.location?', no local '+ev.location:'')+'.');
-    else para('CLÁUSULA 1ª — DO OBJETO','O presente contrato tem por objeto a prestação de serviços de cerimonial e organização de evento conforme condições ajustadas entre as partes.');
-    para('CLÁUSULA 2ª — DO VALOR E PAGAMENTO','Pelos serviços ora contratados, a CONTRATANTE pagará à CONTRATADA o valor total de '+U.money(c.value)+' ('+Extenso.reais(c.value)+').'+(c.payment?' Condições de pagamento: '+c.payment+'.':''));
-    if(c.terms){
-      const extra=c.terms.split(/\n+/).filter(x=>x.trim());
-      extra.forEach((t,i)=>para('CLÁUSULA '+(i+3)+'ª',t.trim()));
-    }else{
-      para('CLÁUSULA 3ª — DAS OBRIGAÇÕES','A CONTRATADA compromete-se a executar os serviços com zelo e profissionalismo. A CONTRATANTE compromete-se a fornecer as informações necessárias e efetuar os pagamentos nas datas acordadas.');
-      para('CLÁUSULA 4ª — DA RESCISÃO','O descumprimento de qualquer cláusula faculta à parte prejudicada a rescisão, observadas as condições e eventuais multas previstas neste instrumento.');
-      para('CLÁUSULA 5ª — DO FORO','Fica eleito o foro da comarca da CONTRATADA para dirimir quaisquer questões oriundas do presente contrato.');
-    }
+    para('','Pelo presente instrumento particular de prestação de serviços, de um lado a CONTRATADA e de outro a CONTRATANTE, abaixo qualificadas, têm entre si justo e contratado o seguinte:',5);
+    para('CONTRATADA',(s.companyName||'—')+(s.doc?', inscrita sob o nº '+s.doc:'')+(s.address?', com sede em '+s.address:'')+(s.phone?', telefone '+s.phone:'')+(s.email?', e-mail '+s.email:'')+'.');
+    para('CONTRATANTE',(cl.name||'—')+(cl.doc?', inscrito(a) sob o nº '+cl.doc:'')+(cl.address?', residente em '+cl.address:'')+(cl.phone?', telefone '+cl.phone:'')+(cl.email?', e-mail '+cl.email:'')+'.');
+    const ord=['1ª','2ª','3ª','4ª','5ª','6ª','7ª','8ª','9ª','10ª','11ª','12ª','13ª','14ª','15ª','16ª','17ª','18ª'];
+    const objeto=ev?'O presente contrato tem por objeto a prestação de serviços de assessoria e cerimonial para a organização e coordenação do evento '+ev.type+', a ser realizado em '+U.dateLong(ev.date)+(ev.time?', às '+ev.time:'')+(ev.location?', no(a) '+ev.location:'')+', compreendendo o planejamento, a coordenação dos fornecedores e o acompanhamento integral no dia do evento.':'O presente contrato tem por objeto a prestação de serviços de assessoria e cerimonial para a organização e coordenação de evento, conforme condições ajustadas entre as partes.';
+    const fine=(c.fine!=null?c.fine:30);
+    const clauses=[
+      ['DO OBJETO',objeto],
+      ['DO VALOR E DA FORMA DE PAGAMENTO','Pelos serviços ora contratados, a CONTRATANTE pagará à CONTRATADA o valor total de '+U.money(c.value)+' ('+Extenso.reais(c.value)+').'+(c.payment?' O pagamento será efetuado da seguinte forma: '+c.payment+'.':' O pagamento será efetuado conforme condições acordadas entre as partes.')+' O atraso no pagamento de qualquer parcela implicará atualização monetária e juros de 1% (um por cento) ao mês.'],
+      ['DAS OBRIGAÇÕES DA CONTRATADA','Compete à CONTRATADA: (a) planejar e coordenar o evento conforme o objeto deste contrato; (b) orientar e acompanhar os fornecedores envolvidos; (c) estar presente no dia do evento para a coordenação geral; (d) agir com zelo, profissionalismo e sigilo quanto às informações da CONTRATANTE.'],
+      ['DAS OBRIGAÇÕES DA CONTRATANTE','Compete à CONTRATANTE: (a) fornecer todas as informações necessárias à execução dos serviços; (b) efetuar os pagamentos nas datas acordadas; (c) comunicar previamente quaisquer alterações relativas ao evento; (d) responsabilizar-se pela contratação e pagamento dos fornecedores, salvo quando ajustado de outra forma.'],
+      ['DO PRAZO E DA EXECUÇÃO','Os serviços serão prestados a partir da assinatura deste instrumento e encerram-se com a conclusão do evento. Serviços adicionais não previstos serão objeto de aditivo, com a respectiva complementação de valores.'],
+      ['DA RESCISÃO E DA MULTA','O presente contrato poderá ser rescindido por qualquer das partes mediante comunicação por escrito. Em caso de cancelamento por parte da CONTRATANTE, será devida multa de '+fine+'% (por cento) sobre o valor total do contrato, sem prejuízo do pagamento dos serviços já executados. Os valores pagos a título de sinal não serão restituídos.'],
+      ['DOS CASOS FORTUITOS E DE FORÇA MAIOR','Nenhuma das partes será responsabilizada pelo descumprimento decorrente de caso fortuito ou força maior, nos termos do art. 393 do Código Civil, hipótese em que as partes buscarão, de boa-fé, o reagendamento do evento ou solução equivalente.'],
+      ['DA CESSÃO DE IMAGEM','A CONTRATANTE autoriza a CONTRATADA a utilizar imagens e registros do evento para fins de divulgação de seu portfólio profissional, podendo tal autorização ser revogada por escrito a qualquer tempo.'],
+      ['DAS DISPOSIÇÕES GERAIS','Este contrato obriga as partes e seus sucessores. Qualquer alteração somente terá validade se formalizada por escrito. A tolerância quanto ao descumprimento de qualquer cláusula não constituirá novação ou renúncia.'],
+      ['DO FORO','Fica eleito o foro da comarca da CONTRATADA para dirimir quaisquer questões oriundas do presente contrato, com renúncia a qualquer outro, por mais privilegiado que seja.'],
+    ];
+    if(c.terms){c.terms.split(/\n+/).map(x=>x.trim()).filter(Boolean).forEach(t=>clauses.push(['DISPOSIÇÃO ADICIONAL',t]));}
+    clauses.forEach((x,i)=>para('CLÁUSULA '+ord[i]+' — '+x[0],x[1]));
+    para('','E, por estarem assim justas e contratadas, firmam o presente instrumento em duas vias de igual teor e forma.',4);
     if(y>235){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=28;}
     y+=6;
     const city=(s.address?s.address.split(',').slice(-2,-1)[0]||s.address.split(',')[0]:'__________');
     doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(city.trim()+', '+U.dateLong(c.contractDate||new Date().toISOString().slice(0,10))+'.',M,y);y+=22;
     doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);
+    PDF.sign(doc,M+41,y);
     doc.line(M+6,y,M+76,y);doc.line(W-M-76,y,W-M-6,y);y+=5;
     doc.setFontSize(8.5);doc.text((s.companyName||'Contratada'),M+41,y,{align:'center'});doc.text((cl.name||'Contratante'),W-M-41,y,{align:'center'});
     doc.setFontSize(7.5);doc.setTextColor(120,110,126);doc.text('CONTRATADA',M+41,y+4,{align:'center'});doc.text('CONTRATANTE',W-M-41,y+4,{align:'center'});doc.setTextColor(40,35,48);
@@ -1441,7 +2171,7 @@ Object.assign(App,{
     doc.setFont('helvetica','bold');doc.text('Forma de pagamento:',M,y);doc.setFont('helvetica','normal');doc.text(r.paymentMethod||'—',M+42,y);y+=18;
     const city=(s.address?(s.address.split(',').slice(-2,-1)[0]||s.address.split(',')[0]):'__________');
     doc.text(city.trim()+', '+U.dateLong(r.receiptDate)+'.',W-M,y,{align:'right'});y+=24;
-    doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);doc.line(W/2-42,y,W/2+42,y);y+=5;
+    doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);PDF.sign(doc,W/2,y);doc.line(W/2-42,y,W/2+42,y);y+=5;
     doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(s.companyName||'',W/2,y,{align:'center'});
     if(s.doc){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120,110,126);doc.text('CNPJ/CPF: '+s.doc,W/2,y+4.5,{align:'center'});doc.setTextColor(40,35,48);}
     PDF.footer(doc);PDF.open(doc,(r.number||'recibo')+'.pdf');this.toast('PDF gerado','ok');
@@ -1526,10 +2256,341 @@ const Sync={
   },
 };
 
+
+/* ============================================================
+   DocPreview — Visualizador e editor de documentos
+============================================================ */
+const DocPreview = {
+  _type: null,   // 'budget' | 'contract' | 'receipt'
+  _id: null,
+  _draft: {},    // editable copy of the doc
+
+  open(type, id) {
+    this._type = type;
+    this._id = id;
+    // Clone the document data so edits don't mutate the original yet
+    const src = type === 'budget'   ? data.budgets.find(x => x.id === id)
+              : type === 'contract' ? data.contracts.find(x => x.id === id)
+              :                       data.receipts.find(x => x.id === id);
+    if (!src) return App.toast('Documento não encontrado', 'err');
+    this._draft = JSON.parse(JSON.stringify(src));
+    const titles = { budget: 'Orçamento', contract: 'Contrato', receipt: 'Recibo' };
+    document.getElementById('dpTitle').textContent = 'Pré-visualizar · ' + titles[type];
+    this._buildFields();
+    this._buildPreview();
+    document.getElementById('docPreviewScrim').classList.add('open');
+    document.getElementById('docPreview').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  close() {
+    document.getElementById('docPreviewScrim').classList.remove('open');
+    document.getElementById('docPreview').classList.remove('open');
+    document.body.style.overflow = '';
+  },
+
+  refresh() {
+    // Read fields back into draft then re-render
+    this._readFields();
+    this._buildPreview();
+  },
+
+  download() {
+    this._readFields();
+    this._buildPreview();
+    // Use existing PDF generators but with draft data temporarily
+    const origData = JSON.parse(JSON.stringify(
+      this._type === 'budget'   ? data.budgets :
+      this._type === 'contract' ? data.contracts :
+                                  data.receipts
+    ));
+    const coll = this._type === 'budget' ? data.budgets
+               : this._type === 'contract' ? data.contracts
+               : data.receipts;
+    const idx = coll.findIndex(x => x.id === this._id);
+    const backup = coll[idx];
+    coll[idx] = this._draft;
+    try {
+      if (this._type === 'budget')   App.pdfBudget(this._id);
+      if (this._type === 'contract') App.pdfContract(this._id);
+      if (this._type === 'receipt')  App.pdfReceipt(this._id);
+    } finally {
+      coll[idx] = backup;
+    }
+  },
+
+  _esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); },
+
+  _buildFields() {
+    const d = this._draft;
+    const cl = data.clients.find(c => c.id === d.clientId) || {};
+    const s = data.settings;
+    const wrap = document.getElementById('dpFields');
+
+    if (this._type === 'budget') {
+      wrap.innerHTML = `
+        <div class="dp-field"><label>Número</label><input id="dp_number" value="${this._esc(d.number||'')}"></div>
+        <div class="dp-field"><label>Cliente</label><input id="dp_client" value="${this._esc(cl.name||'')}" readonly style="background:#f3e9f0;color:var(--plum)"><div class="dp-hint">Edite em Clientes para alterar</div></div>
+        <div class="dp-field"><label>Válido até</label><input type="date" id="dp_valid" value="${this._esc(d.validUntil||'')}"></div>
+        <div class="dp-field"><label>Condições de pagamento</label><textarea id="dp_payment" rows="2">${this._esc(d.payment||'')}</textarea></div>
+        <div class="dp-field"><label>Observações</label><textarea id="dp_obs" rows="3">${this._esc(d.observations||'')}</textarea></div>
+        <div class="dp-field"><label>Itens do orçamento</label><div class="dp-hint">Edite os itens no formulário principal do orçamento</div></div>`;
+    } else if (this._type === 'contract') {
+      wrap.innerHTML = `
+        <div class="dp-field"><label>Número</label><input id="dp_number" value="${this._esc(d.number||'')}"></div>
+        <div class="dp-field"><label>Data do contrato</label><input type="date" id="dp_date" value="${this._esc(d.contractDate||'')}"></div>
+        <div class="dp-field"><label>Cliente (Contratante)</label><input id="dp_client" value="${this._esc(cl.name||'')}" readonly style="background:#f3e9f0;color:var(--plum)"></div>
+        <div class="dp-field"><label>Empresa (Contratada)</label><input id="dp_company" value="${this._esc(s.companyName||'')}"></div>
+        <div class="dp-field"><label>Valor total (R$)</label><input type="number" step="0.01" id="dp_value" value="${d.value||0}"></div>
+        <div class="dp-field"><label>Forma de pagamento</label><textarea id="dp_payment" rows="2">${this._esc(d.payment||'')}</textarea></div>
+        <div class="dp-field"><label>Multa por cancelamento (%)</label><input type="number" id="dp_fine" value="${d.fine!=null?d.fine:30}"></div>
+        <div class="dp-field"><label>Cláusulas adicionais</label><textarea id="dp_terms" rows="5" placeholder="Uma cláusula por linha">${this._esc(d.terms||'')}</textarea></div>`;
+    } else {
+      wrap.innerHTML = `
+        <div class="dp-field"><label>Número</label><input id="dp_number" value="${this._esc(d.number||'')}"></div>
+        <div class="dp-field"><label>Data do recibo</label><input type="date" id="dp_date" value="${this._esc(d.receiptDate||'')}"></div>
+        <div class="dp-field"><label>Cliente</label><input id="dp_client" value="${this._esc(cl.name||'')}" readonly style="background:#f3e9f0;color:var(--plum)"></div>
+        <div class="dp-field"><label>Valor (R$)</label><input type="number" step="0.01" id="dp_value" value="${d.value||0}"></div>
+        <div class="dp-field"><label>Forma de pagamento</label><input id="dp_pay_method" value="${this._esc(d.paymentMethod||'')}"></div>
+        <div class="dp-field"><label>Descrição / referência</label><textarea id="dp_desc" rows="2">${this._esc(d.description||'')}</textarea></div>`;
+    }
+
+    // Live refresh on any change
+    wrap.querySelectorAll('input,textarea,select').forEach(el => {
+      el.addEventListener('input', () => { this._readFields(); this._buildPreview(); });
+      el.addEventListener('change', () => { this._readFields(); this._buildPreview(); });
+    });
+  },
+
+  _readFields() {
+    const v = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+    const d = this._draft;
+    if (this._type === 'budget') {
+      d.number   = v('dp_number');
+      d.validUntil = v('dp_valid');
+      d.payment  = v('dp_payment');
+      d.observations = v('dp_obs');
+    } else if (this._type === 'contract') {
+      d.number      = v('dp_number');
+      d.contractDate= v('dp_date');
+      d.value       = parseFloat(v('dp_value')) || 0;
+      d.payment     = v('dp_payment');
+      d.fine        = parseFloat(v('dp_fine')) != null ? parseFloat(v('dp_fine')) : 30;
+      d.terms       = v('dp_terms');
+      // Also update settings snapshot for display only
+      this._companyOverride = v('dp_company');
+    } else {
+      d.number        = v('dp_number');
+      d.receiptDate   = v('dp_date');
+      d.value         = parseFloat(v('dp_value')) || 0;
+      d.paymentMethod = v('dp_pay_method');
+      d.description   = v('dp_desc');
+    }
+  },
+
+  _money(n) {
+    return 'R$ ' + (Number(n)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  },
+  _date(d) {
+    if (!d) return '—';
+    const x = new Date(d + (d.length <= 10 ? 'T00:00:00' : ''));
+    return x.toLocaleDateString('pt-BR');
+  },
+  _dateLong(d) {
+    if (!d) return '—';
+    const x = new Date(d + (d.length <= 10 ? 'T00:00:00' : ''));
+    return x.toLocaleDateString('pt-BR', {day:'2-digit', month:'long', year:'numeric'});
+  },
+
+  _buildPreview() {
+    const d = this._draft;
+    const cl = data.clients.find(c => c.id === d.clientId) || {};
+    const ev = d.eventId ? data.events.find(e => e.id === d.eventId) : null;
+    const s = data.settings;
+    const co = this._companyOverride || s.companyName || 'CerimonialPro';
+    const accent = s.accent || '#6b2d5c';
+    const page = document.getElementById('dpPage');
+
+    const headerHTML = `
+      <div class="doc-border"></div>
+      <div class="doc-border2"></div>
+      <div class="doc-header">
+        <div>
+          ${s.logo ? `<img src="${s.logo}" style="height:28px;margin-bottom:4px;display:block">` : ''}
+          <div class="doc-co" style="color:${accent}">${this._esc(co)}</div>
+          ${s.slogan ? `<div class="doc-slogan">${this._esc(s.slogan)}</div>` : ''}
+          <div class="doc-meta" style="margin-top:3px">
+            ${s.address ? this._esc(s.address) + '<br>' : ''}
+            ${[s.phone, s.email].filter(Boolean).map(x=>this._esc(x)).join(' · ')}
+            ${s.doc ? '<br>CNPJ/CPF: ' + this._esc(s.doc) : ''}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="doc-badge" style="background:${accent}">${this._typeLabel()}</div>
+          <div class="doc-badgesub" style="color:${accent};background:#f3e9f0;border-radius:3px;padding:2px 10px;margin-top:3px;font-size:7.5pt">${this._esc(d.number||'—')}</div>
+        </div>
+      </div>`;
+
+    const footerHTML = `
+      <div class="doc-footer">
+        <span>${this._esc(co)}${s.address ? ' · ' + this._esc(s.address.split(',').slice(-1)[0].trim()) : ''}</span>
+        <span>${new Date().toLocaleDateString('pt-BR')}</span>
+      </div>`;
+
+    if (this._type === 'budget') {
+      page.innerHTML = headerHTML + this._buildBudgetBody(d, cl, ev, accent) + footerHTML;
+    } else if (this._type === 'contract') {
+      page.innerHTML = headerHTML + this._buildContractBody(d, cl, ev, s, co, accent) + footerHTML;
+    } else {
+      page.innerHTML = headerHTML + this._buildReceiptBody(d, cl, s, co, accent) + footerHTML;
+    }
+  },
+
+  _typeLabel() {
+    return this._type === 'budget' ? 'ORÇAMENTO' : this._type === 'contract' ? 'CONTRATO' : 'RECIBO';
+  },
+
+  _buildBudgetBody(d, cl, ev, accent) {
+    const items = d.items || [];
+    const sups  = d.suppliers || [];
+    const disc  = d.discount || 0;
+    let html = '';
+    // Client info row
+    html += `<div style="display:flex;justify-content:space-between;margin-bottom:4mm;font-size:8.5pt">
+      <div><span style="font-size:7.5pt;font-weight:700;color:${accent}">CLIENTE</span><br><b>${this._esc(cl.name||'—')}</b>
+      ${cl.phone?'<br>'+this._esc(cl.phone):''} ${cl.email?'<br>'+this._esc(cl.email):''}</div>
+      <div style="text-align:right"><span style="font-size:7.5pt;font-weight:700;color:${accent}">DATA</span><br>${this._date(d.createdAt?d.createdAt.slice(0,10):'')}<br>
+      ${d.validUntil?`<span style="font-size:7.5pt;font-weight:700;color:${accent}">VÁLIDO ATÉ</span><br>${this._date(d.validUntil)}`:''}
+      ${ev?`<br><span style="color:#9a9098;font-size:7.5pt">Evento: ${this._esc(ev.type)} · ${this._date(ev.date)}</span>`:''}
+      </div></div>`;
+    // Items table
+    html += `<table class="bu-table"><thead><tr>
+      <th>DESCRIÇÃO</th><th style="text-align:center;width:32px">QTD</th>
+      <th style="text-align:right;width:60px">UNITÁRIO</th><th style="width:60px">TOTAL</th></tr></thead><tbody>`;
+    items.forEach(it => {
+      html += `<tr><td>${this._esc(it.description||'')}</td><td style="text-align:center">${it.quantity||1}</td>
+        <td style="text-align:right">${this._money(it.unitPrice).replace('R$ ','')}</td>
+        <td style="text-align:right">${this._money(it.total).replace('R$ ','')}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    // Suppliers
+    if (sups.length) {
+      html += `<div style="margin-top:3mm;font-size:8.5pt"><b style="color:${accent}">FORNECEDORES</b><hr style="border:none;border-top:1px solid #bd9a3c;margin:1mm 0 2mm">`;
+      sups.forEach(sp => {
+        html += `<div style="display:flex;justify-content:space-between;padding:1.5mm 0;border-bottom:1px solid #f0eaf0">
+          <span>${this._esc(sp.name)}${sp.category?' · '+this._esc(sp.category):''}</span>
+          <span>${this._money(sp.value)}</span></div>`;
+      });
+      html += '</div>';
+    }
+    // Total
+    html += `<div class="bu-total" style="margin-top:3mm">
+      ${disc>0?`<div style="font-size:8pt;color:#9a9098;margin-bottom:1mm">Desconto: -${this._money(disc)}</div>`:''}
+      <span class="bu-total-box" style="background:${accent}">TOTAL  ${this._money(d.total)}</span></div>`;
+    // Payment / obs
+    if (d.payment) html += `<p style="font-size:8.5pt;margin:2mm 0"><b>Condições de pagamento:</b> ${this._esc(d.payment)}</p>`;
+    if (d.observations) html += `<p style="font-size:8.5pt;margin:2mm 0;color:#4a4252"><b>Observações:</b> ${this._esc(d.observations)}</p>`;
+    // Conditions
+    html += `<div style="margin-top:3mm;border-top:1px solid #bd9a3c;padding-top:2mm">
+      <b style="font-size:8pt;color:${accent}">CONDIÇÕES GERAIS</b>
+      <div class="cond-list">
+        • Validade da proposta: ${d.validUntil?this._date(d.validUntil):'conforme combinado'}. Após esse prazo, os valores estão sujeitos a reajuste.<br>
+        • A reserva da data ocorre somente após a assinatura do contrato e o pagamento do sinal acordado.<br>
+        • Eventuais serviços não descritos nesta proposta serão orçados à parte.
+      </div></div>`;
+    html += `<div class="italic-tag" style="color:${accent}">Será uma honra cuidar de cada detalhe do seu evento.</div>`;
+    if (s && s.signature) {
+      html += `<div style="text-align:center;margin-top:4mm">
+        <img src="${s.signature}" style="max-height:28mm;max-width:60mm;display:block;margin:0 auto 1mm">
+        <div style="border-top:1px solid #3c3744;width:60mm;margin:0 auto 1mm"></div>
+        <div style="font-size:8.5pt;font-weight:700">${this._esc(s.companyName||'')}</div>
+      </div>`;
+    }
+    return html;
+  },
+
+  _buildContractBody(d, cl, ev, s, co, accent) {
+    const fine = d.fine != null ? d.fine : 30;
+    const city = s.address ? s.address.split(',').slice(-2,-1)[0] || s.address.split(',')[0] : '________';
+    const objeto = ev
+      ? `prestação de serviços de assessoria e cerimonial para o evento <b>${this._esc(ev.type)}</b>, a ser realizado em ${this._dateLong(ev.date)}${ev.time?', às '+ev.time:''}${ev.location?', no(a) '+this._esc(ev.location):''}; compreendendo o planejamento, coordenação dos fornecedores e acompanhamento integral no dia do evento.`
+      : 'prestação de serviços de assessoria e cerimonial para organização e coordenação de evento, conforme condições ajustadas entre as partes.';
+    const clauses = [
+      ['DO OBJETO', `O presente contrato tem por objeto a ${objeto}`],
+      ['DO VALOR E DA FORMA DE PAGAMENTO', `Pelos serviços ora contratados, a CONTRATANTE pagará à CONTRATADA o valor total de <b>${this._money(d.value)}</b>.${d.payment?' O pagamento será efetuado da seguinte forma: '+this._esc(d.payment)+'.':' O pagamento será efetuado conforme condições acordadas entre as partes.'} O atraso no pagamento de qualquer parcela implicará atualização monetária e juros de 1% ao mês.`],
+      ['DAS OBRIGAÇÕES DA CONTRATADA', 'Compete à CONTRATADA: (a) planejar e coordenar o evento; (b) orientar e acompanhar os fornecedores; (c) estar presente no dia do evento; (d) agir com zelo, profissionalismo e sigilo.'],
+      ['DAS OBRIGAÇÕES DA CONTRATANTE', 'Compete à CONTRATANTE: (a) fornecer todas as informações necessárias; (b) efetuar os pagamentos nas datas acordadas; (c) comunicar previamente quaisquer alterações; (d) responsabilizar-se pela contratação e pagamento dos fornecedores, salvo quando ajustado de outra forma.'],
+      ['DO PRAZO E DA EXECUÇÃO', 'Os serviços serão prestados a partir da assinatura deste instrumento e encerram-se com a conclusão do evento. Serviços adicionais não previstos serão objeto de aditivo.'],
+      ['DA RESCISÃO E DA MULTA', `O presente contrato poderá ser rescindido mediante comunicação por escrito. Em caso de cancelamento por parte da CONTRATANTE, será devida multa de <b>${fine}%</b> sobre o valor total do contrato. Os valores pagos a título de sinal não serão restituídos.`],
+      ['DOS CASOS FORTUITOS E DE FORÇA MAIOR', 'Nenhuma das partes será responsabilizada pelo descumprimento decorrente de caso fortuito ou força maior (art. 393, CC). As partes buscarão, de boa-fé, o reagendamento do evento.'],
+      ['DA CESSÃO DE IMAGEM', 'A CONTRATANTE autoriza a CONTRATADA a utilizar imagens e registros do evento para fins de divulgação de seu portfólio, podendo tal autorização ser revogada por escrito a qualquer tempo.'],
+      ['DAS DISPOSIÇÕES GERAIS', 'Este contrato obriga as partes e seus sucessores. Qualquer alteração somente terá validade se formalizada por escrito. A tolerância quanto ao descumprimento de qualquer cláusula não constituirá novação ou renúncia.'],
+      ['DO FORO', 'Fica eleito o foro da comarca da CONTRATADA para dirimir quaisquer questões oriundas do presente contrato.'],
+    ];
+    const ord = ['1ª','2ª','3ª','4ª','5ª','6ª','7ª','8ª','9ª','10ª','11ª','12ª','13ª','14ª','15ª','16ª','17ª'];
+    if (d.terms) {
+      d.terms.split(/\n+/).map(x=>x.trim()).filter(Boolean).forEach(t => clauses.push(['DISPOSIÇÃO ADICIONAL', t]));
+    }
+    let html = `
+      <div class="doc-title" style="color:${accent}">CONTRATO DE PRESTAÇÃO DE SERVIÇOS</div>
+      <hr class="doc-line" style="border-color:${accent}">
+      <p style="font-size:9pt;margin-bottom:4mm">Pelo presente instrumento particular de prestação de serviços, de um lado a <b>CONTRATADA</b> e de outro a <b>CONTRATANTE</b>, abaixo qualificadas, têm entre si justo e contratado o seguinte:</p>
+      <span class="section-label">CONTRATADA</span>
+      <p style="font-size:9pt;margin:0 0 3mm">${this._esc(co)}${s.doc?', inscrita sob o nº '+this._esc(s.doc):''}${s.address?', com sede em '+this._esc(s.address):''}${s.phone?', tel. '+this._esc(s.phone):''}${s.email?', e-mail '+this._esc(s.email):''}.</p>
+      <span class="section-label">CONTRATANTE</span>
+      <p style="font-size:9pt;margin:0 0 4mm">${this._esc(cl.name||'—')}${cl.doc?', inscrito(a) sob o nº '+this._esc(cl.doc):''}${cl.address?', residente em '+this._esc(cl.address):''}${cl.phone?', tel. '+this._esc(cl.phone):''}${cl.email?', e-mail '+this._esc(cl.email):''}.</p>`;
+    clauses.forEach((c,i) => {
+      html += `<span class="clause-head" style="color:${accent}">CLÁUSULA ${ord[i]} — ${c[0]}</span>
+               <p class="clause-body">${c[1]}</p>`;
+    });
+    html += `<p style="font-size:9pt;margin:4mm 0">E, por estarem assim justas e contratadas, firmam o presente instrumento em duas vias de igual teor e forma.</p>
+      <p style="font-size:9pt">${this._esc(city.trim())}, ${this._dateLong(d.contractDate||new Date().toISOString().slice(0,10))}.</p>
+      <div class="doc-sign-area">
+        <div class="doc-sign-row">
+          <div class="doc-sign-col">
+            ${s.signature?`<img src="${s.signature}" style="max-height:22mm;max-width:48mm;margin-bottom:1mm">`:'<div style="height:16mm"></div>'}
+            <div class="doc-sign-line"></div>
+            <div class="doc-sign-name">${this._esc(co)}</div>
+            <div class="doc-sign-role">CONTRATADA</div>
+          </div>
+          <div class="doc-sign-col">
+            <div style="height:${s.signature?'22mm':'16mm'}"></div>
+            <div class="doc-sign-line"></div>
+            <div class="doc-sign-name">${this._esc(cl.name||'Contratante')}</div>
+            <div class="doc-sign-role">CONTRATANTE</div>
+          </div>
+        </div>
+        <div class="doc-wit" style="margin-top:4mm">Testemunhas:
+          <div class="doc-wit-lines"><div class="doc-wit-line"></div><div class="doc-wit-line"></div></div>
+        </div>
+      </div>`;
+    return html;
+  },
+
+  _buildReceiptBody(d, cl, s, co, accent) {
+    const city = s.address ? (s.address.split(',').slice(-2,-1)[0] || s.address.split(',')[0]) : '________';
+    // Extenso — re-use existing
+    const ext = typeof Extenso !== 'undefined' ? Extenso.reais(d.value) : '';
+    const txt = `Recebi(emos) de <b>${this._esc(cl.name||'—')}</b>${cl.doc?', inscrito(a) sob o nº '+this._esc(cl.doc)+',':''} a importância de <b>${this._money(d.value)}</b>${ext?' ('+this._esc(ext)+')':''}, ${d.description?'referente a '+this._esc(d.description):'referente aos serviços prestados'}.`;
+    return `
+      <div class="rc-amount" style="border-color:${accent};color:${accent}">${this._money(d.value)}</div>
+      <p class="rc-body">${txt}</p>
+      <p style="font-size:9.5pt;margin-bottom:4mm">Para clareza e como prova de quitação, firmo(amos) o presente recibo.</p>
+      <p style="font-size:9.5pt;margin-bottom:4mm"><b>Forma de pagamento:</b> ${this._esc(d.paymentMethod||'—')}</p>
+      <p style="font-size:9.5pt;text-align:right;margin:4mm 0">${this._esc(city.trim())}, ${this._dateLong(d.receiptDate)}.</p>
+      <div style="text-align:center;margin-top:5mm">
+        ${s.signature?`<img src="${s.signature}" style="max-height:22mm;max-width:50mm;display:block;margin:0 auto 1mm">`:'<div style="height:16mm"></div>'}
+        <div style="border-top:1px solid #3c3744;width:60mm;margin:0 auto 1mm"></div>
+        <div style="font-size:9.5pt;font-weight:700">${this._esc(co)}</div>
+        ${s.doc?`<div style="font-size:8pt;color:#9a9098">CNPJ/CPF: ${this._esc(s.doc)}</div>`:''}
+      </div>`;
+  },
+};
+window.DocPreview = DocPreview;
+
 /* ===== INIT ===== */
 window.App=App; window.Sync=Sync; window.U=U; window.Extenso=Extenso;
 document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('loginCompany').addEventListener('keydown',e=>{if(e.key==='Enter')App.enter();});
   App.init();
 });
 window.addEventListener('online',()=>{if(syncCfg.auto&&syncCfg.token)Sync.push(true);});
