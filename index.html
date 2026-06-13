@@ -368,7 +368,14 @@ a{color:inherit; text-decoration:none}
       <div class="card">
         <div class="card-h"><h3><i class="fas fa-cloud" style="color:var(--plum);margin-right:7px"></i>Sincronização (GitHub Gist)</h3></div>
         <div class="card-pad">
-          <p class="small muted mb">Sincronize seus dados entre celular, tablet e computador usando um Gist privado do GitHub. Crie um <b>token</b> em github.com → Settings → Developer settings → Personal access tokens, com permissão <b>gist</b>.</p>
+          <p class="small muted mb">Sincronize seus dados entre celular, tablet e computador usando um Gist privado do GitHub. Use o botão abaixo para criar o <b>token</b> já com a permissão <b>gist</b> ativada, copie o código gerado (<code>ghp_...</code>) e cole aqui.</p>
+          <a class="btn btn-primary btn-block mb" href="https://github.com/settings/tokens/new?scopes=gist&description=CerimonialPro" target="_blank" rel="noopener"><i class="fab fa-github"></i> Criar token no GitHub (escopo gist)</a>
+          <ol class="small muted mb" style="padding-left:18px;line-height:1.7">
+            <li>Toque no botão acima (faça login no GitHub se pedir).</li>
+            <li>Role até o fim e clique em <b>Generate token</b>.</li>
+            <li>Copie o código <code>ghp_...</code> e cole no campo abaixo.</li>
+            <li>Clique em <b>Enviar</b> para criar seu Gist privado.</li>
+          </ol>
           <div class="field"><label>Token de acesso do GitHub</label><input id="setGhToken" type="password" placeholder="ghp_..." autocomplete="off"></div>
           <div class="field"><label>ID do Gist <span class="muted small">(deixe vazio para criar um novo)</span></label><input id="setGistId" placeholder="ex.: 3f9a2b...”"></div>
           <label class="flex" style="gap:9px;font-size:14px;margin-bottom:14px"><input type="checkbox" id="setAutoSync" style="width:auto"> Sincronizar automaticamente ao salvar</label>
