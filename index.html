@@ -426,6 +426,20 @@ a{color:inherit; text-decoration:none}
 /* file viewer */
 .viewer-frame{width:100%;height:62vh;border:1px solid var(--line);border-radius:12px;background:#fff}
 .viewer-img{max-width:100%;max-height:62vh;display:block;margin:0 auto;border-radius:10px}
+/* guests / check-in */
+.gu-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.gu-count{background:var(--surface);border-radius:14px;padding:13px 10px;box-shadow:var(--shadow);text-align:center}
+.gu-count .v{font-family:'Fraunces',serif;font-size:26px;font-weight:600;line-height:1}
+.gu-count .l{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.gu-count.ok .v{color:var(--ok)} .gu-count.warn .v{color:var(--warn)} .gu-count.tot .v{color:var(--plum)}
+.gu-bar{height:9px;border-radius:6px;background:var(--line);overflow:hidden;margin-bottom:14px}
+.gu-bar > i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--ok),#3fae6e);transition:width .3s}
+.gu-item.in{background:var(--ok-bg)}
+.gu-item.in .li-title{color:var(--ok-deep,#1f6e43)}
+.gu-check{width:40px;height:40px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--faint);display:grid;place-items:center;font-size:15px;flex-shrink:0;transition:.15s}
+.gu-check.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.gu-check:active{transform:scale(.9)}
+.gu-party{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--gold-deep);background:var(--gold-soft);padding:2px 7px;border-radius:20px;margin-left:6px}
 </style>
 </head>
 <body>
@@ -564,6 +578,16 @@ a{color:inherit; text-decoration:none}
         <div class="chip" data-f="done" onclick="App.evFilter(this)">Realizados</div>
       </div>
       <div id="eventsList"></div>
+    </section>
+
+    <!-- GUESTS / CHECK-IN -->
+    <section class="page" id="page-guests">
+      <div class="page-head"><div><h1>Convidados</h1><div class="sub" id="guSub">Controle de acesso e check-in</div></div></div>
+      <div class="field" style="margin-bottom:12px">
+        <label>Evento</label>
+        <select id="guEventSel" onchange="App.selectGuestEvent(this.value)"></select>
+      </div>
+      <div id="guestArea"></div>
     </section>
 
     <!-- AGENDA -->
@@ -795,6 +819,7 @@ a{color:inherit; text-decoration:none}
     <a data-target="dashboard" onclick="App.go('dashboard')"><i class="fas fa-house"></i> Dashboard</a>
     <div class="grp">Gestão</div>
     <a data-target="events" onclick="App.go('events')"><i class="fas fa-calendar-days"></i> Eventos</a>
+    <a data-target="guests" onclick="App.go('guests')"><i class="fas fa-clipboard-check"></i> Convidados</a>
     <a data-target="agenda" onclick="App.go('agenda')"><i class="fas fa-calendar-check"></i> Agenda</a>
     <a data-target="clients" onclick="App.go('clients')"><i class="fas fa-users"></i> Clientes</a>
     <a data-target="suppliers" onclick="App.go('suppliers')"><i class="fas fa-handshake"></i> Fornecedores</a>
@@ -828,7 +853,7 @@ a{color:inherit; text-decoration:none}
 ============================================================ */
 const STORE_KEY='cerimonialProData';
 const SYNC_KEY='cerimonialProSync';
-let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],
+let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],guests:[],
   settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}'},
   updatedAt:new Date().toISOString()};
 let syncCfg={token:'',gistId:'',auto:false,lastSync:null};
@@ -889,7 +914,7 @@ async function loadStore(){
     if(p){
       data=Object.assign(data,p);
       data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-      ['events','clients','suppliers','budgets','contracts','receipts','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+      ['events','clients','suppliers','budgets','contracts','receipts','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
       await saveToIndexedDB(IDB_KEY,data);
     }
   }catch(e){console.warn('IndexedDB error:',e);}
@@ -1082,7 +1107,7 @@ const Auth={
     accounts.push(newAcc);
     this._saveAccounts(accounts);
     // Pre-populate settings for new account
-    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],
+    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],guests:[],
       settings:{companyName:company,userName:user||company,email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}'},
       updatedAt:new Date().toISOString()};
     localStorage.setItem('cpData_'+email,JSON.stringify(accData));
@@ -1099,7 +1124,7 @@ const Auth={
         const p=JSON.parse(raw);
         data=Object.assign(data,p);
         data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-        ['events','clients','suppliers','budgets','contracts','receipts','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+        ['events','clients','suppliers','budgets','contracts','receipts','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       }catch(e){console.warn(e);}
     }
     // Override saveStore to use namespaced key
@@ -1183,6 +1208,7 @@ const App={
     window.scrollTo(0,0);
     if(t==='dashboard')this.renderDashboard();
     if(t==='events')this.renderEvents();
+    if(t==='guests')this.renderGuests();
     if(t==='agenda')this.renderAgenda();
     if(t==='clients')this.renderClients();
     if(t==='suppliers')this.renderSuppliers();
@@ -1295,6 +1321,7 @@ Object.assign(App,{
       '<div class="row2 mb"><div class="field"><label>Convidados</label><input type="number" id="f_eguests" value="'+(e.guests||'')+'"></div><div class="field"><label>Valor (R$)</label><input type="number" step="0.01" id="f_ebudget" value="'+(e.budget||'')+'"></div></div>'+
       '<div class="field"><label>Status</label><select id="f_estatus">'+sts+'</select></div>'+
       '<div class="field"><label>Observações</label><textarea id="f_eobs">'+U.esc(e.observations)+'</textarea></div>'+
+      (id?'<button class="btn btn-ghost btn-block mb" onclick="App.openEventGuests(\''+id+'\')"><i class="fas fa-clipboard-check"></i> Lista de convidados / check-in</button>':'')+
       (id?'<button class="btn btn-ghost btn-block mb" onclick="App.eventCostReport(\''+id+'\')"><i class="fas fa-chart-pie"></i> Relatório de custos do evento</button>':''),
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveEvent()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
   },
@@ -1520,11 +1547,258 @@ Object.assign(App,{
   },
   waSupplier(id){const s=data.suppliers.find(x=>x.id===id);window.open(U.waLink(s.phone,'Olá '+s.name+'! '),'_blank');},
   del(coll,id){
-    const labels={events:'evento',clients:'cliente',suppliers:'fornecedor',budgets:'orçamento',contracts:'contrato',receipts:'recibo',tasks:'tarefa'};
+    const labels={events:'evento',clients:'cliente',suppliers:'fornecedor',budgets:'orçamento',contracts:'contrato',receipts:'recibo',tasks:'tarefa',guests:'convidado'};
     if(!confirm('Excluir este '+labels[coll]+'?'))return;
     data[coll]=data[coll].filter(x=>x.id!==id); saveStore();
     this.go(document.querySelector('.page.active').id.replace('page-',''));
     this.toast('Excluído','ok');
+  },
+});
+
+/* ===== GUESTS / ACCESS CONTROL ===== */
+Object.assign(App,{
+  _guEvent:null,        // currently selected event id
+  _guFilter:'all',      // all | in | out
+  _guQuery:'',
+
+  // sum of people in a list of guests (1 holder + companions)
+  _guPeople(list){ return list.reduce((s,g)=>s+1+(g.party||0),0); },
+
+  openEventGuests(eventId){
+    this._guEvent=eventId; this._guFilter='all'; this._guQuery='';
+    this.closeSheet();
+    this.go('guests');
+  },
+
+  selectGuestEvent(id){
+    this._guEvent=id||null;
+    this._guFilter='all'; this._guQuery='';
+    this.renderGuests();
+  },
+
+  renderGuests(){
+    // populate event selector
+    const sel=document.getElementById('guEventSel');
+    if(sel){
+      const evs=data.events.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+      if(!this._guEvent && evs.length) this._guEvent=evs[0].id;
+      if(this._guEvent && !evs.find(e=>e.id===this._guEvent)) this._guEvent=evs.length?evs[0].id:null;
+      sel.innerHTML='<option value="">— selecione um evento —</option>'+evs.map(e=>{
+        const cl=data.clients.find(c=>c.id===e.clientId);
+        const label=U.esc(e.type)+(cl?' · '+U.esc(cl.name):'')+' · '+U.date(e.date);
+        return '<option value="'+e.id+'" '+(this._guEvent===e.id?'selected':'')+'>'+label+'</option>';
+      }).join('');
+    }
+    const area=document.getElementById('guestArea');
+    if(!data.events.length){
+      area.innerHTML=this.emptyState('fa-calendar-plus','Nenhum evento cadastrado','Cadastre um evento para montar a lista de convidados.','<button class="btn btn-primary btn-sm" onclick="App.go(\'events\');App.eventModal()">Novo evento</button>');
+      document.getElementById('guSub').textContent='Controle de acesso e check-in';
+      return;
+    }
+    if(!this._guEvent){
+      area.innerHTML=this.emptyState('fa-hand-pointer','Selecione um evento','Escolha um evento acima para gerenciar os convidados.','');
+      return;
+    }
+    const ev=data.events.find(e=>e.id===this._guEvent);
+    const all=data.guests.filter(g=>g.eventId===this._guEvent);
+    const present=all.filter(g=>g.arrived);
+    const totP=this._guPeople(all), inP=this._guPeople(present), outP=totP-inP;
+    const pct=totP?Math.round(inP/totP*100):0;
+    document.getElementById('guSub').textContent=all.length?(all.length+' registro(s) · '+totP+' pessoa(s)'):'Importe a lista do contratante';
+
+    // header: toolbar + counts + import/add
+    let html='<div class="toolbar">'+
+        '<div class="search"><i class="fas fa-search"></i><input id="guSearch" placeholder="Buscar convidado" value="'+U.esc(this._guQuery)+'" oninput="App.guSearch(this.value)"></div>'+
+        '<button class="btn btn-gold btn-sm" onclick="App.importGuestsModal()" title="Importar lista"><i class="fas fa-file-import"></i></button>'+
+        '<button class="btn btn-primary btn-sm" onclick="App.guestModal()" title="Adicionar convidado"><i class="fas fa-plus"></i></button>'+
+      '</div>';
+
+    html+='<div class="gu-counts">'+
+        '<div class="gu-count tot"><div class="v">'+totP+'</div><div class="l">Convidados</div></div>'+
+        '<div class="gu-count ok"><div class="v">'+inP+'</div><div class="l">Presentes</div></div>'+
+        '<div class="gu-count warn"><div class="v">'+outP+'</div><div class="l">Faltantes</div></div>'+
+      '</div>'+
+      '<div class="gu-bar"><i style="width:'+pct+'%"></i></div>';
+
+    if(ev&&ev.guests&&ev.guests>0&&totP!==ev.guests){
+      html+='<div class="hint" style="margin:-6px 0 12px">Esperado para este evento: <b>'+ev.guests+'</b> convidado(s) · cadastrados: <b>'+totP+'</b></div>';
+    }
+
+    if(!all.length){
+      html+=this.emptyState('fa-clipboard-list','Lista vazia','Importe a lista enviada pelo contratante ou adicione convidados manualmente.',
+        '<button class="btn btn-gold btn-sm" onclick="App.importGuestsModal()"><i class="fas fa-file-import"></i> Importar lista</button>');
+      area.innerHTML=html; return;
+    }
+
+    // filter chips
+    html+='<div class="seg">'+
+      ['all|Todos|'+all.length,'out|Faltantes|'+all.filter(g=>!g.arrived).length,'in|Presentes|'+present.length]
+      .map(c=>{const[f,l,n]=c.split('|');return '<div class="chip '+(this._guFilter===f?'active':'')+'" onclick="App.guFilter(\''+f+'\')">'+l+' ('+n+')</div>';}).join('')+
+      '</div>';
+
+    // filtered + sorted alphabetically
+    let list=all.slice();
+    if(this._guFilter==='in')list=list.filter(g=>g.arrived);
+    else if(this._guFilter==='out')list=list.filter(g=>!g.arrived);
+    const q=this._guQuery.trim().toLowerCase();
+    if(q)list=list.filter(g=>(g.name||'').toLowerCase().includes(q));
+    list.sort((a,b)=>(a.name||'').localeCompare(b.name||'','pt-BR',{sensitivity:'base'}));
+
+    if(!list.length){
+      html+='<div class="card"><div class="empty" style="padding:30px 20px"><p>Nenhum convidado encontrado.</p></div></div>';
+    }else{
+      html+='<div class="card">'+list.map(g=>{
+        const party=g.party||0;
+        const sub=g.arrived?('Chegou'+(g.arrivedAt?' às '+this._guTime(g.arrivedAt):'')):'Aguardando entrada';
+        return '<div class="list-item gu-item'+(g.arrived?' in':'')+'">'+
+          '<button class="gu-check'+(g.arrived?' on':'')+'" onclick="App.toggleGuest(\''+g.id+'\')" title="Marcar entrada"><i class="fas '+(g.arrived?'fa-check':'fa-circle-user')+'"></i></button>'+
+          '<div class="li-body" onclick="App.toggleGuest(\''+g.id+'\')">'+
+            '<div class="li-title">'+U.esc(g.name)+(party>0?'<span class="gu-party"><i class="fas fa-user-group"></i>+'+party+'</span>':'')+'</div>'+
+            '<div class="li-sub">'+sub+'</div>'+
+          '</div>'+
+          '<div class="li-actions">'+
+            '<button class="abtn ed" onclick="event.stopPropagation();App.guestModal(\''+g.id+'\')"><i class="fas fa-pen"></i></button>'+
+            '<button class="abtn del" onclick="event.stopPropagation();App.del(\'guests\',\''+g.id+'\')"><i class="fas fa-trash"></i></button>'+
+          '</div>'+
+        '</div>';
+      }).join('')+'</div>';
+
+      // utility actions
+      html+='<div style="display:flex;gap:10px;margin-top:4px">'+
+        '<button class="btn btn-ghost btn-sm" style="flex:1" onclick="App.resetGuestCheckins()"><i class="fas fa-rotate-left"></i> Resetar presenças</button>'+
+        '<button class="btn btn-ghost btn-sm" style="flex:1" onclick="App.clearGuestList()"><i class="fas fa-broom"></i> Limpar lista</button>'+
+      '</div>';
+    }
+    area.innerHTML=html;
+  },
+
+  _guTime(iso){try{return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}},
+
+  guSearch(v){
+    this._guQuery=v;
+    const focused=document.activeElement&&document.activeElement.id==='guSearch';
+    this.renderGuests();
+    if(focused){const i=document.getElementById('guSearch');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}}
+  },
+
+  guFilter(f){ this._guFilter=f; this.renderGuests(); },
+
+  toggleGuest(id){
+    const g=data.guests.find(x=>x.id===id); if(!g)return;
+    g.arrived=!g.arrived;
+    g.arrivedAt=g.arrived?new Date().toISOString():null;
+    saveStore();
+    this.renderGuests();
+    this.toast(g.arrived?'✓ '+g.name+' entrou':g.name+' desmarcado',g.arrived?'ok':'');
+  },
+
+  guestModal(id){
+    const g=id?data.guests.find(x=>x.id===id):{};
+    if(!this._guEvent && !id){return this.toast('Selecione um evento primeiro','err');}
+    this.openSheet(id?'Editar convidado':'Novo convidado',
+      '<input type="hidden" id="f_gid" value="'+(g.id||'')+'">'+
+      '<div class="field"><label>Nome <span class="req">*</span></label><input id="f_gname" value="'+U.esc(g.name)+'" placeholder="Nome do convidado" autocomplete="off"></div>'+
+      '<div class="field"><label>Acompanhantes</label><input type="number" min="0" id="f_gparty" value="'+(g.party||0)+'" placeholder="0"><div class="hint">Quantas pessoas a mais vêm com este convidado (além dele).</div></div>'+
+      '<label class="flex" style="gap:9px;font-size:14px;margin:2px 0 4px"><input type="checkbox" id="f_garrived" style="width:auto" '+(g.arrived?'checked':'')+'> Já chegou (marcar presença)</label>',
+      '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveGuest()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
+    setTimeout(()=>{const n=document.getElementById('f_gname');if(n&&!id)n.focus();},120);
+  },
+
+  saveGuest(){
+    const id=document.getElementById('f_gid').value;
+    const name=document.getElementById('f_gname').value.trim();
+    if(!name){return this.toast('Informe o nome','err');}
+    const party=Math.max(0,parseInt(document.getElementById('f_gparty').value)||0);
+    const arrived=document.getElementById('f_garrived').checked;
+    if(id){
+      const g=data.guests.find(x=>x.id===id);
+      if(g){
+        const was=g.arrived;
+        g.name=name; g.party=party; g.arrived=arrived;
+        if(arrived&&!was)g.arrivedAt=new Date().toISOString();
+        if(!arrived)g.arrivedAt=null;
+        g.updatedAt=new Date().toISOString();
+      }
+    }else{
+      data.guests.push({id:U.id('gst'),eventId:this._guEvent,name,party,arrived,
+        arrivedAt:arrived?new Date().toISOString():null,createdAt:new Date().toISOString()});
+    }
+    saveStore(); this.closeSheet(); this.renderGuests(); this.toast('Convidado salvo','ok');
+  },
+
+  importGuestsModal(){
+    if(!this._guEvent){return this.toast('Selecione um evento primeiro','err');}
+    this.openSheet('Importar lista de convidados',
+      '<p class="small muted mb">Cole a lista enviada pelo contratante (um nome por linha) ou selecione um arquivo <b>.txt</b> / <b>.csv</b>. O cadastro é automático.</p>'+
+      '<div class="field"><label>Selecionar arquivo (.txt, .csv)</label>'+
+        '<input type="file" accept=".txt,.csv,text/plain,text/csv" id="f_gfile" onchange="App.guFileToText(event)"></div>'+
+      '<div class="field"><label>Lista de nomes (um por linha)</label>'+
+        '<textarea id="f_gimport" style="min-height:180px" placeholder="Ana Beatriz Souza&#10;Carlos Eduardo Lima&#10;Família Oliveira (4)&#10;João Pedro +2"></textarea>'+
+        '<div class="hint">Acompanhantes: use <b>(4)</b> para grupo de 4 pessoas, ou <b>+2</b> para 2 acompanhantes. Nomes repetidos são ignorados.</div></div>',
+      '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.doImportGuests()"><i class="fas fa-file-import"></i> Importar</button>');
+  },
+
+  guFileToText(ev){
+    const f=ev.target.files&&ev.target.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{
+      const ta=document.getElementById('f_gimport');
+      ta.value=(ta.value?ta.value.replace(/\s+$/,'')+'\n':'')+String(r.result||'');
+      this.toast('Arquivo carregado','ok');
+    };
+    r.onerror=()=>this.toast('Não foi possível ler o arquivo','err');
+    r.readAsText(f,'UTF-8');
+  },
+
+  // parse a single line -> {name, party}
+  _parseGuestLine(raw){
+    if(raw==null)return null;
+    // strip bullets / list numbering at the start (e.g. "1.", "-", "•")
+    let line=String(raw).replace(/^\s*(?:\d{1,3}[.\)º°]\s+|[-–—•*▪◦‣]\s*)/,'').trim();
+    if(!line)return null;
+    let party=0, name=line, m;
+    if((m=line.match(/\+\s*(\d+)\s*$/))){ party=parseInt(m[1])||0; name=line.slice(0,m.index).trim(); }
+    else if((m=line.match(/[\(\[]\s*(\d+)\s*(?:pessoas?|convidados?|lugares?)?\s*[\)\]]\s*$/i))){ const n=parseInt(m[1])||1; party=Math.max(0,n-1); name=line.slice(0,m.index).trim(); }
+    else if((m=line.match(/[-–—,]\s*(\d+)\s*$/))){ const n=parseInt(m[1])||1; party=Math.max(0,n-1); name=line.slice(0,m.index).trim(); }
+    name=name.replace(/[;,]+$/,'').trim();
+    if(!name)return null;
+    return {name,party};
+  },
+
+  doImportGuests(){
+    const txt=document.getElementById('f_gimport').value||'';
+    const lines=txt.split(/\r?\n/);
+    const existing=data.guests.filter(g=>g.eventId===this._guEvent);
+    const seen=new Set(existing.map(g=>(g.name||'').toLowerCase().trim()));
+    let added=0, skipped=0;
+    lines.forEach(l=>{
+      const p=this._parseGuestLine(l); if(!p)return;
+      const key=p.name.toLowerCase();
+      if(seen.has(key)){skipped++;return;}
+      seen.add(key);
+      data.guests.push({id:U.id('gst'),eventId:this._guEvent,name:p.name,party:p.party,
+        arrived:false,arrivedAt:null,createdAt:new Date().toISOString()});
+      added++;
+    });
+    if(!added&&!skipped){return this.toast('Nenhum nome válido encontrado','err');}
+    saveStore(); this.closeSheet(); this.renderGuests();
+    this.toast(added+' adicionado(s)'+(skipped?' · '+skipped+' repetido(s) ignorado(s)':''),'ok');
+  },
+
+  resetGuestCheckins(){
+    const list=data.guests.filter(g=>g.eventId===this._guEvent&&g.arrived);
+    if(!list.length){return this.toast('Ninguém marcado ainda','');}
+    if(!confirm('Desmarcar a presença de todos os '+list.length+' convidado(s)?'))return;
+    list.forEach(g=>{g.arrived=false;g.arrivedAt=null;});
+    saveStore(); this.renderGuests(); this.toast('Presenças resetadas','ok');
+  },
+
+  clearGuestList(){
+    const list=data.guests.filter(g=>g.eventId===this._guEvent);
+    if(!list.length)return;
+    if(!confirm('Remover TODOS os '+list.length+' convidado(s) deste evento? Esta ação não pode ser desfeita.'))return;
+    data.guests=data.guests.filter(g=>g.eventId!==this._guEvent);
+    saveStore(); this.renderGuests(); this.toast('Lista limpa','ok');
   },
 });
 
@@ -1985,7 +2259,7 @@ Object.assign(App,{
     if(!confirm('Isso apaga TODOS os dados deste dispositivo. Continuar?'))return;
     if(!confirm('Tem certeza? Esta ação não pode ser desfeita.'))return;
     const set=data.settings;
-    data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],settings:set,updatedAt:new Date().toISOString()};
+    data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],guests:[],settings:set,updatedAt:new Date().toISOString()};
     saveStore();this.renderAll();this.go('dashboard');this.toast('Dados apagados','ok');
   },
 });
