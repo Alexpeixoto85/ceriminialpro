@@ -189,6 +189,7 @@ a{color:inherit; text-decoration:none}
 .sheet-foot{padding:14px 18px calc(16px + var(--safe-b));border-top:1px solid var(--line2);display:flex;gap:10px}
 .sheet-foot .btn{flex:1}
 @media(min-width:560px){.sheet{left:50%;right:auto;transform:transl(-50%,100%);width:540px;border-radius:22px;bottom:auto;top:50%;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;transition:.22s;max-height:88vh}.sheet.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}}
+@media(max-width:480px){.sheet-body{max-height:calc(94vh - 120px)}.row2{grid-template-columns:1fr}.sheet-foot{flex-direction:column}.sheet-foot .btn{width:100%}}
 
 /* ===== Forms ===== */
 .field{margin-bottom:14px}
@@ -196,8 +197,10 @@ a{color:inherit; text-decoration:none}
 .field label .req{color:var(--danger)}
 .field input,.field select,.field textarea{
   width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 13px;background:var(--bg);
-  outline:none;transition:.15s;color:var(--ink)
+  outline:none;transition:.15s;color:var(--ink);
+  -webkit-appearance:none;appearance:none
 }
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238a8090'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:40px}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--plum);background:#fff;box-shadow:0 0 0 3px var(--plum-soft)}
 .field textarea{resize:vertical;min-height:80px;line-height:1.5}
 .field .hint{font-size:11.5px;color:var(--muted);margin-top:5px}
@@ -318,29 +321,8 @@ a{color:inherit; text-decoration:none}
 }
 .dp-actions .btn{min-width:120px}
 
-/* ===== Login ===== */
-#login{position:fixed;inset:0;z-index:300;background:linear-gradient(150deg,var(--plum),var(--plum-deep));display:grid;place-items:center;padding:24px;overflow-y:auto}
-.login-card{background:var(--surface);border-radius:24px;padding:34px 26px;width:100%;max-width:380px;box-shadow:var(--shadow-lg);text-align:center}
-.login-card .logo{width:64px;height:64px;border-radius:19px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;display:grid;place-items:center;font-size:28px;margin:0 auto 16px}
-.login-card h1{font-size:26px;margin-bottom:5px}
-.login-card p{color:var(--muted);font-size:13.5px;margin-bottom:22px}
-.login-tab-bar{display:flex;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:22px;gap:4px}
-.login-tab{flex:1;padding:9px 0;border-radius:9px;border:none;background:none;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
-.login-tab.active{background:var(--surface);color:var(--plum);box-shadow:0 1px 4px rgba(74,31,64,.12)}
-.register-panel,.login-panel{display:none}
-.register-panel.active,.login-panel.active{display:block}
-.divider-line{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--faint);font-size:12px}
-.divider-line::before,.divider-line::after{content:'';flex:1;height:1px;background:var(--line)}
-.account-selector{margin-bottom:16px}
-.acc-item{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;text-align:left;background:var(--bg);transition:.15s;width:100%}
-.acc-item:hover{border-color:var(--plum);background:var(--plum-soft)}
-.acc-item.selected{border-color:var(--plum);background:var(--plum-soft)}
-.acc-avatar{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--plum),var(--plum-deep));color:#fff;display:grid;place-items:center;font-size:14px;font-weight:700;flex-shrink:0}
-.acc-info{flex:1;min-width:0}
-.acc-name{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.acc-email{font-size:12px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pw-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--line);overflow:hidden}
-.pw-strength-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0}
+/* ===== Login (removido) ===== */
+#login{display:none!important}
 
 /* ===== reports ===== */
 .chart-wrap{position:relative;height:240px}
@@ -669,6 +651,12 @@ a{color:inherit; text-decoration:none}
           <div class="row2 mb"><div class="field"><label>E-mail</label><input id="setEmail" type="email"></div><div class="field"><label>Telefone/WhatsApp</label><input id="setPhone" placeholder="55 11 99999-9999"></div></div>
           <div class="field"><label>CNPJ/CPF</label><input id="setDoc"></div>
           <div class="field"><label>Endereço</label><input id="setAddress"></div>
+          <div class="field"><label>Comarca do Foro <span class="req">*</span></label>
+            <select id="setComarca">
+              <option value="">— selecione a comarca —</option>
+            </select>
+            <div class="hint">Esta comarca será utilizada na cláusula de foro dos contratos.</div>
+          </div>
           <button class="btn btn-primary btn-block" onclick="App.saveSettings()"><i class="fas fa-floppy-disk"></i> Salvar dados</button>
         </div>
       </div>
@@ -787,7 +775,7 @@ a{color:inherit; text-decoration:none}
     <div class="grp">Sistema</div>
     <a data-target="settings" onclick="App.go('settings')"><i class="fas fa-gear"></i> Configurações</a>
   </nav>
-  <div class="drawer-foot" style="display:flex;align-items:center;justify-content:space-between">CerimonialPro v2 · <span id="drSync">Local</span><button onclick="App.logout()" style="background:none;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--danger);cursor:pointer;font-weight:600"><i class="fas fa-right-from-bracket"></i> Sair</button></div>
+  <div class="drawer-foot" style="display:flex;align-items:center;justify-content:space-between">CerimonialPro v2 · <span id="drSync">Local</span></div>
 </aside>
 
 <!-- DYNAMIC SHEET (modal) -->
@@ -814,20 +802,81 @@ let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],
   updatedAt:new Date().toISOString()};
 let syncCfg={token:'',gistId:'',auto:false,lastSync:null};
 
-function loadStore(){
-  try{const s=localStorage.getItem(STORE_KEY); if(s){const p=JSON.parse(s);
-    data=Object.assign(data,p);
-    data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-    ['events','clients','suppliers','budgets','contracts','receipts','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
-  }}catch(e){console.warn(e)}
-  try{const s=localStorage.getItem(SYNC_KEY); if(s)syncCfg=Object.assign(syncCfg,JSON.parse(s));}catch(e){}
+/* ===== IndexedDB Storage System ===== */
+const DB_NAME='CerimonialProDB';
+const DB_VERSION=1;
+let db=null;
+
+async function initIndexedDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onerror=()=>reject(req.error);
+    req.onsuccess=()=>{db=req.result;resolve(db);};
+    req.onupgradeneeded=(e)=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('data'))d.createObjectStore('data',{keyPath:'key'});
+      if(!d.objectStoreNames.contains('sync'))d.createObjectStore('sync',{keyPath:'key'});
+    };
+  });
 }
-function saveStore(silent){
+
+async function loadFromIndexedDB(key){
+  if(!db)return null;
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(['data'],'readonly');
+    const store=tx.objectStore('data');
+    const req=store.get(key);
+    req.onerror=()=>reject(req.error);
+    req.onsuccess=()=>resolve(req.result?.value||null);
+  });
+}
+
+async function saveToIndexedDB(key,value){
+  if(!db)return false;
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(['data'],'readwrite');
+    const store=tx.objectStore('data');
+    const req=store.put({key,value});
+    req.onerror=()=>reject(req.error);
+    req.onsuccess=()=>resolve(true);
+  });
+}
+
+const IDB_KEY='cpData_main';
+
+async function loadStore(){
+  try{
+    await initIndexedDB();
+    let p=await loadFromIndexedDB(IDB_KEY);
+    if(!p){
+      const keys=[IDB_KEY,STORE_KEY,'cpData_admin@local'];
+      for(const k of keys){
+        const s=localStorage.getItem(k);
+        if(s){try{p=JSON.parse(s);break;}catch(e){}}
+      }
+    }
+    if(p){
+      data=Object.assign(data,p);
+      data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
+      ['events','clients','suppliers','budgets','contracts','receipts','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+      await saveToIndexedDB(IDB_KEY,data);
+    }
+  }catch(e){console.warn('IndexedDB error:',e);}
+  try{const s=localStorage.getItem(SYNC_KEY);if(s)syncCfg=Object.assign(syncCfg,JSON.parse(s));}catch(e){}
+}
+
+async function saveStore(silent){
   data.updatedAt=new Date().toISOString();
-  const key=window._currentEmail?'cpData_'+window._currentEmail:STORE_KEY;
-  localStorage.setItem(key,JSON.stringify(data));
-  if(!silent && syncCfg.auto && syncCfg.token){ Sync.push(true); }
+  try{
+    if(!db)await initIndexedDB();
+    await saveToIndexedDB(IDB_KEY,data);
+  }catch(e){
+    console.warn('IndexedDB save error, fallback localStorage:',e);
+    try{localStorage.setItem(IDB_KEY,JSON.stringify(data));}catch(le){}
+  }
+  if(!silent&&syncCfg.auto&&syncCfg.token){Sync.push(true);}
 }
+
 function saveSync(){localStorage.setItem(SYNC_KEY,JSON.stringify(syncCfg));}
 
 /* ===== utils ===== */
@@ -884,13 +933,13 @@ const Auth={
       // If user was already logged in OR had no password set, restore session automatically
       if(oldLoggedIn==='1' || !oldPass){
         localStorage.setItem(SESSION_KEY, migratedEmail);
-        this._loadSession(migratedEmail);
+        this._loadSession(migratedEmail).catch(e=>console.error(e));
         return;
       }
     }
 
     const session=localStorage.getItem(SESSION_KEY);
-    if(session){ this._loadSession(session); return; }
+    if(session){ this._loadSession(session).catch(e=>console.error(e)); return; }
 
     this._renderLoginUI();
   },
@@ -977,7 +1026,7 @@ const Auth={
     if(!acc){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Conta não encontrada. <button type="button" onclick="Auth.switchTab(\'register\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Criar conta?</button>';return;}
     if(this._hash(pass)!==acc.hash){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Senha incorreta. Tente novamente.';return;}
     localStorage.setItem(SESSION_KEY,email);
-    this._loadSession(email);
+    this._loadSession(email).catch(e=>console.error(e));
   },
 
   register(){
@@ -1003,11 +1052,12 @@ const Auth={
       updatedAt:new Date().toISOString()};
     localStorage.setItem('cpData_'+email,JSON.stringify(accData));
     localStorage.setItem(SESSION_KEY,email);
-    this._loadSession(email);
+    this._loadSession(email).catch(e=>console.error(e));
   },
 
-  _loadSession(email){
+  async _loadSession(email){
     // Load per-account data store
+    await loadStore();
     const raw=localStorage.getItem('cpData_'+email);
     if(raw){
       try{
@@ -1067,7 +1117,9 @@ const Auth={
 const App={
   curFilter:'all',
   init(){
-    Auth.init();
+    // Login removido — carrega direto
+    window._currentEmail = null;
+    loadStore().then(()=>{ App.start(); }).catch(()=>{ App.start(); });
   },
   // Legacy stubs kept for any inline onclick references
   togglePassVis(){ Auth.toggleVis('loginPass','passEyeIcon'); },
@@ -1217,9 +1269,12 @@ Object.assign(App,{
     const id=document.getElementById('f_eid').value;
     const cid=document.getElementById('f_eclient').value;
     const cl=data.clients.find(c=>c.id===cid);
-    if(!document.getElementById('f_edate').value){return this.toast('Informe a data do evento','err');}
-    const o={type:document.getElementById('f_etype').value,clientId:cid,clientName:cl?cl.name:'',
-      date:document.getElementById('f_edate').value,time:document.getElementById('f_etime').value,
+    const edate=document.getElementById('f_edate').value;
+    const etype=document.getElementById('f_etype').value;
+    if(!etype){return this.toast('Selecione o tipo de evento','err');}
+    if(!edate){return this.toast('Informe a data do evento','err');}
+    const o={type:etype,clientId:cid,clientName:cl?cl.name:'',
+      date:edate,time:document.getElementById('f_etime').value,
       location:document.getElementById('f_eloc').value.trim(),guests:parseInt(document.getElementById('f_eguests').value)||null,
       budget:parseFloat(document.getElementById('f_ebudget').value)||0,status:document.getElementById('f_estatus').value,
       observations:document.getElementById('f_eobs').value.trim(),updatedAt:new Date().toISOString()};
@@ -1326,7 +1381,8 @@ Object.assign(App,{
   },
   saveClient(){
     const id=document.getElementById('f_cid').value, name=document.getElementById('f_cname').value.trim();
-    if(!name)return this.toast('Informe o nome','err');
+    if(!name)return this.toast('Informe o nome do cliente','err');
+    if(name.length<3)return this.toast('Nome deve ter no mínimo 3 caracteres','err');
     const o={name,phone:document.getElementById('f_cphone').value.trim(),doc:document.getElementById('f_cdoc').value.trim(),
       email:document.getElementById('f_cemail').value.trim(),address:document.getElementById('f_caddr').value.trim(),
       observations:document.getElementById('f_cobs').value.trim(),updatedAt:new Date().toISOString()};
@@ -1532,7 +1588,7 @@ Object.assign(App,{
     let msg='Olá '+cl.name+'! 😊\nSegue o orçamento *'+b.number+'*:\n\n';
     b.items.forEach(i=>msg+='• '+i.description+' ('+i.quantity+'x) — '+U.money(i.total)+'\n');
     msg+='\n*Total: '+U.money(b.total)+'*\n'+(b.validUntil?'Válido até '+U.date(b.validUntil)+'\n':'')+'\nFico à disposição!\n— '+data.settings.companyName;
-    window.open(U.waLink(cl.phone,msg),'_blank');
+    this._waWithPdf('budget',id,cl.phone,msg,(b.number||'orcamento')+'.pdf');
   },
 });
 
@@ -1571,6 +1627,7 @@ Object.assign(App,{
   saveContract(){
     const id=document.getElementById('f_coid').value, cid=document.getElementById('f_coclient').value;
     if(!cid)return this.toast('Selecione o cliente','err');
+    if(!data.settings.comarca)return this.toast('Configure a comarca nas configurações primeiro','err');
     const o={clientId:cid,eventId:document.getElementById('f_coevent').value,contractDate:document.getElementById('f_codate').value,
       value:parseFloat(document.getElementById('f_covalue').value)||0,payment:document.getElementById('f_copay').value.trim(),
       fine:parseFloat(document.getElementById('f_cofine').value)||0,
@@ -1616,7 +1673,8 @@ Object.assign(App,{
   saveReceipt(){
     const id=document.getElementById('f_reid').value, cid=document.getElementById('f_reclient').value, val=parseFloat(document.getElementById('f_revalue').value)||0;
     if(!cid)return this.toast('Selecione o cliente','err');
-    if(val<=0)return this.toast('Informe o valor','err');
+    if(val<=0)return this.toast('Informe um valor válido','err');
+    if(val>999999999)return this.toast('Valor muito alto','err');
     const o={clientId:cid,eventId:document.getElementById('f_reevent').value,receiptDate:document.getElementById('f_redate').value,
       value:val,paymentMethod:document.getElementById('f_repay').value,description:document.getElementById('f_redesc').value.trim(),updatedAt:new Date().toISOString()};
     if(id){const i=data.receipts.findIndex(x=>x.id===id);o.number=data.receipts[i].number;data.receipts[i]={...data.receipts[i],...o};}
@@ -1627,10 +1685,15 @@ Object.assign(App,{
     const coll=type==='contract'?'contracts':'receipts';
     const doc=data[coll].find(x=>x.id===id), cl=data.clients.find(c=>c.id===doc.clientId);
     if(!cl||!cl.phone)return this.toast('Cliente sem WhatsApp','err');
-    let msg;
-    if(type==='contract')msg='Olá '+cl.name+'! 😊\nSegue o contrato *'+doc.number+'* no valor de '+U.money(doc.value)+'.\nVou enviar o PDF na sequência. Qualquer dúvida estou à disposição!\n— '+data.settings.companyName;
-    else msg='Olá '+cl.name+'! ✅\nConfirmo o recebimento de *'+U.money(doc.value)+'* ('+doc.paymentMethod+').\nRecibo *'+doc.number+'*. Obrigado!\n— '+data.settings.companyName;
-    window.open(U.waLink(cl.phone,msg),'_blank');
+    let msg, filename;
+    if(type==='contract'){
+      msg='Olá '+cl.name+'! 😊\nSegue o contrato *'+doc.number+'* no valor de '+U.money(doc.value)+'.\nO PDF foi gerado e está pronto para envio. Qualquer dúvida estou à disposição!\n— '+data.settings.companyName;
+      filename=(doc.number||'contrato')+'.pdf';
+    } else {
+      msg='Olá '+cl.name+'! ✅\nConfirmo o recebimento de *'+U.money(doc.value)+'* ('+doc.paymentMethod+').\nSegue o recibo *'+doc.number+'* em anexo. Obrigado!\n— '+data.settings.companyName;
+      filename=(doc.number||'recibo')+'.pdf';
+    }
+    this._waWithPdf(type,id,cl.phone,msg,filename);
   },
 });
 
@@ -1798,6 +1861,8 @@ Object.assign(App,{
     document.getElementById('setPhone').value=s.phone||'';
     document.getElementById('setDoc').value=s.doc||'';
     document.getElementById('setAddress').value=s.address||'';
+    this.populateComarcas();
+    document.getElementById('setComarca').value=s.comarca||'';
     document.getElementById('setGhToken').value=syncCfg.token||'';
     document.getElementById('setGistId').value=syncCfg.gistId||'';
     document.getElementById('setAutoSync').checked=!!syncCfg.auto;
@@ -1859,11 +1924,14 @@ Object.assign(App,{
   removeLogo(){data.settings.logo='';this.renderLogoPrev();this.refreshChrome();},
   saveSettings(){
     const lay=document.querySelector('input[name="docLayout"]:checked');
+    const comarca=document.getElementById('setComarca').value;
+    if(!comarca){return this.toast('Selecione a comarca do foro','err');}
     Object.assign(data.settings,{companyName:document.getElementById('setCompany').value.trim()||'CerimonialPro',
       slogan:document.getElementById('setSlogan').value.trim(),
       userName:document.getElementById('setUser').value.trim(),email:document.getElementById('setEmail').value.trim(),
       phone:document.getElementById('setPhone').value.trim(),doc:document.getElementById('setDoc').value.trim(),
       address:document.getElementById('setAddress').value.trim(),
+      comarca:comarca,
       docLayout:lay?lay.value:(data.settings.docLayout||'header')});
     saveStore();this.refreshChrome();this.toast('Configurações salvas','ok');
   },
@@ -2024,6 +2092,14 @@ const PDF={
     }catch(e){}
   },
   open(doc,name){try{doc.save(name);}catch(e){window.open(doc.output('bloburl'),'_blank');}},
+  blob(doc){return doc.output('blob');},
+  download(doc,name){
+    const blob=this.blob(doc);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=name;a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+    return blob;
+  },
 };
 Object.assign(App,{
   pdfBudget(id){
@@ -2138,14 +2214,14 @@ Object.assign(App,{
       ['DOS CASOS FORTUITOS E DE FORÇA MAIOR','Nenhuma das partes será responsabilizada pelo descumprimento decorrente de caso fortuito ou força maior, nos termos do art. 393 do Código Civil, hipótese em que as partes buscarão, de boa-fé, o reagendamento do evento ou solução equivalente.'],
       ['DA CESSÃO DE IMAGEM','A CONTRATANTE autoriza a CONTRATADA a utilizar imagens e registros do evento para fins de divulgação de seu portfólio profissional, podendo tal autorização ser revogada por escrito a qualquer tempo.'],
       ['DAS DISPOSIÇÕES GERAIS','Este contrato obriga as partes e seus sucessores. Qualquer alteração somente terá validade se formalizada por escrito. A tolerância quanto ao descumprimento de qualquer cláusula não constituirá novação ou renúncia.'],
-      ['DO FORO','Fica eleito o foro da comarca da CONTRATADA para dirimir quaisquer questões oriundas do presente contrato, com renúncia a qualquer outro, por mais privilegiado que seja.'],
+      ['DO FORO',`Fica eleito o foro da comarca de ${data.settings.comarca || '___'} para dirimir quaisquer questões oriundas do presente contrato, com renúncia a qualquer outro, por mais privilegiado que seja.`],
     ];
     if(c.terms){c.terms.split(/\n+/).map(x=>x.trim()).filter(Boolean).forEach(t=>clauses.push(['DISPOSIÇÃO ADICIONAL',t]));}
     clauses.forEach((x,i)=>para('CLÁUSULA '+ord[i]+' — '+x[0],x[1]));
     para('','E, por estarem assim justas e contratadas, firmam o presente instrumento em duas vias de igual teor e forma.',4);
     if(y>235){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=28;}
     y+=6;
-    const city=(s.address?s.address.split(',').slice(-2,-1)[0]||s.address.split(',')[0]:'__________');
+    const city = s.comarca ? s.comarca.split('/')[0] : (s.address ? s.address.split(',').slice(-2,-1)[0] || s.address.split(',')[0] : '__________');
     doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(city.trim()+', '+U.dateLong(c.contractDate||new Date().toISOString().slice(0,10))+'.',M,y);y+=22;
     doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);
     PDF.sign(doc,M+41,y);
@@ -2175,6 +2251,128 @@ Object.assign(App,{
     doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(s.companyName||'',W/2,y,{align:'center'});
     if(s.doc){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120,110,126);doc.text('CNPJ/CPF: '+s.doc,W/2,y+4.5,{align:'center'});doc.setTextColor(40,35,48);}
     PDF.footer(doc);PDF.open(doc,(r.number||'recibo')+'.pdf');this.toast('PDF gerado','ok');
+  },
+  // ── Generate PDF blob without saving (for WhatsApp sharing) ──
+  _buildBudgetDoc(id){
+    const b=data.budgets.find(x=>x.id===id), cl=data.clients.find(c=>c.id===b.clientId)||{}, ev=data.events.find(e=>e.id===b.eventId);
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth();
+    PDF.decorate(doc); let y=PDF.header(doc,'Orçamento',b.number);
+    doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.setTextColor(74,31,64);doc.text('DADOS DO CLIENTE',18,y);
+    doc.setTextColor(40,35,48);doc.setFont('helvetica','normal');doc.setFontSize(10);
+    doc.text(cl.name||'—',18,y+6); let cy=y+6;
+    if(cl.phone){cy+=5;doc.text('Tel: '+cl.phone,18,cy);} if(cl.email){cy+=5;doc.text(cl.email,18,cy);}
+    y=cy+12;
+    const s=data.settings;const [r,g,bb]=PDF.rgb(s.accent);
+    if(b.validUntil){doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(r,g,bb);doc.text('VÁLIDO ATÉ',W-40,y-10);doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(40,35,48);doc.text(U.date(b.validUntil),W-40,y-5);}
+    if(ev){doc.setFontSize(9);doc.setTextColor(110,100,118);doc.text('Evento: '+ev.type+' · '+U.date(ev.date),18,y);y+=6;doc.setTextColor(40,35,48);}
+    const th=(txt,x,w,align)=>{doc.setFillColor(r,g,bb);doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(txt,align==='right'?x+w-2:x+2,y+5,{align:align||'left'});};
+    doc.setFillColor(r,g,bb);doc.roundedRect(18,y,W-36,8,1,1,'F');
+    th('DESCRIÇÃO',21,W-120);th('QTD',W-82,20,'center');th('UNITÁRIO',W-58,28,'right');th('TOTAL',W-28,28,'right');
+    y+=12;doc.setTextColor(40,35,48);
+    b.items.forEach((it,i)=>{
+      if(y>250){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+      if(i%2===0){doc.setFillColor(248,244,247);doc.rect(18,y-4,W-36,8,'F');}
+      doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+      const D=doc.splitTextToSize(it.description||'',W-130);
+      doc.text(D,21,y);doc.text(String(it.quantity||1),W-72,y,{align:'center'});doc.text(U.money(it.unitPrice||0),W-30,y,{align:'right'});doc.text(U.money(it.total||0),W-18,y,{align:'right'});
+      y+=Math.max(D.length*5,6)+2;
+    });
+    if(b.suppliers&&b.suppliers.length){
+      if(y>240){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+      y+=4;doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(r,g,bb);doc.text('FORNECEDORES / SERVIÇOS CONTRATADOS',18,y);doc.setTextColor(40,35,48);y+=4;
+      let subSup=0;
+      b.suppliers.forEach(sp=>{
+        if(y>258){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+        doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text(sp.name+(sp.category?' · '+sp.category:''),21,y);
+        doc.setFont('helvetica','normal');doc.text(U.money(sp.value||0),W-18,y,{align:'right'});y+=5;
+        subSup+=(sp.value||0);
+      });
+      const subItems=b.items.reduce((a,i)=>a+(i.total||0),0);
+      y+=2;doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(r,g,bb);doc.text('Serviços de cerimonial',W-78,y);doc.text(U.money(subItems),W-21,y,{align:'right'});y+=5;
+      doc.text('TOTAL GERAL',W-78,y);doc.text(U.money(b.total||0),W-21,y,{align:'right'});doc.setTextColor(40,35,48);y+=8;
+    } else {
+      y+=6;doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(r,g,bb);
+      doc.text('TOTAL',W-18,y,{align:'right'}); doc.setFontSize(13);doc.text(U.money(b.total||0),W-18,y+6,{align:'right'});
+      doc.setTextColor(40,35,48);y+=16;
+    }
+    if(b.payment){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text('Condições de pagamento:',18,y);doc.setFont('helvetica','normal');const L2=doc.splitTextToSize(b.payment,W-36);doc.text(L2,18,y+5);y+=L2.length*5+8;}
+    if(b.observations){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text('Observações:',18,y);doc.setFont('helvetica','normal');const L3=doc.splitTextToSize(b.observations,W-36);doc.text(L3,18,y+5);y+=L3.length*5+8;}
+    if(y>238){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(r,g,bb);doc.text('CONDIÇÕES GERAIS',18,y);doc.setTextColor(40,35,48);y+=5;
+    const cond=['Validade da proposta: '+(b.validUntil?U.date(b.validUntil):'conforme combinado')+'. Após esse prazo, os valores estão sujeitos a reajuste.','A reserva da data ocorre somente após a assinatura do contrato e o pagamento do sinal acordado.','Os valores de fornecedores são estimados conforme cotações vigentes e podem variar conforme disponibilidade na data do evento.','Eventuais serviços não descritos nesta proposta serão orçados à parte.',(b.payment?'Condições de pagamento: '+b.payment+'.':'Condições de pagamento a combinar.')];
+    cond.forEach(t=>{const L=doc.splitTextToSize('•  '+t,W-36);L.forEach(ln=>{if(y>270){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}doc.text(ln,18,y);y+=4.4;});y+=1.5;});
+    y+=4;doc.setFont('helvetica','italic');doc.setFontSize(10);doc.setTextColor(r,g,bb);
+    doc.text('Será uma honra cuidar de cada detalhe do seu evento.',W/2,y+6,{align:'center'});doc.setTextColor(40,35,48);y+=12;
+    if(data.settings.signature){if(y>250){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=30;}y+=14;doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);PDF.sign(doc,W/2,y);doc.line(W/2-38,y,W/2+38,y);y+=5;doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(40,35,48);doc.text(data.settings.companyName||'',W/2,y,{align:'center'});}
+    PDF.footer(doc);return doc;
+  },
+  _buildContractDoc(id){
+    const c=data.contracts.find(x=>x.id===id), cl=data.clients.find(x=>x.id===c.clientId)||{}, ev=data.events.find(e=>e.id===c.eventId), s=data.settings;
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth(), M=18, CW=W-36;
+    PDF.decorate(doc); let y=PDF.header(doc,'Contrato',c.number);
+    const [r,g,bb]=PDF.rgb(s.accent);
+    doc.setFont('times','bold');doc.setFontSize(13);doc.setTextColor(r,g,bb);
+    doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS',W/2,y,{align:'center'});doc.setTextColor(40,35,48);y+=4;
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.3);doc.line(W/2-45,y,W/2+45,y);y+=9;
+    const para=(label,txt,gap)=>{if(y>262){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}if(label){doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.text(label,M,y);y+=5;}doc.setFont('helvetica','normal');doc.setFontSize(9.5);const L=doc.splitTextToSize(txt,CW);L.forEach(line=>{if(y>270){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}doc.text(line,M,y);y+=4.8;});y+=(gap||4);};
+    para('','Pelo presente instrumento particular de prestação de serviços, de um lado a CONTRATADA e de outro a CONTRATANTE, abaixo qualificadas, têm entre si justo e contratado o seguinte:',5);
+    para('CONTRATADA',(s.companyName||'—')+(s.doc?', inscrita sob o nº '+s.doc:'')+(s.address?', com sede em '+s.address:'')+(s.phone?', telefone '+s.phone:'')+(s.email?', e-mail '+s.email:'')+'.');
+    para('CONTRATANTE',(cl.name||'—')+(cl.doc?', inscrito(a) sob o nº '+cl.doc:'')+(cl.address?', residente em '+cl.address:'')+(cl.phone?', telefone '+cl.phone:'')+(cl.email?', e-mail '+cl.email:'')+'.');
+    const ord=['1ª','2ª','3ª','4ª','5ª','6ª','7ª','8ª','9ª','10ª','11ª','12ª','13ª','14ª','15ª','16ª','17ª','18ª'];
+    const objeto=ev?'O presente contrato tem por objeto a prestação de serviços de assessoria e cerimonial para a organização e coordenação do evento '+ev.type+', a ser realizado em '+U.dateLong(ev.date)+(ev.time?', às '+ev.time:'')+(ev.location?', no(a) '+ev.location:'')+', compreendendo o planejamento, a coordenação dos fornecedores e o acompanhamento integral no dia do evento.':'O presente contrato tem por objeto a prestação de serviços de assessoria e cerimonial para a organização e coordenação de evento, conforme condições ajustadas entre as partes.';
+    const fine=(c.fine!=null?c.fine:30);
+    const clauses=[['DO OBJETO',objeto],['DO VALOR E DA FORMA DE PAGAMENTO','Pelos serviços ora contratados, a CONTRATANTE pagará à CONTRATADA o valor total de '+U.money(c.value)+' ('+Extenso.reais(c.value)+').'+(c.payment?' O pagamento será efetuado da seguinte forma: '+c.payment+'.':' O pagamento será efetuado conforme condições acordadas entre as partes.')+' O atraso no pagamento de qualquer parcela implicará atualização monetária e juros de 1% (um por cento) ao mês.'],['DAS OBRIGAÇÕES DA CONTRATADA','Compete à CONTRATADA: (a) planejar e coordenar o evento conforme o objeto deste contrato; (b) orientar e acompanhar os fornecedores envolvidos; (c) estar presente no dia do evento para a coordenação geral; (d) agir com zelo, profissionalismo e sigilo quanto às informações da CONTRATANTE.'],['DAS OBRIGAÇÕES DA CONTRATANTE','Compete à CONTRATANTE: (a) fornecer todas as informações necessárias à execução dos serviços; (b) efetuar os pagamentos nas datas acordadas; (c) comunicar previamente quaisquer alterações relativas ao evento; (d) responsabilizar-se pela contratação e pagamento dos fornecedores, salvo quando ajustado de outra forma.'],['DO PRAZO E DA EXECUÇÃO','Os serviços serão prestados a partir da assinatura deste instrumento e encerram-se com a conclusão do evento. Serviços adicionais não previstos serão objeto de aditivo, com a respectiva complementação de valores.'],['DA RESCISÃO E DA MULTA','O presente contrato poderá ser rescindido por qualquer das partes mediante comunicação por escrito. Em caso de cancelamento por parte da CONTRATANTE, será devida multa de '+fine+'% (por cento) sobre o valor total do contrato, sem prejuízo do pagamento dos serviços já executados. Os valores pagos a título de sinal não serão restituídos.'],['DOS CASOS FORTUITOS E DE FORÇA MAIOR','Nenhuma das partes será responsabilizada pelo descumprimento decorrente de caso fortuito ou força maior, nos termos do art. 393 do Código Civil, hipótese em que as partes buscarão, de boa-fé, o reagendamento do evento ou solução equivalente.'],['DA CESSÃO DE IMAGEM','A CONTRATANTE autoriza a CONTRATADA a utilizar imagens e registros do evento para fins de divulgação de seu portfólio profissional, podendo tal autorização ser revogada por escrito a qualquer tempo.'],['DAS DISPOSIÇÕES GERAIS','Este contrato obriga as partes e seus sucessores. Qualquer alteração somente terá validade se formalizada por escrito. A tolerância quanto ao descumprimento de qualquer cláusula não constituirá novação ou renúncia.'],['DO FORO',`Fica eleito o foro da comarca de ${data.settings.comarca || '___'} para dirimir quaisquer questões oriundas do presente contrato, com renúncia a qualquer outro, por mais privilegiado que seja.`]];
+    if(c.terms){c.terms.split(/\n+/).map(x=>x.trim()).filter(Boolean).forEach(t=>clauses.push(['DISPOSIÇÃO ADICIONAL',t]));}
+    clauses.forEach((x,i)=>para('CLÁUSULA '+ord[i]+' — '+x[0],x[1]));
+    para('','E, por estarem assim justas e contratadas, firmam o presente instrumento em duas vias de igual teor e forma.',4);
+    if(y>235){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=28;}y+=6;
+    const city = s.comarca ? s.comarca.split('/')[0] : (s.address ? s.address.split(',').slice(-2,-1)[0] || s.address.split(',')[0] : '__________');
+    doc.setFont('helvetica','normal');doc.setFontSize(9.5);doc.text(city.trim()+', '+U.dateLong(c.contractDate||new Date().toISOString().slice(0,10))+'.',M,y);y+=22;
+    doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);PDF.sign(doc,M+41,y);
+    doc.line(M+6,y,M+76,y);doc.line(W-M-76,y,W-M-6,y);y+=5;
+    doc.setFontSize(8.5);doc.text((s.companyName||'Contratada'),M+41,y,{align:'center'});doc.text((cl.name||'Contratante'),W-M-41,y,{align:'center'});
+    doc.setFontSize(7.5);doc.setTextColor(120,110,126);doc.text('CONTRATADA',M+41,y+4,{align:'center'});doc.text('CONTRATANTE',W-M-41,y+4,{align:'center'});doc.setTextColor(40,35,48);
+    y+=18;doc.setFontSize(8);doc.setTextColor(120,110,126);doc.text('Testemunhas:',M,y);y+=10;
+    doc.setDrawColor(180,170,186);doc.line(M+6,y,M+70,y);doc.line(W-M-70,y,W-M-6,y);
+    PDF.footer(doc);return doc;
+  },
+  _buildReceiptDoc(id){
+    const r=data.receipts.find(x=>x.id===id), cl=data.clients.find(c=>c.id===r.clientId)||{}, s=data.settings;
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth(), M=18;
+    PDF.decorate(doc); let y=PDF.header(doc,'Recibo',r.number);
+    const [pr,pg,pb]=PDF.rgb(s.accent);
+    doc.setFillColor(247,239,214);doc.setDrawColor(189,154,60);doc.setLineWidth(0.5);doc.roundedRect(M,y,W-2*M,16,3,3,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(17);doc.setTextColor(pr,pg,pb);
+    doc.text(U.money(r.value),W/2,y+11,{align:'center'});doc.setTextColor(40,35,48);y+=26;
+    doc.setFont('helvetica','normal');doc.setFontSize(10.5);
+    const txt='Recebi(emos) de '+(cl.name||'—')+(cl.doc?', inscrito(a) sob o nº '+cl.doc+',':'')+' a importância de '+U.money(r.value)+' ('+Extenso.reais(r.value)+'), '+(r.description?'referente a '+r.description:'referente aos serviços prestados')+'.';
+    const L=doc.splitTextToSize(txt,W-2*M);doc.text(L,M,y);y+=L.length*6+8;
+    doc.text('Para clareza e como prova de quitação, firmo(amos) o presente recibo.',M,y);y+=14;
+    doc.setFont('helvetica','bold');doc.text('Forma de pagamento:',M,y);doc.setFont('helvetica','normal');doc.text(r.paymentMethod||'—',M+42,y);y+=18;
+    const city=(s.address?(s.address.split(',').slice(-2,-1)[0]||s.address.split(',')[0]):'__________');
+    doc.text(city.trim()+', '+U.dateLong(r.receiptDate)+'.',W-M,y,{align:'right'});y+=24;
+    doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);PDF.sign(doc,W/2,y);doc.line(W/2-42,y,W/2+42,y);y+=5;
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(s.companyName||'',W/2,y,{align:'center'});
+    if(s.doc){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120,110,126);doc.text('CNPJ/CPF: '+s.doc,W/2,y+4.5,{align:'center'});doc.setTextColor(40,35,48);}
+    PDF.footer(doc);return doc;
+  },
+  // ── WhatsApp + PDF: download file then open WhatsApp ──
+  _waWithPdf(type, id, phone, msg, filename){
+    try {
+      let doc;
+      if(type==='budget') doc=this._buildBudgetDoc(id);
+      else if(type==='contract') doc=this._buildContractDoc(id);
+      else doc=this._buildReceiptDoc(id);
+      PDF.download(doc, filename);
+    } catch(e) { this.toast('Erro ao gerar PDF: '+e.message,'err'); return; }
+    // Small delay so download starts before WA opens
+    setTimeout(()=>{
+      window.open(U.waLink(phone, msg),'_blank');
+      // Notify user to attach the downloaded file
+      setTimeout(()=>{
+        this.toast('📎 Anexe o PDF baixado na conversa do WhatsApp','');
+      }, 1200);
+    }, 400);
   },
 });
 
@@ -2511,7 +2709,7 @@ const DocPreview = {
 
   _buildContractBody(d, cl, ev, s, co, accent) {
     const fine = d.fine != null ? d.fine : 30;
-    const city = s.address ? s.address.split(',').slice(-2,-1)[0] || s.address.split(',')[0] : '________';
+    const city = s.comarca ? s.comarca.split('/')[0] : (s.address ? s.address.split(',').slice(-2,-1)[0] || s.address.split(',')[0] : '________');
     const objeto = ev
       ? `prestação de serviços de assessoria e cerimonial para o evento <b>${this._esc(ev.type)}</b>, a ser realizado em ${this._dateLong(ev.date)}${ev.time?', às '+ev.time:''}${ev.location?', no(a) '+this._esc(ev.location):''}; compreendendo o planejamento, coordenação dos fornecedores e acompanhamento integral no dia do evento.`
       : 'prestação de serviços de assessoria e cerimonial para organização e coordenação de evento, conforme condições ajustadas entre as partes.';
@@ -2525,7 +2723,7 @@ const DocPreview = {
       ['DOS CASOS FORTUITOS E DE FORÇA MAIOR', 'Nenhuma das partes será responsabilizada pelo descumprimento decorrente de caso fortuito ou força maior (art. 393, CC). As partes buscarão, de boa-fé, o reagendamento do evento.'],
       ['DA CESSÃO DE IMAGEM', 'A CONTRATANTE autoriza a CONTRATADA a utilizar imagens e registros do evento para fins de divulgação de seu portfólio, podendo tal autorização ser revogada por escrito a qualquer tempo.'],
       ['DAS DISPOSIÇÕES GERAIS', 'Este contrato obriga as partes e seus sucessores. Qualquer alteração somente terá validade se formalizada por escrito. A tolerância quanto ao descumprimento de qualquer cláusula não constituirá novação ou renúncia.'],
-      ['DO FORO', 'Fica eleito o foro da comarca da CONTRATADA para dirimir quaisquer questões oriundas do presente contrato.'],
+      ['DO FORO', `Fica eleito o foro da comarca de ${data.settings.comarca || '___'} para dirimir quaisquer questões oriundas do presente contrato.`],
     ];
     const ord = ['1ª','2ª','3ª','4ª','5ª','6ª','7ª','8ª','9ª','10ª','11ª','12ª','13ª','14ª','15ª','16ª','17ª'];
     if (d.terms) {
@@ -2568,7 +2766,7 @@ const DocPreview = {
   },
 
   _buildReceiptBody(d, cl, s, co, accent) {
-    const city = s.address ? (s.address.split(',').slice(-2,-1)[0] || s.address.split(',')[0]) : '________';
+    const city = s.comarca ? s.comarca.split('/')[0] : (s.address ? (s.address.split(',').slice(-2,-1)[0] || s.address.split(',')[0]) : '________');
     // Extenso — re-use existing
     const ext = typeof Extenso !== 'undefined' ? Extenso.reais(d.value) : '';
     const txt = `Recebi(emos) de <b>${this._esc(cl.name||'—')}</b>${cl.doc?', inscrito(a) sob o nº '+this._esc(cl.doc)+',':''} a importância de <b>${this._money(d.value)}</b>${ext?' ('+this._esc(ext)+')':''}, ${d.description?'referente a '+this._esc(d.description):'referente aos serviços prestados'}.`;
@@ -2589,6 +2787,20 @@ const DocPreview = {
 window.DocPreview = DocPreview;
 
 /* ===== INIT ===== */
+Object.assign(App, {
+  populateComarcas() {
+    const select = document.getElementById('setComarca');
+    if (!select || select.options.length > 1) return;
+    const comarcas = ["Aracaju/SE", "Belém/PA", "Belo Horizonte/MG", "Boa Vista/RR", "Brasília/DF", "Campo Grande/MS", "Cuiabá/MT", "Curitiba/PR", "Florianópolis/SC", "Fortaleza/CE", "Goiânia/GO", "João Pessoa/PB", "Macapá/AP", "Maceió/AL", "Manaus/AM", "Natal/RN", "Palmas/TO", "Porto Alegre/RS", "Porto Velho/RO", "Recife/PE", "Rio Branco/AC", "Rio de Janeiro/RJ", "Salvador/BA", "São Luís/MA", "São Paulo/SP", "Teresina/PI", "Vitória/ES", "Campinas/SP", "Guarulhos/SP", "São Bernardo do Campo/SP", "São José dos Campos/SP", "Santo André/SP", "Ribeirão Preto/SP", "Osasco/SP", "Sorocaba/SP", "Santos/SP", "São José do Rio Preto/SP", "Mogi das Cruzes/SP", "Jundiaí/SP", "Piracicaba/SP", "Bauru/SP", "São Vicente/SP", "Itaquaquecetuba/SP", "Franca/SP", "Guarujá/SP", "Taubaté/SP", "Limeira/SP", "Suzano/SP", "São Carlos/SP", "Indaiatuba/SP", "Cotia/SP", "Americana/SP", "Itapevi/SP", "Jacareí/SP", "Araraquara/SP", "Rio Claro/SP", "Presidente Prudente/SP", "Marília/SP", "Hortolândia/SP", "Leme/SP", "Valinhos/SP", "Itu/SP", "Botucatu/SP", "Atibaia/SP", "Sertãozinho/SP", "Barretos/SP", "Catanduva/SP", "Jandira/SP", "Birigui/SP", "Votuporanga/SP", "Várzea Paulista/SP", "Tatuí/SP", "Itatiba/SP", "Salto/SP", "Poá/SP", "Ourinhos/SP", "Assis/SP", "Lins/SP", "Fernandópolis/SP", "Mogi Guaçu/SP", "Mogi Mirim/SP", "São João da Boa Vista/SP", "Lorena/SP", "Avaré/SP", "Batatais/SP", "Cruzeiro/SP", "Matão/SP", "Bebedouro/SP", "Jaboticabal/SP", "Mirassol/SP", "Olímpia/SP", "Pirassununga/SP", "São Roque/SP", "Vinhedo/SP", "Laranjal Paulista/SP", "Cravinhos/SP", "Serrana/SP", "Amparo/SP", "Descalvado/SP", "Mococa/SP", "Porto Ferreira/SP", "Monte Alto/SP", "Guariba/SP", "Pitangueiras/SP", "Orlândia/SP", "Pontal/SP", "Igarapava/SP", "Miguelópolis/SP", "Nuporanga/SP", "Sales Oliveira/SP", "Morro Agudo/SP", "Viradouro/SP", "Colina/SP", "Guaíra/SP", "Cajuru/SP", "Santa Rosa de Viterbo/SP", "Brodowski/SP", "Jardinópolis/SP", "Dumont/SP", "Pradópolis/SP", "Guatapará/SP", "Rincão/SP", "Motuca/SP", "Américo Brasiliense/SP", "Santa Lúcia/SP", "Gavião Peixoto/SP", "Trabiju/SP", "Boa Esperança do Sul/SP", "Dourado/SP", "Ribeirão Bonito/SP", "Ibaté/SP"];
+    comarcas.sort().forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      select.appendChild(opt);
+    });
+  }
+});
+
 window.App=App; window.Sync=Sync; window.U=U; window.Extenso=Extenso;
 document.addEventListener('DOMContentLoaded',()=>{
   App.init();
