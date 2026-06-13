@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -188,7 +187,7 @@ a{color:inherit; text-decoration:none}
 .sheet-body{padding:16px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .sheet-foot{padding:14px 18px calc(16px + var(--safe-b));border-top:1px solid var(--line2);display:flex;gap:10px}
 .sheet-foot .btn{flex:1}
-@media(min-width:560px){.sheet{left:50%;right:auto;transform:transl(-50%,100%);width:540px;border-radius:22px;bottom:auto;top:50%;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;transition:.22s;max-height:88vh}.sheet.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}}
+@media(min-width:560px){.sheet{left:50%;right:auto;transform:translateX(-50%) translateY(100%);width:540px;border-radius:22px;bottom:auto;top:50%;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;transition:.22s;max-height:88vh}.sheet.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}}
 @media(max-width:480px){.sheet-body{max-height:calc(94vh - 120px)}.row2{grid-template-columns:1fr}.sheet-foot{flex-direction:column}.sheet-foot .btn{width:100%}}
 
 /* ===== Forms ===== */
@@ -321,8 +320,40 @@ a{color:inherit; text-decoration:none}
 }
 .dp-actions .btn{min-width:120px}
 
-/* ===== Login (removido) ===== */
-#login{display:none!important}
+/* ===== Login ===== */
+#login{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--plum-deep) 0%,var(--plum) 60%,#8c3a78 100%);
+  padding:20px 16px;
+}
+.login-card{
+  background:var(--surface);border-radius:22px;padding:32px 24px 28px;
+  width:100%;max-width:400px;box-shadow:var(--shadow-lg);text-align:center;
+}
+.login-card .logo{
+  width:64px;height:64px;border-radius:18px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  display:grid;place-items:center;font-size:26px;color:#fff;margin:0 auto 16px;
+}
+.login-card h1{font-size:24px;font-weight:700;color:var(--plum);margin-bottom:4px}
+.login-card > p{font-size:13.5px;color:var(--muted);margin-bottom:20px}
+.login-tab-bar{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.login-tab{flex:1;padding:10px;border:none;background:none;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+.login-tab.active{background:var(--plum);color:#fff}
+.login-panel{display:none}.login-panel.active{display:block}
+.register-panel{display:none}.register-panel.active{display:block}
+.pw-strength{height:5px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden}
+.pw-strength-bar{height:100%;border-radius:3px;transition:.3s;width:0}
+.divider-line{font-size:12px;color:var(--faint);text-align:center;padding:10px 0;position:relative}
+.divider-line::before,.divider-line::after{content:'';position:absolute;top:50%;width:30%;height:1px;background:var(--line)}
+.divider-line::before{left:0}.divider-line::after{right:0}
+.account-selector{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.acc-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid var(--line);border-radius:13px;background:var(--bg);cursor:pointer;text-align:left;width:100%;transition:.15s}
+.acc-item:active,.acc-item.selected{border-color:var(--plum);background:var(--plum-soft)}
+.acc-avatar{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0}
+.acc-info{flex:1;min-width:0;text-align:left}
+.acc-name{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-email{font-size:12px;color:var(--muted)}
 
 /* ===== reports ===== */
 .chart-wrap{position:relative;height:240px}
@@ -874,6 +905,10 @@ async function saveStore(silent){
     console.warn('IndexedDB save error, fallback localStorage:',e);
     try{localStorage.setItem(IDB_KEY,JSON.stringify(data));}catch(le){}
   }
+  // Also persist to the per-account key so session reload works correctly
+  if(window._currentEmail){
+    try{localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data));}catch(le){}
+  }
   if(!silent&&syncCfg.auto&&syncCfg.token){Sync.push(true);}
 }
 
@@ -1117,9 +1152,7 @@ const Auth={
 const App={
   curFilter:'all',
   init(){
-    // Login removido — carrega direto
-    window._currentEmail = null;
-    loadStore().then(()=>{ App.start(); }).catch(()=>{ App.start(); });
+    Auth.init();
   },
   // Legacy stubs kept for any inline onclick references
   togglePassVis(){ Auth.toggleVis('loginPass','passEyeIcon'); },
@@ -1310,7 +1343,7 @@ Object.assign(App,{
     const body='<div style="font-size:14px;font-weight:700;margin-bottom:2px">'+U.esc(d.e.type)+(d.cl.name?' · '+U.esc(d.cl.name):'')+'</div>'+
       '<div class="small muted mb">'+U.dateLong(d.e.date)+(d.e.guests?' · '+d.e.guests+' convidados':'')+'</div>'+
       row('Valor cobrado do cliente',U.money(d.clientValue),true)+
-      '<div style="padding:8px 0;border-bottom:1px solid var(--line2)"><div style="font-size:13.5px;color:var(--muted);font-weight:700;color:var(--ink);margin-bottom:2px">Custos com fornecedores</div>'+supHtml+'<div class="flex spread" style="font-weight:700"><span>Total fornecedores</span><span style="color:var(--err)">'+U.money(d.supplierCost)+'</span></div></div>'+
+      '<div style="padding:8px 0;border-bottom:1px solid var(--line2)"><div style="font-size:13.5px;color:var(--muted);font-weight:700;color:var(--ink);margin-bottom:2px">Custos com fornecedores</div>'+supHtml+'<div class="flex spread" style="font-weight:700"><span>Total fornecedores</span><span style="color:var(--danger)">'+U.money(d.supplierCost)+'</span></div></div>'+
       row('Resultado (cliente − fornecedores)',U.money(d.result),true,'var(--ok)')+
       row('Margem',d.margin.toFixed(1).replace('.',',')+'%',false,'var(--ok)')+
       '<div style="height:10px"></div>'+
@@ -2269,7 +2302,7 @@ Object.assign(App,{
     doc.setFillColor(r,g,bb);doc.roundedRect(18,y,W-36,8,1,1,'F');
     th('DESCRIÇÃO',21,W-120);th('QTD',W-82,20,'center');th('UNITÁRIO',W-58,28,'right');th('TOTAL',W-28,28,'right');
     y+=12;doc.setTextColor(40,35,48);
-    b.items.forEach((it,i)=>{
+    (b.items||[]).forEach((it,i)=>{
       if(y>250){PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;}
       if(i%2===0){doc.setFillColor(248,244,247);doc.rect(18,y-4,W-36,8,'F');}
       doc.setFont('helvetica','normal');doc.setFontSize(9.5);
@@ -2697,11 +2730,11 @@ const DocPreview = {
         • Eventuais serviços não descritos nesta proposta serão orçados à parte.
       </div></div>`;
     html += `<div class="italic-tag" style="color:${accent}">Será uma honra cuidar de cada detalhe do seu evento.</div>`;
-    if (s && s.signature) {
+    if (data.settings && data.settings.signature) {
       html += `<div style="text-align:center;margin-top:4mm">
-        <img src="${s.signature}" style="max-height:28mm;max-width:60mm;display:block;margin:0 auto 1mm">
+        <img src="${data.settings.signature}" style="max-height:28mm;max-width:60mm;display:block;margin:0 auto 1mm">
         <div style="border-top:1px solid #3c3744;width:60mm;margin:0 auto 1mm"></div>
-        <div style="font-size:8.5pt;font-weight:700">${this._esc(s.companyName||'')}</div>
+        <div style="font-size:8.5pt;font-weight:700">${this._esc(data.settings.companyName||'')}</div>
       </div>`;
     }
     return html;
