@@ -328,6 +328,16 @@ a{color:inherit; text-decoration:none}
 @media(max-width:700px){
   .dp-page{width:100%;min-height:auto;padding:12mm 10mm 14mm}
 }
+/* ===== Fullscreen / presentation mode ===== */
+.dp-zoombtn{display:none}
+#docPreview.present .dp-zoombtn{display:grid}
+#docPreview.present .dp-sidebar{display:none}
+#docPreview.present .dp-actions{display:none}
+#docPreview.present .dp-body{background:#211b29}
+#docPreview.present .dp-preview-wrap{padding:14px 8px 28px;align-items:flex-start;-webkit-overflow-scrolling:touch}
+#docPreview.present .dp-page{box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.dp-zoomtag{font-size:11px;font-weight:700;min-width:38px;text-align:center;opacity:.85;display:none}
+#docPreview.present .dp-zoomtag{display:inline-block}
 /* doc inner styles */
 .dp-page .doc-border{position:absolute;inset:8px;border:1.2px solid #6b2d5c;border-radius:1px;pointer-events:none}
 .dp-page .doc-border2{position:absolute;inset:11px;border:.5px solid #bd9a3c;border-radius:1px;pointer-events:none}
@@ -634,6 +644,10 @@ a{color:inherit; text-decoration:none}
         <div class="kpi k4" onclick="App.go('reports')"><div class="ic"><i class="fas fa-hourglass-half"></i></div><div class="v" id="kPending">R$0</div><div class="l">A receber</div></div>
       </div>
       <div class="card">
+        <div class="card-h"><h3><i class="fas fa-wallet" style="color:var(--plum);margin-right:7px"></i>Resumo financeiro</h3><span class="link" onclick="App.go('reports')">Relatórios</span></div>
+        <div class="card-pad" id="dashFinance"></div>
+      </div>
+      <div class="card">
         <div class="card-h"><h3>Próximos eventos</h3><span class="link" onclick="App.go('events')">Ver todos</span></div>
         <div id="dashEvents"></div>
       </div>
@@ -904,6 +918,11 @@ a{color:inherit; text-decoration:none}
   <div class="dp-topbar">
     <button class="iconbtn" onclick="DocPreview.close()" style="background:rgba(255,255,255,.14)"><i class="fas fa-arrow-left"></i></button>
     <h2 id="dpTitle">Visualizar documento</h2>
+    <button class="iconbtn dp-zoombtn" onclick="DocPreview.zoom(-0.1)" style="background:rgba(255,255,255,.14)" title="Diminuir"><i class="fas fa-magnifying-glass-minus"></i></button>
+    <span class="dp-zoomtag" id="dpZoomTag">100%</span>
+    <button class="iconbtn dp-zoombtn" onclick="DocPreview.zoom(0.1)" style="background:rgba(255,255,255,.14)" title="Aumentar"><i class="fas fa-magnifying-glass-plus"></i></button>
+    <button class="iconbtn dp-zoombtn" onclick="DocPreview.fit()" style="background:rgba(255,255,255,.14)" title="Ajustar à tela"><i class="fas fa-expand"></i></button>
+    <button class="iconbtn" onclick="DocPreview.togglePresent()" style="background:rgba(255,255,255,.14)" title="Tela cheia" id="dpFsBtn"><i class="fas fa-up-right-and-down-left-from-center"></i></button>
     <button class="iconbtn" onclick="DocPreview.refresh()" style="background:rgba(255,255,255,.14)" title="Atualizar preview"><i class="fas fa-rotate-right"></i></button>
   </div>
   <div class="dp-body">
@@ -1382,6 +1401,26 @@ const App={
     document.getElementById('dashEvents').innerHTML=up.length?up.map(e=>this.eventRow(e,true)).join(''):this.emptyState('fa-calendar-plus','Nenhum evento próximo','Cadastre seu primeiro evento.','<button class="btn btn-primary btn-sm" onclick="App.eventModal()">Novo evento</button>');
     const tasks=data.tasks.filter(t=>!t.done).slice(0,5);
     document.getElementById('dashTasks').innerHTML=tasks.length?tasks.map(t=>this.taskRow(t)).join(''):'<div class="empty" style="padding:26px"><p style="margin:0">Tudo em dia ✨</p></div>';
+    this.renderFinance();
+  },
+  renderFinance(){
+    const el=document.getElementById('dashFinance'); if(!el)return;
+    const recv=data.receipts.reduce((s,r)=>s+(r.value||0),0);
+    const fin=this.finance();
+    let supPaid=0,supDue=0,supOvd=0;
+    (data.supplierPayments||[]).forEach(p=>{const sm=this.paySummary(p);supPaid+=sm.paid;supDue+=sm.pending;if(sm.overdue)supOvd+=sm.pending;});
+    const caixa=recv-supPaid;
+    const row=(label,val,color,strong)=>'<div class="flex spread" style="padding:8px 0;border-bottom:1px solid var(--line2)"><span style="font-size:13px;color:var(--muted)'+(strong?';font-weight:700;color:var(--ink)':'')+'">'+label+'</span><span style="font-weight:700'+(color?';color:'+color:'')+'">'+U.money(val)+'</span></div>';
+    el.innerHTML=
+      '<div style="font-size:11px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Entradas (clientes)</div>'+
+      row('Recebido',recv,'var(--ok)')+
+      row('A receber',fin.pending,fin.pending>0?'var(--warn)':'var(--ok)')+
+      '<div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 2px">Saídas (fornecedores)</div>'+
+      row('Pago a fornecedores',supPaid,'var(--ink)')+
+      row('A pagar a fornecedores',supDue,supDue>0?'var(--warn)':'var(--ok)')+
+      (supOvd>0?row('↳ vencido',supOvd,'var(--danger)'):'')+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding:11px 12px;border-radius:11px;background:var(--plum-soft)"><span style="font-weight:700;color:var(--plum)">Saldo em caixa</span><span style="font-family:\'Fraunces\',serif;font-weight:700;font-size:18px;color:'+(caixa>=0?'var(--ok)':'var(--danger)')+'">'+U.money(caixa)+'</span></div>'+
+      '<div class="hint" style="margin-top:6px">Saldo = recebido de clientes − pago a fornecedores. Compromissos futuros com fornecedores: <b>'+U.money(supDue)+'</b>.</div>';
   },
   finance(){
     const contracted=data.contracts.filter(c=>c.status!=='cancelled').reduce((s,c)=>s+(c.value||0),0);
@@ -1943,7 +1982,7 @@ Object.assign(App,{
       return '<div class="list-item">'+
         '<div class="li-ic" style="background:var(--gold-soft);color:var(--gold-deep)"><i class="fas fa-file-invoice-dollar"></i></div>'+
         '<div class="li-body" onclick="App.budgetModal(\''+b.id+'\')"><div class="li-title">'+U.esc(b.number||'Orçamento')+(cl?' · '+U.esc(cl.name):'')+'</div><div class="li-sub">'+U.money(b.total)+' · '+(b.items?b.items.length:0)+' item(ns)</div><div style="margin-top:5px"><span class="badge '+st.c+'">'+st.t+'</span></div></div>'+
-        '<div class="li-actions"><button class="abtn pdf" onclick="DocPreview.open(\'budget\',\''+b.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waBudget(\''+b.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'budgets\',\''+b.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
+        '<div class="li-actions"><button class="abtn pdf" onclick="DocPreview.open(\'budget\',\''+b.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waBudget(\''+b.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn" onclick="App.budgetMenu(\''+b.id+'\')"><i class="fas fa-ellipsis-vertical"></i></button></div></div>';
     }).join('')+'</div>';
   },
   budgetModal(id){
@@ -2024,6 +2063,41 @@ Object.assign(App,{
     msg+='\n*Total: '+U.money(b.total)+'*\n'+(b.validUntil?'Válido até '+U.date(b.validUntil)+'\n':'')+'\nFico à disposição!\n— '+data.settings.companyName;
     this._waWithPdf('budget',id,cl.phone,msg,(b.number||'orcamento')+'.pdf');
   },
+  budgetMenu(id){
+    const b=data.budgets.find(x=>x.id===id); if(!b)return;
+    const cl=data.clients.find(c=>c.id===b.clientId);
+    const row=(fn,ic,label,color,arg)=>'<button class="btn btn-ghost" style="justify-content:flex-start;gap:13px" onclick="App.closeSheet();App.'+fn+'(\''+id+'\''+(arg?','+arg:'')+')"><span style="width:34px;height:34px;border-radius:10px;background:'+color+'1a;color:'+color+';display:grid;place-items:center"><i class="fas '+ic+'"></i></span>'+label+'</button>';
+    const st=BSTATUS[b.status]||BSTATUS.draft;
+    this.openSheet('Orçamento '+(b.number||''),
+      '<div class="flex spread" style="margin:-4px 0 12px"><span class="muted">'+(cl?U.esc(cl.name)+' · ':'')+U.money(b.total)+'</span><span class="badge '+st.c+'">'+st.t+'</span></div>'+
+      '<div style="display:grid;gap:9px">'+
+        row('viewBudget','fa-eye','Visualizar em tela cheia','var(--info)')+
+        row('budgetSetStatus','fa-circle-check','Marcar como aprovado','var(--ok)',"'approved'")+
+        row('budgetSetStatus','fa-paper-plane','Marcar como enviado','var(--gold-deep)',"'sent'")+
+        row('budgetToContract','fa-file-signature','Gerar contrato','var(--plum)')+
+        row('duplicateBudget','fa-copy','Duplicar orçamento','var(--muted)')+
+        row('editBudget','fa-pen','Editar','var(--info)')+
+        row('confirmDelBudget','fa-trash','Excluir','var(--danger)')+
+      '</div>','');
+  },
+  viewBudget(id){DocPreview.open('budget',id);setTimeout(()=>DocPreview.togglePresent(),250);},
+  editBudget(id){this.budgetModal(id);},
+  confirmDelBudget(id){this.del('budgets',id);},
+  budgetSetStatus(id,st){const i=data.budgets.findIndex(x=>x.id===id);if(i<0)return;data.budgets[i].status=st;data.budgets[i].updatedAt=new Date().toISOString();saveStore();this.renderBudgets();this.refreshAlerts();this.toast('Status atualizado','ok');},
+  duplicateBudget(id){
+    const b=data.budgets.find(x=>x.id===id); if(!b)return;
+    const copy=JSON.parse(JSON.stringify(b));
+    copy.id=U.id('bu'); copy.number='ORC-'+String(data.budgets.length+1).padStart(4,'0');
+    copy.status='draft'; copy.createdAt=new Date().toISOString(); copy.updatedAt=copy.createdAt;
+    data.budgets.push(copy); saveStore(); this.renderBudgets(); this.toast('Orçamento duplicado · '+copy.number,'ok');
+  },
+  budgetToContract(id){
+    const b=data.budgets.find(x=>x.id===id); if(!b)return;
+    if(!b.clientId)return this.toast('Orçamento sem cliente','err');
+    const pay=b.payment||'';
+    this.contractModal(null,{clientId:b.clientId,eventId:b.eventId||'',value:b.total||0,payment:pay,status:'draft',contractDate:new Date().toISOString().slice(0,10)});
+    this.toast('Revise os dados e salve o contrato','');
+  },
 });
 
 /* ===== CONTRACTS ===== */
@@ -2043,8 +2117,8 @@ Object.assign(App,{
         '<div class="li-actions"><button class="abtn pdf" onclick="DocPreview.open(\'contract\',\''+c.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waDoc(\'contract\',\''+c.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'contracts\',\''+c.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
     }).join('')+'</div>';
   },
-  contractModal(id){
-    const c=id?data.contracts.find(x=>x.id===id):{};
+  contractModal(id, prefill){
+    const c=id?data.contracts.find(x=>x.id===id):(prefill||{});
     const cls=data.clients.map(x=>'<option value="'+x.id+'" '+(c.clientId===x.id?'selected':'')+'>'+U.esc(x.name)+'</option>').join('');
     const evs=data.events.map(e=>{const cl=data.clients.find(x=>x.id===e.clientId);return '<option value="'+e.id+'" '+(c.eventId===e.id?'selected':'')+'>'+U.esc(e.type)+(cl?' - '+U.esc(cl.name):'')+' ('+U.date(e.date)+')</option>';}).join('');
     const sts=Object.entries(CSTATUS).map(([k,v])=>'<option value="'+k+'" '+(c.status===k?'selected':'')+'>'+v.t+'</option>').join('');
@@ -3452,6 +3526,9 @@ const DocPreview = {
     this._draft = JSON.parse(JSON.stringify(src));
     const titles = { budget: 'Orçamento', contract: 'Contrato', receipt: 'Recibo' };
     document.getElementById('dpTitle').textContent = 'Pré-visualizar · ' + titles[type];
+    this._zoom = 1; this._present = false;
+    document.getElementById('docPreview').classList.remove('present');
+    this._applyZoom();
     this._buildFields();
     this._buildPreview();
     document.getElementById('docPreviewScrim').classList.add('open');
@@ -3462,7 +3539,42 @@ const DocPreview = {
   close() {
     document.getElementById('docPreviewScrim').classList.remove('open');
     document.getElementById('docPreview').classList.remove('open');
+    document.getElementById('docPreview').classList.remove('present');
+    this._present = false;
     document.body.style.overflow = '';
+  },
+
+  togglePresent() {
+    this._present = !this._present;
+    const dp = document.getElementById('docPreview');
+    dp.classList.toggle('present', this._present);
+    const ic = document.querySelector('#dpFsBtn i');
+    if (ic) ic.className = this._present ? 'fas fa-down-left-and-up-right-to-center' : 'fas fa-up-right-and-down-left-from-center';
+    if (this._present) { this.fit(); } else { this._zoom = 1; this._applyZoom(); }
+  },
+
+  fit() {
+    const wrap = document.getElementById('dpPreviewWrap');
+    const page = document.getElementById('dpPage');
+    if (!wrap || !page) return;
+    // reset zoom to measure natural width
+    page.style.zoom = '1';
+    const natural = page.offsetWidth || 794;
+    const avail = wrap.clientWidth - 20;
+    this._zoom = Math.max(0.4, Math.min(2.5, avail / natural));
+    this._applyZoom();
+  },
+
+  zoom(delta) {
+    this._zoom = Math.max(0.4, Math.min(2.5, (this._zoom || 1) + delta));
+    this._applyZoom();
+  },
+
+  _applyZoom() {
+    const page = document.getElementById('dpPage');
+    if (page) page.style.zoom = String(this._zoom || 1);
+    const tag = document.getElementById('dpZoomTag');
+    if (tag) tag.textContent = Math.round((this._zoom || 1) * 100) + '%';
   },
 
   refresh() {
