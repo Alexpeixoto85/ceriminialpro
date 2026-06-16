@@ -476,6 +476,32 @@ a{color:inherit; text-decoration:none}
 .supchip{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px}
 .supchip input{flex:1;border:none;background:transparent;font-size:13.5px;padding:0}
 .supchip .scv{width:96px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px}
+/* ===== Supplier payments module ===== */
+.pay-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:13px}
+.pay-kpis .pk{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;box-shadow:var(--shadow)}
+.pay-kpis .pk .pv{font-family:'Fraunces',serif;font-weight:600;font-size:17px;letter-spacing:-.01em}
+.pay-kpis .pk .pl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:1px;text-transform:uppercase;letter-spacing:.03em}
+.pay-kpis .pk.paid .pv{color:var(--ok)} .pay-kpis .pk.due .pv{color:var(--warn)} .pay-kpis .pk.ovd .pv{color:var(--danger)}
+.seg-btn{flex-shrink:0;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:600;font-size:12.5px;padding:7px 13px;border-radius:20px;white-space:nowrap}
+.seg-btn.active{background:var(--plum);color:#fff;border-color:var(--plum)}
+.pay-card{margin-bottom:11px}
+.pay-prog{height:7px;border-radius:6px;background:var(--line2);overflow:hidden;margin:9px 0 5px}
+.pay-prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),#3bae6e);border-radius:6px;transition:width .3s}
+.inst-row{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid var(--line);border-radius:11px;margin-bottom:8px;background:var(--surface)}
+.inst-row.is-paid{border-color:#cdeadb;background:#f4fbf7}
+.inst-row.is-ovd{border-color:#f1cfc9;background:#fdf3f1}
+.inst-chk{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;flex-shrink:0;color:var(--muted)}
+.inst-chk.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.inst-main{flex:1;min-width:0}
+.inst-main .il{font-size:13.5px;font-weight:600}
+.inst-main .is{font-size:11.5px;color:var(--muted)}
+.inst-v{font-weight:700;color:var(--plum);white-space:nowrap;font-size:13.5px}
+.inst-ed{display:grid;grid-template-columns:1fr 118px;gap:7px;margin-bottom:7px}
+.inst-ed .ie3{grid-template-columns:1fr 130px 118px}
+.inst-form{border:1px dashed var(--line);border-radius:11px;padding:10px;margin-bottom:9px;background:var(--line2)}
+.inst-form input,.inst-form select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px;background:var(--surface)}
+.pay-tot{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:11px;background:var(--plum-soft);margin:4px 0 10px;font-size:13px}
+.pay-tot b{color:var(--plum)}
 /* file viewer */
 .viewer-frame{width:100%;height:62vh;border:1px solid var(--line);border-radius:12px;background:#fff}
 .viewer-img{max-width:100%;max-height:62vh;display:block;margin:0 auto;border-radius:10px}
@@ -676,6 +702,21 @@ a{color:inherit; text-decoration:none}
       <div class="page-head"><div><h1>Fornecedores</h1><div class="sub" id="suCount"></div></div><button class="btn btn-primary btn-sm" onclick="App.supplierModal()"><i class="fas fa-plus"></i> Novo</button></div>
       <div class="toolbar"><div class="search"><i class="fas fa-search"></i><input id="suSearch" placeholder="Buscar fornecedor" oninput="App.renderSuppliers()"></div></div>
       <div id="suppliersList"></div>
+    </section>
+
+    <!-- SUPPLIER PAYMENTS -->
+    <section class="page" id="page-payments">
+      <div class="page-head"><div><h1>Pagamentos</h1><div class="sub" id="payCount"></div></div><button class="btn btn-primary btn-sm" onclick="App.paymentModal()"><i class="fas fa-plus"></i> Novo</button></div>
+      <div class="pay-kpis" id="payKpis"></div>
+      <div class="seg" id="paySeg">
+        <button class="seg-btn active" data-f="all" onclick="App.paySeg('all')">Todos</button>
+        <button class="seg-btn" data-f="scheduled" onclick="App.paySeg('scheduled')">Agendados</button>
+        <button class="seg-btn" data-f="overdue" onclick="App.paySeg('overdue')">Vencidos</button>
+        <button class="seg-btn" data-f="partial" onclick="App.paySeg('partial')">Parciais</button>
+        <button class="seg-btn" data-f="paid" onclick="App.paySeg('paid')">Quitados</button>
+      </div>
+      <div class="toolbar"><div class="search"><i class="fas fa-search"></i><input id="paySearch" placeholder="Buscar por fornecedor ou referência" oninput="App.renderPayments()"></div></div>
+      <div id="paymentsList"></div>
     </section>
 
     <!-- BUDGETS -->
@@ -899,6 +940,7 @@ a{color:inherit; text-decoration:none}
     <a data-target="clients" onclick="App.go('clients')"><i class="fas fa-users"></i> Clientes</a>
     <a data-target="suppliers" onclick="App.go('suppliers')"><i class="fas fa-handshake"></i> Fornecedores</a>
     <div class="grp">Financeiro & documentos</div>
+    <a data-target="payments" onclick="App.go('payments')"><i class="fas fa-money-check-dollar"></i> Pagamentos</a>
     <a data-target="budgets" onclick="App.go('budgets')"><i class="fas fa-file-invoice-dollar"></i> Orçamentos</a>
     <a data-target="contracts" onclick="App.go('contracts')"><i class="fas fa-file-signature"></i> Contratos</a>
     <a data-target="receipts" onclick="App.go('receipts')"><i class="fas fa-receipt"></i> Recibos</a>
@@ -928,7 +970,7 @@ a{color:inherit; text-decoration:none}
 ============================================================ */
 const STORE_KEY='cerimonialProData';
 const SYNC_KEY='cerimonialProSync';
-let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],guests:[],
+let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],
   settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}'},
   updatedAt:new Date().toISOString()};
 let syncCfg={token:'',gistId:'',auto:false,lastSync:null};
@@ -989,7 +1031,7 @@ async function loadStore(){
     if(p){
       data=Object.assign(data,p);
       data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-      ['events','clients','suppliers','budgets','contracts','receipts','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
       await saveToIndexedDB(IDB_KEY,data);
     }
   }catch(e){console.warn('IndexedDB error:',e);}
@@ -1183,7 +1225,7 @@ const Auth={
     accounts.push(newAcc);
     this._saveAccounts(accounts);
     // Pre-populate settings for new account
-    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],guests:[],
+    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],
       settings:{companyName:company,userName:user||company,email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}'},
       updatedAt:new Date().toISOString()};
     localStorage.setItem('cpData_'+email,JSON.stringify(accData));
@@ -1200,7 +1242,7 @@ const Auth={
         const p=JSON.parse(raw);
         data=Object.assign(data,p);
         data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-        ['events','clients','suppliers','budgets','contracts','receipts','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+        ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       }catch(e){console.warn(e);}
     }
     // Override saveStore to use namespaced key
@@ -1291,6 +1333,7 @@ const App={
     if(t==='agenda')this.renderAgenda();
     if(t==='clients')this.renderClients();
     if(t==='suppliers')this.renderSuppliers();
+    if(t==='payments')this.renderPayments();
     if(t==='budgets')this.renderBudgets();
     if(t==='contracts')this.renderContracts();
     if(t==='receipts')this.renderReceipts();
@@ -1314,11 +1357,11 @@ const App={
     document.getElementById('toasts').appendChild(t);
     setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(10px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2600);
   },
-  renderAll(){this.renderDashboard();this.renderEvents();this.renderClients();this.renderSuppliers();this.renderBudgets();this.renderContracts();this.renderReceipts();},
+  renderAll(){this.renderDashboard();this.renderEvents();this.renderClients();this.renderSuppliers();this.renderPayments();this.renderBudgets();this.renderContracts();this.renderReceipts();},
   quickAdd(){
     this.openSheet('Criar novo',
       '<div style="display:grid;gap:10px">'+
-      ['eventModal|fa-calendar-plus|Evento|var(--plum)','budgetModal|fa-file-invoice-dollar|Orçamento|var(--gold-deep)','contractModal|fa-file-signature|Contrato|var(--info)','receiptModal|fa-receipt|Recibo|var(--ok)','clientModal|fa-user-plus|Cliente|var(--plum)','taskModal|fa-list-check|Tarefa|var(--warn)']
+      ['eventModal|fa-calendar-plus|Evento|var(--plum)','budgetModal|fa-file-invoice-dollar|Orçamento|var(--gold-deep)','contractModal|fa-file-signature|Contrato|var(--info)','receiptModal|fa-receipt|Recibo|var(--ok)','paymentModal|fa-money-check-dollar|Pagamento a fornecedor|var(--gold-deep)','clientModal|fa-user-plus|Cliente|var(--plum)','taskModal|fa-list-check|Tarefa|var(--warn)']
       .map(x=>{const[f,i,l,c]=x.split('|');return '<button class="btn btn-ghost" style="justify-content:flex-start;gap:13px" onclick="App.closeSheet();App.'+f+'()"><span style="width:34px;height:34px;border-radius:10px;background:'+c+'1a;color:'+c+';display:grid;place-items:center"><i class=\'fas '+i+'\'></i></span>'+l+'</button>';}).join('')+
       '</div>','');
   },
@@ -1440,7 +1483,10 @@ Object.assign(App,{
     const pending=Math.max(0,clientValue-received);
     const result=clientValue-supplierCost;
     const margin=clientValue>0?(result/clientValue*100):0;
-    return {e,cl,basis,contract,suppliers,supplierCost,clientValue,received,pending,result,margin};
+    const evPayments=(data.supplierPayments||[]).filter(p=>p.eventId===eventId);
+    const paidToSuppliers=evPayments.reduce((s,p)=>s+(p.installments||[]).filter(i=>i.paid).reduce((a,i)=>a+(i.value||0),0),0);
+    const dueToSuppliers=evPayments.reduce((s,p)=>{const sm=this.paySummary(p);return s+sm.pending;},0);
+    return {e,cl,basis,contract,suppliers,supplierCost,clientValue,received,pending,result,margin,paidToSuppliers,dueToSuppliers,evPayments};
   },
   eventCostReport(eventId){
     const d=this.costReportData(eventId); if(!d)return;
@@ -1451,6 +1497,7 @@ Object.assign(App,{
       row('Valor cobrado do cliente',U.money(d.clientValue),true)+
       '<div style="padding:8px 0;border-bottom:1px solid var(--line2)"><div style="font-size:13.5px;color:var(--muted);font-weight:700;color:var(--ink);margin-bottom:2px">Custos com fornecedores</div>'+supHtml+'<div class="flex spread" style="font-weight:700"><span>Total fornecedores</span><span style="color:var(--danger)">'+U.money(d.supplierCost)+'</span></div></div>'+
       row('Resultado (cliente − fornecedores)',U.money(d.result),true,'var(--ok)')+
+      (d.evPayments.length?'<div style="height:10px"></div>'+row('Pago aos fornecedores',U.money(d.paidToSuppliers),false,'var(--ok)')+row('A pagar aos fornecedores',U.money(d.dueToSuppliers),false,d.dueToSuppliers>0?'var(--warn)':'var(--ok)'):'')+
       row('Margem',d.margin.toFixed(1).replace('.',',')+'%',false,'var(--ok)')+
       '<div style="height:10px"></div>'+
       row('Recebido até agora',U.money(d.received),false,'var(--ok)')+
@@ -1565,6 +1612,7 @@ Object.assign(App,{
       '<div class="field"><label>Nome <span class="req">*</span></label><input id="f_sname" value="'+U.esc(s.name)+'"></div>'+
       '<div class="field"><label>Categoria</label><select id="f_scat">'+cats.map(c=>'<option '+(s.category===c?'selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
       '<div class="row2 mb"><div class="field"><label>WhatsApp</label><input id="f_sphone" value="'+U.esc(s.phone)+'"></div><div class="field"><label>E-mail</label><input id="f_semail" value="'+U.esc(s.email)+'"></div></div>'+
+      '<div class="field"><label>CPF / CNPJ <span class="muted" style="font-weight:400">(p/ recibos)</span></label><input id="f_sdoc" value="'+U.esc(s.doc)+'" placeholder="Documento do fornecedor"></div>'+
       '<div class="field"><label>Observações</label><textarea id="f_sobs">'+U.esc(s.observations)+'</textarea></div>'+
       '<label style="font-size:13px;font-weight:700;margin:6px 0 8px;display:block"><i class="fas fa-file-invoice-dollar" style="color:var(--plum)"></i> Cotações recebidas</label>'+
       '<div id="f_squotes"></div>'+
@@ -1618,7 +1666,7 @@ Object.assign(App,{
     const id=document.getElementById('f_sid').value, name=document.getElementById('f_sname').value.trim();
     if(!name)return this.toast('Informe o nome','err');
     const o={name,category:document.getElementById('f_scat').value,phone:document.getElementById('f_sphone').value.trim(),
-      email:document.getElementById('f_semail').value.trim(),observations:document.getElementById('f_sobs').value.trim(),
+      email:document.getElementById('f_semail').value.trim(),doc:document.getElementById('f_sdoc').value.trim(),observations:document.getElementById('f_sobs').value.trim(),
       quotes:this._sup.quotes,files:this._sup.files,updatedAt:new Date().toISOString()};
     if(id){const i=data.suppliers.findIndex(x=>x.id===id);data.suppliers[i]={...data.suppliers[i],...o};}
     else{o.id=U.id('su');o.createdAt=new Date().toISOString();data.suppliers.push(o);}
@@ -1626,7 +1674,7 @@ Object.assign(App,{
   },
   waSupplier(id){const s=data.suppliers.find(x=>x.id===id);window.open(U.waLink(s.phone,'Olá '+s.name+'! '),'_blank');},
   del(coll,id){
-    const labels={events:'evento',clients:'cliente',suppliers:'fornecedor',budgets:'orçamento',contracts:'contrato',receipts:'recibo',tasks:'tarefa',guests:'convidado'};
+    const labels={events:'evento',clients:'cliente',suppliers:'fornecedor',budgets:'orçamento',contracts:'contrato',receipts:'recibo',supplierPayments:'pagamento',tasks:'tarefa',guests:'convidado'};
     if(!confirm('Excluir este '+labels[coll]+'?'))return;
     data[coll]=data[coll].filter(x=>x.id!==id); saveStore();
     this.go(document.querySelector('.page.active').id.replace('page-',''));
@@ -2083,6 +2131,366 @@ Object.assign(App,{
   },
 });
 
+/* ===== PAGAMENTOS A FORNECEDORES ===== */
+Object.assign(App,{
+  _payFilter:'all',
+  PAY_METHODS:['Pix','Transferência','Dinheiro','Cartão de crédito','Cartão de débito','Boleto','Cheque'],
+
+  paySeg(f){
+    this._payFilter=f;
+    document.querySelectorAll('#paySeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));
+    this.renderPayments();
+  },
+
+  // Compute totals & status for one payment record
+  paySummary(p){
+    const inst=p.installments||[];
+    const paid=inst.filter(i=>i.paid).reduce((s,i)=>s+(i.value||0),0);
+    const planned=inst.reduce((s,i)=>s+(i.value||0),0);
+    const contracted=(p.contractedValue!=null&&p.contractedValue>0)?p.contractedValue:planned;
+    const pending=Math.max(0,contracted-paid);
+    // next due among unpaid with a date
+    const unpaidDated=inst.filter(i=>!i.paid&&i.dueDate).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+    const next=unpaidDated[0]||null;
+    const overdue=inst.some(i=>!i.paid&&i.dueDate&&U.daysTo(i.dueDate)<0);
+    let status='pending';
+    if(contracted>0&&paid>=contracted-0.005)status='paid';
+    else if(paid>0)status='partial';
+    else if(overdue)status='overdue';
+    else if(next)status='scheduled';
+    return {contracted,paid,planned,pending,next,overdue,status,count:inst.length,paidCount:inst.filter(i=>i.paid).length};
+  },
+
+  PAY_STATUS:{
+    paid:{t:'Quitado',c:'b-ok'},partial:{t:'Parcial',c:'b-warn'},
+    scheduled:{t:'Agendado',c:'b-info'},overdue:{t:'Vencido',c:'b-danger'},pending:{t:'A pagar',c:'b-muted'}
+  },
+
+  renderPayments(){
+    const q=(document.getElementById('paySearch').value||'').toLowerCase();
+    const all=data.supplierPayments||[];
+    // KPIs (global, not filtered)
+    let kPaid=0,kPend=0,kOvd=0;
+    all.forEach(p=>{const s=this.paySummary(p);kPaid+=s.paid;kPend+=s.pending;if(s.overdue)kOvd+=s.pending;});
+    const kp=document.getElementById('payKpis');
+    if(kp)kp.innerHTML=
+      '<div class="pk paid"><div class="pv">'+U.moneyShort(kPaid)+'</div><div class="pl">Pago</div></div>'+
+      '<div class="pk due"><div class="pv">'+U.moneyShort(kPend)+'</div><div class="pl">A pagar</div></div>'+
+      '<div class="pk ovd"><div class="pv">'+U.moneyShort(kOvd)+'</div><div class="pl">Vencido</div></div>';
+
+    let list=all.map(p=>({p,s:this.paySummary(p)}));
+    const f=this._payFilter;
+    if(f==='scheduled')list=list.filter(x=>x.s.status==='scheduled');
+    else if(f==='overdue')list=list.filter(x=>x.s.overdue);
+    else if(f==='partial')list=list.filter(x=>x.s.status==='partial');
+    else if(f==='paid')list=list.filter(x=>x.s.status==='paid');
+    if(q)list=list.filter(({p})=>{const sup=data.suppliers.find(su=>su.id===p.supplierId);return (sup&&sup.name.toLowerCase().includes(q))||(p.description||'').toLowerCase().includes(q)||(p.number||'').toLowerCase().includes(q);});
+    // sort: overdue first, then by next due, then created desc
+    list.sort((a,b)=>{
+      if(a.s.overdue!==b.s.overdue)return a.s.overdue?-1:1;
+      const ad=a.s.next?a.s.next.dueDate:'9999', bd=b.s.next?b.s.next.dueDate:'9999';
+      if(ad!==bd)return ad.localeCompare(bd);
+      return (b.p.createdAt||'').localeCompare(a.p.createdAt||'');
+    });
+    document.getElementById('payCount').textContent=all.length+' pagamento(s) · '+U.money(kPend)+' em aberto';
+    const el=document.getElementById('paymentsList');
+    if(!all.length){el.innerHTML=this.emptyState('fa-money-check-dollar','Nenhum pagamento','Cadastre os pagamentos a fornecedores que você gerencia para o cliente — com parcelas, agendamento e recibos para assinatura.','<button class="btn btn-primary btn-sm" onclick="App.paymentModal()">Novo pagamento</button>');return;}
+    if(!list.length){el.innerHTML=this.emptyState('fa-filter','Nada neste filtro','Nenhum pagamento corresponde ao filtro selecionado.','');return;}
+    el.innerHTML=list.map(({p,s})=>{
+      const sup=data.suppliers.find(su=>su.id===p.supplierId)||{};
+      const ev=p.eventId?data.events.find(e=>e.id===p.eventId):null;
+      const st=this.PAY_STATUS[s.status]||this.PAY_STATUS.pending;
+      const pct=s.contracted>0?Math.min(100,Math.round(s.paid/s.contracted*100)):0;
+      let nextLine='';
+      if(s.status!=='paid'){
+        if(s.next){const dd=U.daysTo(s.next.dueDate);
+          const tag=dd<0?'<span style="color:var(--danger);font-weight:700">vencido há '+(-dd)+'d':dd===0?'<span style="color:var(--warn);font-weight:700">vence hoje':dd<=7?'<span style="color:var(--warn);font-weight:700">em '+dd+'d':'<span style="color:var(--muted)">em '+dd+'d';
+          nextLine='<div class="li-sub" style="margin-top:3px"><i class="fas fa-clock" style="margin-right:4px"></i>Próx.: '+U.money(s.next.value)+' · '+U.date(s.next.dueDate)+' '+tag+'</span></div>';
+        } else nextLine='<div class="li-sub" style="margin-top:3px;color:var(--muted)"><i class="fas fa-calendar-plus" style="margin-right:4px"></i>Sem agendamento — toque para programar</div>';
+      }
+      return '<div class="card pay-card">'+
+        '<div class="list-item" style="border-bottom:none;align-items:flex-start">'+
+          '<div class="li-ic" style="background:var(--gold-soft);color:var(--gold-deep)"><i class="fas fa-store"></i></div>'+
+          '<div class="li-body" onclick="App.paymentModal(\''+p.id+'\')">'+
+            '<div class="li-title">'+U.esc(sup.name||'Fornecedor')+(p.number?' <span class="muted" style="font-weight:500;font-size:12px">'+U.esc(p.number)+'</span>':'')+'</div>'+
+            '<div class="li-sub">'+U.esc(p.description||sup.category||'Pagamento')+(ev?' · '+U.esc(ev.type):'')+'</div>'+
+            '<div class="pay-prog"><i style="width:'+pct+'%"></i></div>'+
+            '<div class="flex spread" style="font-size:12px"><span class="muted">'+U.money(s.paid)+' de '+U.money(s.contracted)+'</span><span style="font-weight:700;color:'+(s.pending>0?'var(--warn)':'var(--ok)')+'">'+(s.pending>0?U.money(s.pending)+' restante':'Quitado')+'</span></div>'+
+            nextLine+
+          '</div>'+
+          '<div class="li-end"><span class="badge '+st.c+'">'+st.t+'</span></div>'+
+        '</div>'+
+        '<div class="flex" style="gap:7px;padding:0 14px 13px;flex-wrap:wrap">'+
+          '<button class="btn btn-ghost btn-sm" onclick="App.paymentModal(\''+p.id+'\')"><i class="fas fa-pen"></i> Gerenciar</button>'+
+          '<button class="btn btn-ghost btn-sm" onclick="App.supplierReceiptModal(\''+p.id+'\',null)"><i class="fas fa-file-signature"></i> Recibo</button>'+
+          (sup.phone?'<button class="btn btn-ghost btn-sm" onclick="App.waSupplierPayment(\''+p.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+
+          '<button class="btn btn-ghost btn-sm" style="margin-left:auto;color:var(--danger)" onclick="App.del(\'supplierPayments\',\''+p.id+'\')"><i class="fas fa-trash"></i></button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  },
+
+  /* ---- Create / edit ---- */
+  paymentModal(id){
+    if(!data.suppliers.length)return this.toast('Cadastre um fornecedor primeiro','err');
+    const p=id?data.supplierPayments.find(x=>x.id===id):{};
+    this._pay={
+      id:p.id||'',
+      installments:JSON.parse(JSON.stringify(p.installments||[]))
+    };
+    const sup=data.suppliers.map(su=>'<option value="'+su.id+'" '+(p.supplierId===su.id?'selected':'')+'>'+U.esc(su.name)+' ('+U.esc(su.category||'Geral')+')</option>').join('');
+    const evs=data.events.map(e=>{const cl=data.clients.find(c=>c.id===e.clientId);return '<option value="'+e.id+'" '+(p.eventId===e.id?'selected':'')+'>'+U.esc(e.type)+(cl?' - '+U.esc(cl.name):'')+'</option>';}).join('');
+    this.openSheet(id?'Gerenciar pagamento':'Novo pagamento a fornecedor',
+      '<input type="hidden" id="f_pid" value="'+(p.id||'')+'">'+
+      '<div class="field"><label>Fornecedor <span class="req">*</span></label><select id="f_psup"><option value="">— selecione —</option>'+sup+'</select></div>'+
+      '<div class="field"><label>Evento <span class="muted" style="font-weight:400">(p/ relatório de custos)</span></label><select id="f_pevent"><option value="">— opcional —</option>'+evs+'</select></div>'+
+      '<div class="field"><label>Referência</label><input id="f_pdesc" value="'+U.esc(p.description||'')+'" placeholder="Ex.: Buffet 120 convidados — casamento"></div>'+
+      '<div class="field"><label>Valor total acordado (R$)</label><input type="number" step="0.01" min="0" id="f_pcontract" value="'+(p.contractedValue||'')+'" placeholder="Valor fechado com o fornecedor" oninput="App._payRecalc()"></div>'+
+      '<div class="hint" style="margin-bottom:6px">Deixe em branco para somar automaticamente as parcelas abaixo.</div>'+
+      '<label style="font-size:13px;font-weight:700;margin:10px 0 8px;display:block"><i class="fas fa-calendar-day" style="color:var(--plum)"></i> Parcelas & agendamento</label>'+
+      '<div id="f_pinst"></div>'+
+      '<div class="inst-form">'+
+        '<div class="inst-ed ie3" style="margin-bottom:7px">'+
+          '<input id="f_pilabel" placeholder="Descrição (ex.: Sinal)">'+
+          '<input type="date" id="f_pidate">'+
+          '<input type="number" step="0.01" min="0" id="f_pivalue" placeholder="Valor R$">'+
+        '</div>'+
+        '<div class="flex" style="gap:7px">'+
+          '<button class="btn btn-ghost btn-sm" style="flex:1" onclick="App.addPayInst()"><i class="fas fa-plus"></i> Adicionar parcela</button>'+
+          '<button class="btn btn-ghost btn-sm" onclick="App.splitPayInst()"><i class="fas fa-divide"></i> Dividir total</button>'+
+        '</div>'+
+      '</div>'+
+      '<div id="f_ptot"></div>',
+      '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.savePayment()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
+    this._payRenderInst();
+  },
+
+  // Read installment rows back from the DOM into _pay.installments
+  _payReadInst(){
+    const rows=document.querySelectorAll('#f_pinst .inst-data');
+    const arr=[];
+    rows.forEach(r=>{
+      arr.push({
+        id:r.dataset.id,
+        label:r.querySelector('.ii-label').value.trim(),
+        value:parseFloat(r.querySelector('.ii-value').value)||0,
+        dueDate:r.querySelector('.ii-date').value,
+        method:r.querySelector('.ii-method').value,
+        paid:r.dataset.paid==='1',
+        paidDate:r.dataset.paiddate||''
+      });
+    });
+    this._pay.installments=arr;
+  },
+
+  _payRenderInst(){
+    const el=document.getElementById('f_pinst'); if(!el)return;
+    const inst=this._pay.installments;
+    if(!inst.length){el.innerHTML='<div class="hint" style="margin-bottom:8px">Nenhuma parcela. Adicione a primeira abaixo (ex.: <b>Sinal</b>) ou use <b>Dividir total</b>.</div>';this._payRecalc();return;}
+    const methods=this.PAY_METHODS;
+    el.innerHTML=inst.map((it,i)=>{
+      const ovd=!it.paid&&it.dueDate&&U.daysTo(it.dueDate)<0;
+      const cls='inst-data'+(it.paid?' is-paid':ovd?' is-ovd':'');
+      const opts=methods.map(m=>'<option '+(it.method===m?'selected':'')+'>'+m+'</option>').join('');
+      const statusLine=it.paid
+        ?'<span style="color:var(--ok);font-weight:700"><i class="fas fa-check"></i> Pago em '+(it.paidDate?U.date(it.paidDate):'—')+'</span>'
+        :(it.dueDate?(ovd?'<span style="color:var(--danger);font-weight:700">Vencido '+U.date(it.dueDate)+'</span>':'<span style="color:var(--info)">Agendado p/ '+U.date(it.dueDate)+'</span>'):'<span class="muted">Sem data</span>');
+      return '<div class="inst-row '+(it.paid?'is-paid':ovd?'is-ovd':'')+'">'+
+        '<button class="inst-chk '+(it.paid?'on':'')+'" onclick="App.togglePayInstPaid('+i+')" title="Marcar como pago"><i class="fas fa-check"></i></button>'+
+        '<div class="inst-main">'+
+          '<div class="il">'+U.esc(it.label||('Parcela '+(i+1)))+'</div>'+
+          '<div class="is">'+statusLine+'</div>'+
+          // hidden editable fields kept in DOM for read-back
+          '<div class="inst-data" data-id="'+it.id+'" data-paid="'+(it.paid?'1':'0')+'" data-paiddate="'+(it.paidDate||'')+'" style="display:grid;grid-template-columns:1fr 120px;gap:6px;margin-top:7px">'+
+            '<input class="ii-label" value="'+U.esc(it.label||'')+'" placeholder="Descrição" style="border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px" oninput="App._payRecalc()">'+
+            '<input class="ii-value" type="number" step="0.01" min="0" value="'+(it.value||'')+'" placeholder="R$" style="border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px" oninput="App._payRecalc()">'+
+            '<input class="ii-date" type="date" value="'+(it.dueDate||'')+'" style="border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px" onchange="App._payTouch()">'+
+            '<select class="ii-method" style="border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12.5px">'+opts+'</select>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'+
+          '<span class="inst-v">'+U.money(it.value)+'</span>'+
+          '<button class="ax" onclick="App.removePayInst('+i+')"><i class="fas fa-xmark"></i></button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    this._payRecalc();
+  },
+
+  _payTouch(){ this._payReadInst(); this._payRenderInst(); },
+
+  addPayInst(){
+    this._payReadInst();
+    const label=(document.getElementById('f_pilabel').value||'').trim();
+    const value=parseFloat(document.getElementById('f_pivalue').value)||0;
+    const dueDate=document.getElementById('f_pidate').value;
+    this._pay.installments.push({id:U.id('pi'),label:label||('Parcela '+(this._pay.installments.length+1)),value,dueDate,method:this.PAY_METHODS[0],paid:false,paidDate:''});
+    document.getElementById('f_pilabel').value='';document.getElementById('f_pivalue').value='';document.getElementById('f_pidate').value='';
+    this._payRenderInst();
+  },
+
+  removePayInst(i){ this._payReadInst(); this._pay.installments.splice(i,1); this._payRenderInst(); },
+
+  togglePayInstPaid(i){
+    this._payReadInst();
+    const it=this._pay.installments[i]; if(!it)return;
+    it.paid=!it.paid;
+    if(it.paid){ if(!it.paidDate)it.paidDate=new Date().toISOString().slice(0,10); if(!it.dueDate)it.dueDate=it.paidDate; }
+    this._payRenderInst();
+  },
+
+  splitPayInst(){
+    this._payReadInst();
+    const total=parseFloat(document.getElementById('f_pcontract').value)||this._pay.installments.reduce((s,i)=>s+i.value,0);
+    if(total<=0)return this.toast('Informe o valor total acordado','err');
+    const n=parseInt(prompt('Dividir '+U.money(total)+' em quantas parcelas?','3'),10);
+    if(!n||n<1||n>36)return;
+    const first=document.getElementById('f_pidate').value||new Date().toISOString().slice(0,10);
+    const base=Math.floor((total/n)*100)/100;
+    const rest=Math.round((total-base*n)*100)/100;
+    const start=new Date(first+'T00:00:00');
+    const arr=[];
+    for(let k=0;k<n;k++){
+      const d=new Date(start); d.setMonth(d.getMonth()+k);
+      arr.push({id:U.id('pi'),label:k===0?'Sinal':'Parcela '+(k+1)+'/'+n,value:k===n-1?base+rest:base,dueDate:d.toISOString().slice(0,10),method:this.PAY_METHODS[0],paid:false,paidDate:''});
+    }
+    this._pay.installments=arr;
+    this._payRenderInst();
+  },
+
+  _payRecalc(){
+    this._payReadInst();
+    const el=document.getElementById('f_ptot'); if(!el)return;
+    const inst=this._pay.installments;
+    const planned=inst.reduce((s,i)=>s+(i.value||0),0);
+    const paid=inst.filter(i=>i.paid).reduce((s,i)=>s+(i.value||0),0);
+    const contractEl=document.getElementById('f_pcontract');
+    const contracted=parseFloat(contractEl&&contractEl.value)||planned;
+    const pending=Math.max(0,contracted-paid);
+    const diff=Math.round((planned-contracted)*100)/100;
+    let warn='';
+    if(contracted>0&&Math.abs(diff)>0.01)warn='<div class="hint" style="color:var(--warn);margin-top:5px"><i class="fas fa-triangle-exclamation"></i> A soma das parcelas ('+U.money(planned)+') difere do total acordado ('+U.money(contracted)+').</div>';
+    el.innerHTML='<div class="pay-tot"><span>Pago <b>'+U.money(paid)+'</b></span><span>A pagar <b style="color:var(--warn)">'+U.money(pending)+'</b></span><span>Total <b>'+U.money(contracted)+'</b></span></div>'+warn;
+  },
+
+  savePayment(){
+    this._payReadInst();
+    const id=document.getElementById('f_pid').value;
+    const supplierId=document.getElementById('f_psup').value;
+    if(!supplierId)return this.toast('Selecione o fornecedor','err');
+    const inst=this._pay.installments.filter(i=>i.value>0||i.label);
+    if(!inst.length)return this.toast('Adicione ao menos uma parcela','err');
+    const contractEl=document.getElementById('f_pcontract');
+    const contracted=parseFloat(contractEl.value)||inst.reduce((s,i)=>s+(i.value||0),0);
+    const o={
+      supplierId,
+      eventId:document.getElementById('f_pevent').value,
+      description:document.getElementById('f_pdesc').value.trim(),
+      contractedValue:contracted,
+      installments:inst,
+      updatedAt:new Date().toISOString()
+    };
+    if(id){const i=data.supplierPayments.findIndex(x=>x.id===id);o.number=data.supplierPayments[i].number;data.supplierPayments[i]={...data.supplierPayments[i],...o};}
+    else{o.id=U.id('sp');o.createdAt=new Date().toISOString();o.number='PAG-'+String((data.supplierPayments.length+1)).padStart(4,'0');data.supplierPayments.push(o);}
+    saveStore();this.closeSheet();this.renderPayments();this.refreshAlerts();this.toast('Pagamento salvo','ok');
+  },
+
+  /* ---- Supplier receipt (recibo para o fornecedor assinar) ---- */
+  supplierReceiptModal(pid,instId){
+    const p=data.supplierPayments.find(x=>x.id===pid); if(!p)return;
+    const sup=data.suppliers.find(s=>s.id===p.supplierId)||{};
+    const s=data.settings;
+    // installment options
+    const instOpts=(p.installments||[]).map(it=>'<option value="'+it.id+'" '+(instId===it.id?'selected':'')+'>'+U.esc(it.label||'Parcela')+' — '+U.money(it.value)+(it.paid?' (pago)':'')+'</option>').join('');
+    const sm=this.paySummary(p);
+    this.openSheet('Recibo para assinatura',
+      '<input type="hidden" id="f_srpid" value="'+pid+'">'+
+      '<div class="hint" style="margin-bottom:10px">Gere um recibo para o <b>'+U.esc(sup.name||'fornecedor')+'</b> assinar e devolver, comprovando o valor recebido.</div>'+
+      '<div class="field"><label>Referente a</label><select id="f_srinst"><option value="__full">Quitação total — '+U.money(sm.contracted)+'</option>'+instOpts+'</select></div>'+
+      '<div class="field"><label>Pago por <span class="muted" style="font-weight:400">(quem entregou o valor)</span></label><input id="f_srpayer" value="'+U.esc(s.companyName||'')+'"></div>'+
+      '<div class="field"><label>Referência / descrição</label><input id="f_srref" value="'+U.esc(p.description||sup.category||'serviços prestados')+'"></div>'+
+      '<div class="field"><label>Data do recibo</label><input type="date" id="f_srdate" value="'+new Date().toISOString().slice(0,10)+'"></div>'+
+      '<div class="hint">O recibo traz uma linha de assinatura com o nome e o CPF/CNPJ do fornecedor'+(sup.doc?'':' <b>(cadastre o documento do fornecedor para incluí-lo)</b>')+'.</div>',
+      '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button>'+
+      (sup.phone?'<button class="btn btn-ghost" onclick="App.waSupplierReceipt()"><i class="fab fa-whatsapp"></i> Enviar</button>':'')+
+      '<button class="btn btn-primary" onclick="App.pdfSupplierReceipt()"><i class="fas fa-download"></i> Gerar PDF</button>');
+  },
+
+  _srGather(){
+    const pid=document.getElementById('f_srpid').value;
+    const p=data.supplierPayments.find(x=>x.id===pid);
+    const sup=data.suppliers.find(s=>s.id===p.supplierId)||{};
+    const instId=document.getElementById('f_srinst').value;
+    let value, label;
+    if(instId==='__full'){ const sm=this.paySummary(p); value=sm.contracted; label='quitação total'; }
+    else { const it=(p.installments||[]).find(i=>i.id===instId); value=it?it.value:0; label=it?(it.label||'parcela'):'parcela'; }
+    return {
+      p,sup,instId,value,label,
+      payer:document.getElementById('f_srpayer').value.trim()||data.settings.companyName,
+      ref:document.getElementById('f_srref').value.trim(),
+      date:document.getElementById('f_srdate').value||new Date().toISOString().slice(0,10),
+      method:(instId!=='__full'&&p.installments.find(i=>i.id===instId)||{}).method||''
+    };
+  },
+
+  _buildSupplierReceiptDoc(g){
+    const s=data.settings;
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth(), M=18;
+    PDF.decorate(doc); let y=PDF.header(doc,'Recibo',g.p.number);
+    const [pr,pg,pb]=PDF.rgb(s.accent);
+    doc.setFont('helvetica','bold');doc.setFontSize(11.5);doc.setTextColor(pr,pg,pb);
+    doc.text('RECIBO DE PAGAMENTO A FORNECEDOR',W/2,y,{align:'center'});doc.setTextColor(40,35,48);y+=8;
+    doc.setFillColor(247,239,214);doc.setDrawColor(189,154,60);doc.setLineWidth(0.5);doc.roundedRect(M,y,W-2*M,16,3,3,'FD');
+    doc.setFont('helvetica','bold');doc.setFontSize(17);doc.setTextColor(pr,pg,pb);
+    doc.text(U.money(g.value),W/2,y+11,{align:'center'});doc.setTextColor(40,35,48);y+=26;
+    doc.setFont('helvetica','normal');doc.setFontSize(10.5);
+    const refTxt=g.ref?(' referente a '+g.ref):' referente aos serviços contratados';
+    const labTxt=g.label?(' (a título de '+g.label+')'):'';
+    const txt='Eu, '+(g.sup.name||'—')+(g.sup.doc?', inscrito(a) sob o nº '+g.sup.doc+',':'')+' declaro que recebi de '+(g.payer||'—')+' a importância de '+U.money(g.value)+' ('+Extenso.reais(g.value)+'),'+refTxt+labTxt+'.';
+    const L=doc.splitTextToSize(txt,W-2*M);doc.text(L,M,y);y+=L.length*6+8;
+    doc.text('Para clareza e como prova de quitação do valor acima, firmo o presente recibo.',M,y);y+=14;
+    if(g.method){doc.setFont('helvetica','bold');doc.text('Forma de pagamento:',M,y);doc.setFont('helvetica','normal');doc.text(g.method,M+42,y);y+=10;}
+    const city=(s.address?(s.address.split(',').slice(-2,-1)[0]||s.address.split(',')[0]):'__________');
+    doc.text(city.trim()+', '+U.dateLong(g.date)+'.',W-M,y,{align:'right'});y+=30;
+    // Supplier signature line
+    doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);doc.line(W/2-44,y,W/2+44,y);y+=5;
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(g.sup.name||'Fornecedor',W/2,y,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(120,110,126);
+    doc.text(g.sup.doc?('CPF/CNPJ: '+g.sup.doc):'FORNECEDOR (assinatura)',W/2,y+4.5,{align:'center'});doc.setTextColor(40,35,48);
+    PDF.footer(doc);return doc;
+  },
+
+  pdfSupplierReceipt(){
+    try{ const g=this._srGather(); const doc=this._buildSupplierReceiptDoc(g);
+      PDF.open(doc,'recibo-'+((g.sup.name||'fornecedor').toLowerCase().replace(/\s+/g,'-'))+'.pdf');
+      this.closeSheet(); this.toast('Recibo gerado','ok');
+    }catch(e){this.toast('Erro ao gerar recibo: '+e.message,'err');}
+  },
+
+  waSupplierReceipt(){
+    try{
+      const g=this._srGather();
+      if(!g.sup.phone)return this.toast('Fornecedor sem WhatsApp','err');
+      const doc=this._buildSupplierReceiptDoc(g);
+      PDF.download(doc,'recibo-'+((g.sup.name||'fornecedor').toLowerCase().replace(/\s+/g,'-'))+'.pdf');
+      const msg='Olá '+g.sup.name+'! 😊\nSegue o recibo no valor de '+U.money(g.value)+(g.ref?' referente a '+g.ref:'')+'.\nPor gentileza, *assine e devolva* para nosso controle. Obrigado!\n— '+data.settings.companyName;
+      this.closeSheet();
+      setTimeout(()=>{window.open(U.waLink(g.sup.phone,msg),'_blank');setTimeout(()=>this.toast('📎 Anexe o PDF baixado na conversa',''),1200);},400);
+    }catch(e){this.toast('Erro: '+e.message,'err');}
+  },
+
+  waSupplierPayment(pid){
+    const p=data.supplierPayments.find(x=>x.id===pid); if(!p)return;
+    const sup=data.suppliers.find(s=>s.id===p.supplierId)||{};
+    if(!sup.phone)return this.toast('Fornecedor sem WhatsApp','err');
+    const sm=this.paySummary(p);
+    let msg='Olá '+sup.name+'! 😊\n';
+    if(sm.next)msg+='Lembrete do pagamento agendado: '+U.money(sm.next.value)+' em '+U.date(sm.next.dueDate)+'.\n';
+    msg+='Resumo: pago '+U.money(sm.paid)+' de '+U.money(sm.contracted)+(sm.pending>0?' · restante '+U.money(sm.pending):' · quitado')+'.\n— '+data.settings.companyName;
+    window.open(U.waLink(sup.phone,msg),'_blank');
+  },
+});
+
 /* ===== TASKS ===== */
 Object.assign(App,{
   taskModal(){
@@ -2138,6 +2546,7 @@ Object.assign(App,{
     data.events.forEach(e=>e.status!=='cancelled'&&mark(e.date,'ev'));
     data.tasks.forEach(t=>!t.done&&mark(t.due,'tk'));
     data.receipts.forEach(r=>mark(r.receiptDate,'pay'));
+    (data.supplierPayments||[]).forEach(p=>(p.installments||[]).forEach(it=>{if(!it.paid)mark(it.dueDate,'pay');}));
     return map;
   },
   calMove(delta){let{y,m}=this.calRef;m+=delta;if(m<0){m=11;y--;}if(m>11){m=0;y++;}this.calRef={y,m};this.renderAgenda();},
@@ -2151,6 +2560,9 @@ Object.assign(App,{
     data.tasks.filter(t=>t.due===ds).forEach(t=>items.push({ic:t.done?'fa-circle-check':'fa-list-check',cls:t.done?'ai-ok':'ai-warn',t:t.title,s:t.done?'Concluída':'Tarefa pendente',sort:'08:00'}));
     data.receipts.filter(r=>r.receiptDate===ds).forEach(r=>{const cl=data.clients.find(c=>c.id===r.clientId);
       items.push({ic:'fa-receipt',cls:'ai-ok',t:'Recebimento '+U.money(r.value),s:(cl?cl.name+' · ':'')+(r.paymentMethod||''),sort:'09:00'});});
+    (data.supplierPayments||[]).forEach(p=>{const sup=data.suppliers.find(s=>s.id===p.supplierId);
+      (p.installments||[]).filter(it=>!it.paid&&it.dueDate===ds).forEach(it=>{
+        items.push({ic:'fa-money-check-dollar',cls:U.daysTo(ds)<0?'ai-danger':'ai-warn',t:'Pagar '+(sup?sup.name:'fornecedor')+' · '+U.money(it.value),s:(it.label||'Parcela')+' · '+(it.method||'agendado'),sort:'07:30'});});});
     items.sort((a,b)=>a.sort.localeCompare(b.sort));
     document.getElementById('agDayList').innerHTML=items.length?
       '<div class="card-pad" style="padding-top:4px">'+items.map(i=>'<div class="alert-item"><div class="ai '+i.cls+'"><i class="fas '+i.ic+'"></i></div><div><div class="at">'+U.esc(i.t)+'</div><div class="as">'+U.esc(i.s)+'</div></div></div>').join('')+'</div>'
@@ -2175,6 +2587,11 @@ Object.assign(App,{
       const recv=data.receipts.filter(r=>r.contractId===c.id||r.clientId===c.clientId).reduce((s,r)=>s+(r.value||0),0);
       const cl=data.clients.find(x=>x.id===c.clientId);
       if((c.value||0)-recv>0.5&&c.status==='signed')A.push({ic:'fa-sack-dollar',cls:'ai-info',t:'A receber'+(cl?' · '+cl.name:''),s:U.money((c.value||0)-recv)+' pendente',sort:50,go:'receipts'});});
+    (data.supplierPayments||[]).forEach(p=>{
+      const sup=data.suppliers.find(s=>s.id===p.supplierId);
+      (p.installments||[]).filter(it=>!it.paid&&it.dueDate).forEach(it=>{const d=U.daysTo(it.dueDate);
+        if(d!==null&&d<=7)A.push({ic:'fa-money-check-dollar',cls:d<0?'ai-danger':'ai-warn',t:'Pagar '+(sup?sup.name:'fornecedor')+' · '+U.money(it.value),s:d<0?'Vencido há '+(-d)+' dia(s)':d===0?'Vence hoje':'Vence em '+d+' dia(s)',sort:d,go:'payments'});});
+    });
     return A.sort((a,b)=>a.sort-b.sort);
   },
   refreshAlerts(){
@@ -2339,7 +2756,7 @@ Object.assign(App,{
     if(!confirm('Isso apaga TODOS os dados deste dispositivo. Continuar?'))return;
     if(!confirm('Tem certeza? Esta ação não pode ser desfeita.'))return;
     const set=data.settings;
-    data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],tasks:[],guests:[],settings:set,updatedAt:new Date().toISOString()};
+    data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],settings:set,updatedAt:new Date().toISOString()};
     saveStore();this.renderAll();this.go('dashboard');this.toast('Dados apagados','ok');
   },
 });
@@ -2819,7 +3236,7 @@ const Sync={
         if(!confirm('Os dados na nuvem são mais antigos que os locais. Baixar mesmo assim e substituir o local?')){this.setBusy(false);return;}
       }
       data=Object.assign(data,remote);
-      ['events','clients','suppliers','budgets','contracts','receipts','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       saveStore(true); syncCfg.lastSync=new Date().toISOString(); saveSync();
       App.refreshChrome(); App.renderAll(); App.go('dashboard');
       this.updatePill(); this.updateStatus();
@@ -2946,7 +3363,7 @@ const FB={
   _applyRemote(remote){
     data=Object.assign(data, remote);
     data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''}, remote.settings||{});
-    ['events','clients','suppliers','budgets','contracts','receipts','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+    ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
     // cache offline
     try{ saveToIndexedDB(IDB_KEY,data); }catch(e){}
     if(window._currentEmail){ try{ localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data)); }catch(e){} }
