@@ -162,6 +162,65 @@ a{color:inherit; text-decoration:none}
 .card-h h3{font-size:16px;font-weight:600}
 .card-h .link{font-size:12.5px;color:var(--plum);font-weight:600}
 
+/* ===== Gestão Empresarial / Painel Financeiro ===== */
+.fin-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;-webkit-overflow-scrolling:touch}
+.fin-tabs::-webkit-scrollbar{display:none}
+.fin-tab{flex-shrink:0;padding:8px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s}
+.fin-tab.active{background:var(--plum);color:#fff;border-color:var(--plum)}
+.fin-section{display:none}
+.fin-section.active{display:block}
+.dre-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line2);font-size:13.5px}
+.dre-row:last-child{border-bottom:none}
+.dre-row.total{background:var(--plum-soft);font-weight:700;font-size:14px;border-radius:10px;margin-top:6px;border-bottom:none}
+.dre-row.subtotal{font-weight:700;color:var(--plum)}
+.dre-row.neg{color:var(--danger)}
+.dre-row.pos{color:var(--ok)}
+.dre-label{color:var(--muted);font-size:13px}
+.meta-bar-wrap{background:var(--line2);border-radius:6px;height:10px;overflow:hidden;margin-top:5px}
+.meta-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--plum),var(--gold));transition:width .5s ease}
+.meta-bar.ok{background:linear-gradient(90deg,var(--ok),#5bc88a)}
+.meta-bar.danger{background:linear-gradient(90deg,var(--danger),#e88)}
+.proj-month{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line2);font-size:13px}
+.proj-month:last-child{border-bottom:none}
+.proj-month .pm-label{width:80px;color:var(--muted);flex-shrink:0}
+.proj-month .pm-bar-wrap{flex:1;background:var(--line2);border-radius:4px;height:8px;overflow:hidden}
+.proj-month .pm-bar{height:100%;border-radius:4px;background:var(--plum);opacity:.7}
+.proj-month .pm-val{width:72px;text-align:right;font-weight:700;font-size:12px;flex-shrink:0}
+.expense-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line2)}
+.expense-row:last-child{border-bottom:none}
+.expense-row .er-name{flex:1;font-weight:500;font-size:13.5px}
+.expense-row .er-val{font-weight:700;font-size:13px;color:var(--danger)}
+.expense-row .er-cat{font-size:11px;color:var(--muted);margin-top:2px}
+.kpi3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.trend{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px}
+.trend.up{background:var(--ok-bg);color:var(--ok)}
+.trend.dn{background:var(--danger-bg);color:var(--danger)}
+.trend.neu{background:#eee;color:var(--muted)}
+.cashflow-row{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line2);font-size:12.5px}
+.cashflow-row:last-child{border-bottom:none}
+.cashflow-row .cf-date{width:52px;color:var(--muted);flex-shrink:0;font-size:11px}
+.cashflow-row .cf-desc{flex:1;font-weight:500}
+.cashflow-row .cf-val{font-weight:700;flex-shrink:0}
+.cashflow-row .cf-val.in{color:var(--ok)}
+.cashflow-row .cf-val.out{color:var(--danger)}
+.chart-wrap-lg{position:relative;height:200px}
+.period-sel{display:flex;gap:6px;margin-bottom:12px}
+.period-sel button{padding:6px 13px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+.period-sel button.active{background:var(--plum);color:#fff;border-color:var(--plum)}
+.meta-item{padding:13px 14px;border-bottom:1px solid var(--line2)}
+.meta-item:last-child{border-bottom:none}
+.meta-item .mi-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.meta-item .mi-name{font-weight:600;font-size:14px}
+.meta-item .mi-pct{font-size:12px;color:var(--muted)}
+.meta-item .mi-vals{display:flex;justify-content:space-between;font-size:12px;margin-top:5px}
+.meta-item .mi-curr{color:var(--plum);font-weight:700}
+.meta-item .mi-tgt{color:var(--muted)}
+.insight-card{background:linear-gradient(135deg,var(--plum),var(--plum-deep));color:#fff;border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.insight-card h3{font-size:15px;font-weight:600;margin-bottom:10px;opacity:.85}
+.insight-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.12);font-size:13px}
+.insight-item:last-child{border-bottom:none}
+.insight-item i{width:20px;flex-shrink:0;margin-top:2px;opacity:.8}
+
 .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
 .kpi{background:var(--surface);border-radius:var(--radius);padding:15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .kpi .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:15px;margin-bottom:10px}
@@ -679,6 +738,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
           <button class="btn btn-ghost" onclick="App.budgetModal()"><i class="fas fa-file-invoice-dollar"></i> Orçamento</button>
           <button class="btn btn-ghost" onclick="App.contractModal()"><i class="fas fa-file-signature"></i> Contrato</button>
           <button class="btn btn-ghost" onclick="App.receiptModal()"><i class="fas fa-receipt"></i> Recibo</button>
+          <button class="btn btn-ghost" onclick="App.go('gestao')" style="grid-column:span 2;background:var(--plum-soft);color:var(--plum);border-color:var(--plum)"><i class="fas fa-building"></i> Painel de Gestão Empresarial</button>
         </div>
       </div>
     </section>
@@ -769,6 +829,158 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
       <div class="page-head"><div><h1>Recibos</h1><div class="sub" id="reCount"></div></div><button class="btn btn-primary btn-sm" onclick="App.receiptModal()"><i class="fas fa-plus"></i> Novo</button></div>
       <div class="toolbar"><div class="search"><i class="fas fa-search"></i><input id="reSearch" placeholder="Buscar recibo" oninput="App.renderReceipts()"></div></div>
       <div id="receiptsList"></div>
+    </section>
+
+    <!-- GESTÃO EMPRESARIAL -->
+    <section class="page" id="page-gestao">
+      <div class="page-head"><div><h1>Gestão Empresarial</h1><div class="sub">Painel completo do seu negócio de cerimonial</div></div>
+        <button class="btn btn-gold btn-sm" onclick="FinDash.exportRelatorio()"><i class="fas fa-download"></i> Exportar</button>
+      </div>
+
+      <!-- Tabs de navegação financeira -->
+      <div class="fin-tabs">
+        <div class="fin-tab active" onclick="FinDash.tab('visao')"><i class="fas fa-chart-line"></i> Visão Geral</div>
+        <div class="fin-tab" onclick="FinDash.tab('dre')"><i class="fas fa-file-chart-column"></i> DRE</div>
+        <div class="fin-tab" onclick="FinDash.tab('fluxo')"><i class="fas fa-water"></i> Fluxo de Caixa</div>
+        <div class="fin-tab" onclick="FinDash.tab('metas')"><i class="fas fa-bullseye"></i> Metas</div>
+        <div class="fin-tab" onclick="FinDash.tab('despesas')"><i class="fas fa-receipt"></i> Despesas Fixas</div>
+        <div class="fin-tab" onclick="FinDash.tab('projecao')"><i class="fas fa-wand-magic-sparkles"></i> Projeção</div>
+        <div class="fin-tab" onclick="FinDash.tab('insights')"><i class="fas fa-lightbulb"></i> Insights</div>
+      </div>
+
+      <!-- 1. VISÃO GERAL -->
+      <div class="fin-section active" id="fin-visao">
+        <div class="period-sel" id="visaoPeriod">
+          <button class="active" onclick="FinDash.setPeriod('mes',this)">Este mês</button>
+          <button onclick="FinDash.setPeriod('trim',this)">Trimestre</button>
+          <button onclick="FinDash.setPeriod('ano',this)">Este ano</button>
+          <button onclick="FinDash.setPeriod('total',this)">Total</button>
+        </div>
+        <div class="kpi3" id="visaoKpis"></div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-chart-area" style="color:var(--plum);margin-right:7px"></i>Receita x Despesa</h3></div>
+          <div class="card-pad"><div class="chart-wrap-lg"><canvas id="chartRecDesp"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-wallet" style="color:var(--gold-deep);margin-right:7px"></i>Resumo Financeiro</h3></div>
+          <div id="visaoResumo"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-chart-pie" style="color:var(--info);margin-right:7px"></i>Receita por Tipo de Evento</h3></div>
+          <div class="card-pad"><div style="position:relative;height:180px"><canvas id="chartRecTipo"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-ranking-star" style="color:var(--gold-deep);margin-right:7px"></i>Top Clientes</h3></div>
+          <div id="topClientesList"></div>
+        </div>
+      </div>
+
+      <!-- 2. DRE -->
+      <div class="fin-section" id="fin-dre">
+        <div class="period-sel" id="drePeriod">
+          <button onclick="FinDash.setDrePeriod('mes',this)">Este mês</button>
+          <button onclick="FinDash.setDrePeriod('trim',this)">Trimestre</button>
+          <button class="active" onclick="FinDash.setDrePeriod('ano',this)">Este ano</button>
+          <button onclick="FinDash.setDrePeriod('total',this)">Total</button>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-file-chart-column" style="color:var(--plum);margin-right:7px"></i>Demonstrativo de Resultado</h3></div>
+          <div id="dreTable"></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-h"><h3>Evolução do Lucro (6 meses)</h3></div>
+          <div class="card-pad"><div class="chart-wrap-lg"><canvas id="chartLucro"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- 3. FLUXO DE CAIXA -->
+      <div class="fin-section" id="fin-fluxo">
+        <div class="kpi-grid" id="fluxoKpis"></div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-water" style="color:var(--info);margin-right:7px"></i>Previsão 30 dias</h3>
+            <button class="btn btn-primary btn-sm" onclick="FinDash.addFluxoItem()"><i class="fas fa-plus"></i></button>
+          </div>
+          <div id="fluxoList"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Histórico de entradas e saídas</h3></div>
+          <div class="card-pad"><div style="position:relative;height:180px"><canvas id="chartFluxo"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- 4. METAS -->
+      <div class="fin-section" id="fin-metas">
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-bullseye" style="color:var(--plum);margin-right:7px"></i>Metas do negócio</h3>
+            <button class="btn btn-primary btn-sm" onclick="FinDash.metaModal()"><i class="fas fa-plus"></i> Nova</button>
+          </div>
+          <div id="metasList"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Progresso anual de receita</h3></div>
+          <div class="card-pad">
+            <div id="metaAnualInfo" style="margin-bottom:10px"></div>
+            <div class="meta-bar-wrap"><div class="meta-bar" id="metaAnualBar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. DESPESAS FIXAS -->
+      <div class="fin-section" id="fin-despesas">
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-receipt" style="color:var(--danger);margin-right:7px"></i>Despesas fixas mensais</h3>
+            <button class="btn btn-primary btn-sm" onclick="FinDash.despesaModal()"><i class="fas fa-plus"></i> Nova</button>
+          </div>
+          <div id="despesasList"></div>
+          <div class="card-pad" style="border-top:1px solid var(--line2)">
+            <div class="dre-row total">
+              <span>Total mensal</span>
+              <span id="despesasTotal">R$ 0</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Despesas por categoria</h3></div>
+          <div class="card-pad"><div style="position:relative;height:180px"><canvas id="chartDespCat"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- 6. PROJEÇÃO -->
+      <div class="fin-section" id="fin-projecao">
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-wand-magic-sparkles" style="color:var(--gold-deep);margin-right:7px"></i>Projeção de receita</h3></div>
+          <div class="card-pad">
+            <p class="small muted mb">Baseada na média dos últimos meses e eventos agendados.</p>
+            <div id="projKpis" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"></div>
+          </div>
+          <div id="projecaoList"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3>Curva de crescimento (12 meses)</h3></div>
+          <div class="card-pad"><div class="chart-wrap-lg"><canvas id="chartProj"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-calendar-check" style="color:var(--ok);margin-right:7px"></i>Eventos futuros agendados</h3></div>
+          <div id="projEventos"></div>
+        </div>
+      </div>
+
+      <!-- 7. INSIGHTS -->
+      <div class="fin-section" id="fin-insights">
+        <div id="insightCards"></div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-chart-bar" style="color:var(--plum);margin-right:7px"></i>Indicadores de desempenho</h3></div>
+          <div id="kpiDesemp"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-calendar-days" style="color:var(--gold-deep);margin-right:7px"></i>Sazonalidade (eventos por mês)</h3></div>
+          <div class="card-pad"><div style="position:relative;height:160px"><canvas id="chartSazon"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-handshake" style="color:var(--info);margin-right:7px"></i>Performance por fornecedor</h3></div>
+          <div id="fornPerf"></div>
+        </div>
+      </div>
     </section>
 
     <!-- REPORTS -->
@@ -950,7 +1162,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
     <a class="active" data-target="dashboard" onclick="App.go('dashboard')"><i class="fas fa-house"></i>Início</a>
     <a data-target="events" onclick="App.go('events')"><i class="fas fa-calendar-days"></i>Eventos</a>
     <a class="fab-tab" onclick="App.quickAdd()"><span class="fab"><i class="fas fa-plus"></i></span></a>
-    <a data-target="budgets" onclick="App.go('budgets')"><i class="fas fa-file-invoice-dollar"></i>Orçar</a>
+    <a data-target="gestao" onclick="App.go('gestao')"><i class="fas fa-building"></i>Gestão</a>
     <a data-target="agenda" onclick="App.go('agenda')"><i class="fas fa-calendar-check"></i>Agenda</a>
   </nav>
 </div>
@@ -1004,6 +1216,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
     <a data-target="clients" onclick="App.go('clients')"><i class="fas fa-users"></i> Clientes</a>
     <a data-target="suppliers" onclick="App.go('suppliers')"><i class="fas fa-handshake"></i> Fornecedores</a>
     <div class="grp">Financeiro & documentos</div>
+    <a data-target="gestao" onclick="App.go('gestao')" style="font-weight:700;color:var(--plum)"><i class="fas fa-building" style="color:var(--plum)"></i> Gestão Empresarial</a>
     <a data-target="payments" onclick="App.go('payments')"><i class="fas fa-money-check-dollar"></i> Pagamentos</a>
     <a data-target="budgets" onclick="App.go('budgets')"><i class="fas fa-file-invoice-dollar"></i> Orçamentos</a>
     <a data-target="contracts" onclick="App.go('contracts')"><i class="fas fa-file-signature"></i> Contratos</a>
@@ -1034,7 +1247,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
 ============================================================ */
 const STORE_KEY='cerimonialProData';
 const SYNC_KEY='cerimonialProSync';
-let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],
+let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],despesasFixas:[],metas:[],fluxoExtra:[],
   settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}',protect:{contextMenu:true,selection:true,devKeys:true,drag:true,devtoolsWarn:false}},
   updatedAt:new Date().toISOString()};
 let syncCfg={token:'',gistId:'',auto:false,lastSync:null};
@@ -1095,7 +1308,7 @@ async function loadStore(){
     if(p){
       data=Object.assign(data,p);
       data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
       await saveToIndexedDB(IDB_KEY,data);
     }
   }catch(e){console.warn('IndexedDB error:',e);}
@@ -1306,7 +1519,7 @@ const Auth={
         const p=JSON.parse(raw);
         data=Object.assign(data,p);
         data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-        ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+        ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       }catch(e){console.warn(e);}
     }
     // Override saveStore to use namespaced key
@@ -1403,6 +1616,7 @@ const App={
     if(t==='contracts')this.renderContracts();
     if(t==='receipts')this.renderReceipts();
     if(t==='reports')this.renderReports();
+    if(t==='gestao')FinDash.render();
     if(t==='settings')this.loadSettings();
   },
   openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('scrim').classList.add('open');},
@@ -3496,7 +3710,7 @@ const FB={
   _applyRemote(remote){
     data=Object.assign(data, remote);
     data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''}, remote.settings||{});
-    ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+    ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
     // cache offline
     try{ saveToIndexedDB(IDB_KEY,data); }catch(e){}
     if(window._currentEmail){ try{ localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data)); }catch(e){} }
@@ -3949,6 +4163,763 @@ Object.assign(App, {
     });
   }
 });
+
+/* ============================================================
+   FinDash — Painel de Gestão Empresarial
+   Motor completo: DRE, Fluxo, Metas, Projeção, Insights
+============================================================ */
+const FinDash = {
+  _period: 'mes',
+  _drePeriod: 'ano',
+  _charts: {},
+  _currentTab: 'visao',
+
+  /* -------- Utilitários internos -------- */
+  _M(v){ return U.money(v||0); },
+  _id(){ return 'fd_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); },
+  _now(){ return new Date(); },
+
+  _dateRange(period){
+    const now = new Date();
+    let from, to = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    if(period==='mes'){ from = new Date(now.getFullYear(), now.getMonth(), 1); }
+    else if(period==='trim'){
+      const q = Math.floor(now.getMonth()/3);
+      from = new Date(now.getFullYear(), q*3, 1);
+    }
+    else if(period==='ano'){ from = new Date(now.getFullYear(), 0, 1); }
+    else { from = new Date(2000, 0, 1); }
+    return { from, to };
+  },
+
+  _filterReceipts(period){
+    const { from, to } = this._dateRange(period);
+    return (data.receipts||[]).filter(r => {
+      const d = new Date(r.receiptDate+'T00:00:00');
+      return d >= from && d <= to;
+    });
+  },
+
+  _filterPayments(period){
+    const { from, to } = this._dateRange(period);
+    let total = 0;
+    (data.supplierPayments||[]).forEach(p => {
+      (p.installments||[{date: p.dueDate, amount: p.amount, paid: p.status==='paid'}]).forEach(inst => {
+        if(inst.paid){
+          const d = new Date((inst.date||p.dueDate)+'T00:00:00');
+          if(d >= from && d <= to) total += inst.amount||p.amount||0;
+        }
+      });
+    });
+    return total;
+  },
+
+  _totalReceipts(period){
+    return this._filterReceipts(period).reduce((s,r) => s+(r.value||0), 0);
+  },
+
+  _totalDespFixas(){
+    return (data.despesasFixas||[]).filter(d => d.ativo!==false).reduce((s,d) => s+(d.valor||0), 0);
+  },
+
+  _lucro(receita, despesasForn, despesasFixas){
+    return receita - despesasForn - despesasFixas;
+  },
+
+  _lastNMonths(n){
+    const months = [];
+    for(let i=n-1; i>=0; i--){
+      const d = new Date(); d.setMonth(d.getMonth()-i);
+      months.push({ month: d.getMonth(), year: d.getFullYear(),
+        label: d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}) });
+    }
+    return months;
+  },
+
+  _receitaMes(m, y){
+    return (data.receipts||[]).filter(r => {
+      const d = new Date(r.receiptDate+'T00:00:00');
+      return d.getMonth()===m && d.getFullYear()===y;
+    }).reduce((s,r) => s+(r.value||0), 0);
+  },
+
+  _despMes(m, y){
+    const from = new Date(y, m, 1);
+    const to = new Date(y, m+1, 0, 23, 59, 59);
+    let total = 0;
+    (data.supplierPayments||[]).forEach(p => {
+      (p.installments||[{date: p.dueDate, amount: p.amount, paid: p.status==='paid'}]).forEach(inst => {
+        if(inst.paid){
+          const d = new Date((inst.date||p.dueDate)+'T00:00:00');
+          if(d >= from && d <= to) total += inst.amount||p.amount||0;
+        }
+      });
+    });
+    total += this._totalDespFixas(); // add fixed expenses
+    return total;
+  },
+
+  _destroyChart(id){
+    if(this._charts[id]){ try{ this._charts[id].destroy(); }catch(e){} delete this._charts[id]; }
+  },
+
+  /* -------- Tab navigation -------- */
+  tab(name){
+    this._currentTab = name;
+    document.querySelectorAll('#page-gestao .fin-tab').forEach((t,i) => {
+      const tabs=['visao','dre','fluxo','metas','despesas','projecao','insights'];
+      t.classList.toggle('active', tabs[i]===name);
+    });
+    document.querySelectorAll('#page-gestao .fin-section').forEach(s => s.classList.remove('active'));
+    const sec = document.getElementById('fin-'+name);
+    if(sec) sec.classList.add('active');
+    setTimeout(() => this['_render_'+name](), 50);
+  },
+
+  render(){
+    this._currentTab = 'visao';
+    document.querySelectorAll('#page-gestao .fin-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+    document.querySelectorAll('#page-gestao .fin-section').forEach((s,i) => s.classList.toggle('active', i===0));
+    this._render_visao();
+  },
+
+  setPeriod(p, btn){
+    this._period = p;
+    document.querySelectorAll('#visaoPeriod button').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    this._render_visao();
+  },
+
+  setDrePeriod(p, btn){
+    this._drePeriod = p;
+    document.querySelectorAll('#drePeriod button').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    this._render_dre();
+  },
+
+  /* -------- 1. VISÃO GERAL -------- */
+  _render_visao(){
+    const period = this._period;
+    const receita = this._totalReceipts(period);
+    const despForn = this._filterPayments(period);
+    const meses = period==='mes'?1: period==='trim'?3: period==='ano'?new Date().getMonth()+1: 12;
+    const despFix = this._totalDespFixas() * meses;
+    const lucro = this._lucro(receita, despForn, despFix);
+    const ticket = (() => {
+      const evs = (data.receipts||[]).filter(r => {
+        if(period==='total') return true;
+        const {from,to} = this._dateRange(period);
+        return new Date(r.receiptDate+'T00:00:00') >= from && new Date(r.receiptDate+'T00:00:00') <= to;
+      });
+      const total = evs.reduce((s,r) => s+(r.value||0), 0);
+      return evs.length ? total/evs.length : 0;
+    })();
+
+    // KPIs
+    const kgrid = document.getElementById('visaoKpis');
+    if(kgrid) kgrid.innerHTML = [
+      ['fa-sack-dollar','var(--ok)','var(--ok-bg)',this._M(receita),'Receita'],
+      ['fa-arrow-trend-down','var(--danger)','var(--danger-bg)',this._M(despForn+despFix),'Despesas'],
+      ['fa-scale-balanced',lucro>=0?'var(--ok)':'var(--danger)',lucro>=0?'var(--ok-bg)':'var(--danger-bg)',this._M(lucro),'Resultado'],
+    ].map(([ic,c,bg,v,l]) =>
+      `<div class="kpi" style="border-left:4px solid ${c}">
+        <div class="ic" style="background:${bg};color:${c}"><i class="fas ${ic}"></i></div>
+        <div class="v" style="color:${c};font-size:19px">${v}</div>
+        <div class="l">${l}</div>
+      </div>`
+    ).join('');
+
+    // Chart Receita x Despesa (6 months)
+    this._destroyChart('recdesp');
+    const mList = this._lastNMonths(6);
+    const recVals = mList.map(m => this._receitaMes(m.month, m.year));
+    const despVals = mList.map(m => this._despMes(m.month, m.year));
+    const labels = mList.map(m => m.label);
+    const ctx1 = document.getElementById('chartRecDesp');
+    if(ctx1 && typeof Chart !== 'undefined'){
+      this._charts['recdesp'] = new Chart(ctx1, {
+        type:'bar',
+        data:{ labels, datasets:[
+          { label:'Receita', data:recVals, backgroundColor:'rgba(46,139,87,.7)', borderRadius:6 },
+          { label:'Despesas', data:despVals, backgroundColor:'rgba(192,57,43,.6)', borderRadius:6 }
+        ]},
+        options:{ plugins:{legend:{position:'bottom'}}, scales:{y:{ticks:{callback:v=>U.moneyShort(v)}}}, responsive:true, maintainAspectRatio:false }
+      });
+    }
+
+    // Chart Receita por tipo
+    this._destroyChart('rectipo');
+    const tipoMap = {};
+    (data.receipts||[]).forEach(r => {
+      const ev = (data.events||[]).find(e => e.id === r.eventId);
+      const tipo = ev ? (ev.type||'Outros') : 'Avulso';
+      tipoMap[tipo] = (tipoMap[tipo]||0) + (r.value||0);
+    });
+    const ctx2 = document.getElementById('chartRecTipo');
+    if(ctx2 && typeof Chart !== 'undefined' && Object.keys(tipoMap).length){
+      this._charts['rectipo'] = new Chart(ctx2, {
+        type:'doughnut',
+        data:{ labels: Object.keys(tipoMap), datasets:[{ data: Object.values(tipoMap),
+          backgroundColor:['#6b2d5c','#bd9a3c','#2e8b57','#3a6ea5','#c8851b','#9a7c2a','#a8281b','#4a1f40'] }]},
+        options:{ plugins:{legend:{position:'bottom'}}, responsive:true, maintainAspectRatio:false }
+      });
+    }
+
+    // Resumo financeiro
+    const vr = document.getElementById('visaoResumo');
+    if(vr){
+      const contratado = (data.contracts||[]).filter(c=>c.status!=='cancelled').reduce((s,c)=>s+(c.value||0),0);
+      const margin = receita > 0 ? ((lucro/receita)*100).toFixed(1) : '0.0';
+      const rows = [
+        ['Receita bruta recebida', receita, 'var(--ok)', false],
+        ['Pago a fornecedores', despForn, 'var(--danger)', false],
+        ['Despesas fixas (período)', despFix, 'var(--danger)', false],
+        ['Resultado líquido', lucro, lucro>=0?'var(--ok)':'var(--danger)', true],
+        ['Total em contratos', contratado, 'var(--info)', false],
+        ['Ticket médio por recibo', ticket, 'var(--muted)', false],
+        [`Margem líquida`, null, lucro>=0?'var(--ok)':'var(--danger)', false, margin+'%'],
+      ];
+      vr.innerHTML = rows.map(([l,v,c,bold,custom]) =>
+        `<div class="dre-row${bold?' total':''}"><span class="dre-label">${l}</span>
+         <span style="font-weight:${bold?'700':'600'};color:${c}">${custom!==undefined ? custom : this._M(v)}</span></div>`
+      ).join('');
+    }
+
+    // Top clientes
+    const tcMap = {};
+    (data.receipts||[]).forEach(r => {
+      tcMap[r.clientId] = (tcMap[r.clientId]||0) + (r.value||0);
+    });
+    const sorted = Object.entries(tcMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const tcEl = document.getElementById('topClientesList');
+    if(tcEl) tcEl.innerHTML = sorted.length ? sorted.map(([cid,val],i) => {
+      const cl = (data.clients||[]).find(c=>c.id===cid)||{name:'Desconhecido'};
+      return `<div class="list-item">
+        <div class="li-ic" style="background:var(--gold-soft);color:var(--gold-deep);font-weight:700">${i+1}</div>
+        <div class="li-body"><div class="li-title">${U.esc(cl.name)}</div>
+        <div class="li-sub">${(data.receipts||[]).filter(r=>r.clientId===cid).length} recibo(s)</div></div>
+        <div class="li-end"><div class="li-val" style="color:var(--ok)">${this._M(val)}</div></div>
+      </div>`;
+    }).join('') : '<div class="empty" style="padding:24px"><p style="margin:0">Nenhum recibo registrado ainda.</p></div>';
+  },
+
+  /* -------- 2. DRE -------- */
+  _render_dre(){
+    const period = this._drePeriod;
+    const receita = this._totalReceipts(period);
+    const despForn = this._filterPayments(period);
+    const meses = period==='mes'?1: period==='trim'?3: period==='ano'?new Date().getMonth()+1: 12;
+    const despFix = this._totalDespFixas() * meses;
+    const lucBruto = receita - despForn;
+    const lucLiquido = lucBruto - despFix;
+    const margBruta = receita > 0 ? (lucBruto/receita*100).toFixed(1)+'%' : '—';
+    const margLiq = receita > 0 ? (lucLiquido/receita*100).toFixed(1)+'%' : '—';
+
+    const periodoLabel = {mes:'Mês Atual', trim:'Trimestre', ano:'Ano '+new Date().getFullYear(), total:'Histórico Total'}[period];
+    const dreEl = document.getElementById('dreTable');
+    if(dreEl){
+      dreEl.innerHTML = `
+        <div style="padding:12px 14px 8px;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.06em">Período: ${periodoLabel}</div>
+        <div class="dre-row"><span>Receita Bruta</span><span style="color:var(--ok);font-weight:600">${this._M(receita)}</span></div>
+        <div class="dre-row" style="padding-left:24px"><span class="dre-label">↳ Recibos emitidos</span><span>${(data.receipts||[]).length}</span></div>
+        <div class="dre-row"><span>(-) Custos com fornecedores</span><span style="color:var(--danger)">${this._M(despForn)}</span></div>
+        <div class="dre-row subtotal"><span>= Lucro Bruto</span><span style="color:${lucBruto>=0?'var(--ok)':'var(--danger)'}">${this._M(lucBruto)} <span style="font-size:11px;color:var(--muted)">(${margBruta})</span></span></div>
+        <div style="padding:10px 14px 4px;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em">Despesas Operacionais</div>
+        ${(data.despesasFixas||[]).filter(d=>d.ativo!==false).map(d =>
+          `<div class="dre-row" style="padding-left:24px"><span class="dre-label">↳ ${U.esc(d.nome)}</span><span style="color:var(--danger)">${this._M((d.valor||0)*meses)}</span></div>`
+        ).join('')}
+        <div class="dre-row"><span>(-) Total despesas fixas</span><span style="color:var(--danger)">${this._M(despFix)}</span></div>
+        <div class="dre-row total"><span>= Lucro Líquido <span style="font-size:11px;opacity:.7">(margem ${margLiq})</span></span><span style="color:${lucLiquido>=0?'var(--ok)':'var(--danger)'}">${this._M(lucLiquido)}</span></div>
+      `;
+    }
+
+    // Chart lucro 6 meses
+    this._destroyChart('lucro');
+    const mList = this._lastNMonths(6);
+    const lucroVals = mList.map(m => {
+      const r = this._receitaMes(m.month, m.year);
+      const d = this._despMes(m.month, m.year);
+      return r - d;
+    });
+    const ctx = document.getElementById('chartLucro');
+    if(ctx && typeof Chart !== 'undefined'){
+      this._charts['lucro'] = new Chart(ctx, {
+        type:'line',
+        data:{ labels: mList.map(m=>m.label), datasets:[{
+          label:'Lucro líquido',
+          data: lucroVals,
+          borderColor:'#6b2d5c', backgroundColor:'rgba(107,45,92,.12)',
+          fill:true, tension:0.4, pointBackgroundColor:'#6b2d5c', pointRadius:5
+        }]},
+        options:{ plugins:{legend:{display:false}}, scales:{y:{ticks:{callback:v=>U.moneyShort(v)}}}, responsive:true, maintainAspectRatio:false }
+      });
+    }
+  },
+
+  /* -------- 3. FLUXO DE CAIXA -------- */
+  _render_fluxo(){
+    const now = new Date();
+    const recv = (data.receipts||[]).reduce((s,r)=>s+(r.value||0),0);
+    let totalPago = 0;
+    (data.supplierPayments||[]).forEach(p=>{
+      const sm = App.paySummary ? App.paySummary(p) : {paid:0, pending:0};
+      totalPago += sm.paid||0;
+    });
+    const saldo = recv - totalPago;
+
+    const kEl = document.getElementById('fluxoKpis');
+    if(kEl) kEl.innerHTML = `
+      <div class="kpi k3"><div class="ic"><i class="fas fa-arrow-down-to-line"></i></div><div class="v">${U.moneyShort(recv)}</div><div class="l">Total entradas</div></div>
+      <div class="kpi k4"><div class="ic"><i class="fas fa-arrow-up-from-line"></i></div><div class="v">${U.moneyShort(totalPago)}</div><div class="l">Total saídas</div></div>
+    `;
+
+    // Fluxo nos próximos 30 dias: contratos a receber + fornecedores a pagar
+    const items = [];
+    const in30 = new Date(now); in30.setDate(in30.getDate()+30);
+
+    // A receber: contratos com saldo pendente
+    (data.contracts||[]).filter(c=>c.status!=='cancelled').forEach(ct => {
+      const recebido = (data.receipts||[]).filter(r=>r.contractId===ct.id).reduce((s,r)=>s+(r.value||0),0);
+      const saldoCt = (ct.value||0) - recebido;
+      if(saldoCt > 0){
+        const cl = (data.clients||[]).find(c=>c.id===ct.clientId);
+        items.push({ date: ct.paymentDate||ct.date||'', type:'in', desc: 'Receber: '+(cl?cl.name:'Cliente'), val: saldoCt });
+      }
+    });
+
+    // A pagar: fornecedores pendentes
+    (data.supplierPayments||[]).forEach(p => {
+      if(p.status==='paid') return;
+      const sup = (data.suppliers||[]).find(s=>s.id===p.supplierId);
+      const sm = App.paySummary ? App.paySummary(p) : {pending:p.amount||0};
+      if(sm.pending > 0){
+        items.push({ date: p.dueDate||'', type:'out', desc: 'Pagar: '+(sup?sup.name:'Fornecedor'), val: sm.pending });
+      }
+    });
+
+    // Extra items
+    (data.fluxoExtra||[]).forEach(fe => {
+      items.push({ date: fe.date, type: fe.type, desc: fe.desc, val: fe.val });
+    });
+
+    items.sort((a,b)=>a.date.localeCompare(b.date));
+
+    let saldoAcum = saldo;
+    const flEl = document.getElementById('fluxoList');
+    if(flEl) flEl.innerHTML = items.length ? `
+      <div class="cashflow-row" style="background:var(--line2);font-weight:700">
+        <span class="cf-date">Data</span><span class="cf-desc">Descrição</span>
+        <span class="cf-val">Valor</span><span style="width:65px;text-align:right;font-size:11px;color:var(--muted)">Saldo</span>
+      </div>` + items.map(it => {
+        if(it.type==='in') saldoAcum += it.val; else saldoAcum -= it.val;
+        return `<div class="cashflow-row">
+          <span class="cf-date">${it.date ? U.date(it.date) : '—'}</span>
+          <span class="cf-desc">${U.esc(it.desc)}</span>
+          <span class="cf-val ${it.type==='in'?'in':'out'}">${it.type==='in'?'+':'-'}${this._M(it.val)}</span>
+          <span style="width:65px;text-align:right;font-size:12px;font-weight:700;color:${saldoAcum>=0?'var(--ok)':'var(--danger)'}">${U.moneyShort(saldoAcum)}</span>
+        </div>`;
+      }).join('') : '<div class="empty" style="padding:24px"><i class="fas fa-water" style="font-size:28px;color:var(--faint)"></i><p style="margin-top:10px">Nenhum compromisso financeiro futuro cadastrado.</p></div>';
+
+    // Chart fluxo histórico
+    this._destroyChart('fluxo');
+    const mList = this._lastNMonths(6);
+    const entVals = mList.map(m=>this._receitaMes(m.month,m.year));
+    const saiVals = mList.map(m=>this._despMes(m.month,m.year));
+    const ctx = document.getElementById('chartFluxo');
+    if(ctx && typeof Chart !== 'undefined'){
+      this._charts['fluxo'] = new Chart(ctx,{
+        type:'line',
+        data:{ labels: mList.map(m=>m.label), datasets:[
+          { label:'Entradas', data:entVals, borderColor:'#2e8b57', backgroundColor:'rgba(46,139,87,.1)', fill:true, tension:0.3 },
+          { label:'Saídas', data:saiVals, borderColor:'#c0392b', backgroundColor:'rgba(192,57,43,.1)', fill:true, tension:0.3 }
+        ]},
+        options:{ plugins:{legend:{position:'bottom'}}, scales:{y:{ticks:{callback:v=>U.moneyShort(v)}}}, responsive:true, maintainAspectRatio:false }
+      });
+    }
+  },
+
+  addFluxoItem(){
+    App.openSheet('Lançamento manual de fluxo',
+      `<div class="field"><label>Tipo</label><select id="fxType"><option value="in">Entrada</option><option value="out">Saída</option></select></div>
+       <div class="field"><label>Descrição</label><input id="fxDesc" placeholder="Ex.: Patrocínio, Taxa, etc."></div>
+       <div class="field"><label>Data</label><input type="date" id="fxDate"></div>
+       <div class="field"><label>Valor (R$)</label><input type="number" id="fxVal" placeholder="0,00"></div>`,
+      `<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button>
+       <button class="btn btn-primary" onclick="FinDash._saveFluxo()">Adicionar</button>`
+    );
+  },
+
+  _saveFluxo(){
+    const type = document.getElementById('fxType').value;
+    const desc = document.getElementById('fxDesc').value.trim();
+    const date = document.getElementById('fxDate').value;
+    const val = parseFloat(document.getElementById('fxVal').value)||0;
+    if(!desc || !date || val<=0){ App.toast('Preencha todos os campos','err'); return; }
+    if(!data.fluxoExtra) data.fluxoExtra = [];
+    data.fluxoExtra.push({ id:this._id(), type, desc, date, val });
+    saveStore(); App.closeSheet(); this._render_fluxo(); App.toast('Lançamento adicionado','ok');
+  },
+
+  /* -------- 4. METAS -------- */
+  _render_metas(){
+    if(!data.metas) data.metas = [];
+    const mEl = document.getElementById('metasList');
+    if(mEl) mEl.innerHTML = data.metas.length ? data.metas.map(m => {
+      const curr = this._getMetaProgress(m);
+      const pct = m.target > 0 ? Math.min(100, (curr/m.target*100)) : 0;
+      const pctRound = pct.toFixed(0);
+      const barClass = pct>=100?'ok': pct>=60?'':'danger';
+      return `<div class="meta-item">
+        <div class="mi-head">
+          <div class="mi-name">${U.esc(m.name)}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="mi-pct">${pctRound}%</span>
+            <button class="abtn del" onclick="FinDash._delMeta('${m.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="meta-bar-wrap"><div class="meta-bar ${barClass}" style="width:${pctRound}%"></div></div>
+        <div class="mi-vals">
+          <span class="mi-curr">${this._M(curr)} atual</span>
+          <span class="mi-tgt">Meta: ${this._M(m.target)} até ${m.deadline?U.date(m.deadline):'—'}</span>
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty" style="padding:24px"><i class="fas fa-bullseye" style="font-size:28px;color:var(--faint)"></i><p style="margin-top:10px">Nenhuma meta cadastrada. Defina suas metas!</p></div>';
+
+    // Meta anual de receita
+    const anoAtual = new Date().getFullYear();
+    const metaAno = data.metas.find(m=>m.type==='receita_anual' && m.year===anoAtual);
+    const recAnual = this._totalReceipts('ano');
+    if(metaAno){
+      const pct = Math.min(100, recAnual/metaAno.target*100).toFixed(1);
+      const mai = document.getElementById('metaAnualInfo');
+      if(mai) mai.innerHTML = `<div style="display:flex;justify-content:space-between"><span><b>${this._M(recAnual)}</b> recebidos de <b>${this._M(metaAno.target)}</b> meta ${anoAtual}</span><b style="color:var(--plum)">${pct}%</b></div>`;
+      const bar = document.getElementById('metaAnualBar');
+      if(bar){ bar.style.width=pct+'%'; bar.className='meta-bar '+(pct>=100?'ok':pct>=60?'':'danger'); }
+    } else {
+      const mai = document.getElementById('metaAnualInfo');
+      if(mai) mai.innerHTML = `<span class="small muted">Adicione uma meta do tipo "Receita anual ${anoAtual}" para acompanhar aqui.</span>`;
+      const bar = document.getElementById('metaAnualBar');
+      if(bar){ bar.style.width='0%'; }
+    }
+  },
+
+  _getMetaProgress(m){
+    if(m.type==='receita_anual'){ return this._totalReceipts('ano'); }
+    if(m.type==='eventos_mes'){ return (data.events||[]).filter(e=>{ const d=new Date(); const ev=new Date(e.date+'T00:00:00'); return ev.getMonth()===d.getMonth()&&ev.getFullYear()===d.getFullYear()&&e.status!=='cancelled'; }).length; }
+    if(m.type==='lucro_mes'){ const r=this._totalReceipts('mes'); const d=this._filterPayments('mes')+this._totalDespFixas(); return r-d; }
+    if(m.type==='clientes'){ return (data.clients||[]).length; }
+    return 0;
+  },
+
+  metaModal(){
+    const anoAtual = new Date().getFullYear();
+    App.openSheet('Nova meta',
+      `<div class="field"><label>Nome da meta</label><input id="mtName" placeholder="Ex.: Receita de R$50.000 no ano"></div>
+       <div class="field"><label>Tipo</label><select id="mtType">
+         <option value="receita_anual">Receita anual (${anoAtual})</option>
+         <option value="lucro_mes">Lucro mensal</option>
+         <option value="eventos_mes">Eventos no mês</option>
+         <option value="clientes">Total de clientes</option>
+         <option value="outro">Outro (manual)</option>
+       </select></div>
+       <div class="field"><label>Valor / Quantidade alvo</label><input type="number" id="mtTarget" placeholder="Ex.: 50000"></div>
+       <div class="field"><label>Prazo</label><input type="date" id="mtDeadline"></div>`,
+      `<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button>
+       <button class="btn btn-primary" onclick="FinDash._saveMeta()">Salvar meta</button>`
+    );
+  },
+
+  _saveMeta(){
+    const name = document.getElementById('mtName').value.trim();
+    const type = document.getElementById('mtType').value;
+    const target = parseFloat(document.getElementById('mtTarget').value)||0;
+    const deadline = document.getElementById('mtDeadline').value;
+    if(!name || target<=0){ App.toast('Preencha nome e valor','err'); return; }
+    if(!data.metas) data.metas = [];
+    data.metas.push({ id:this._id(), name, type, target, deadline, year:new Date().getFullYear(), createdAt:new Date().toISOString() });
+    saveStore(); App.closeSheet(); this._render_metas(); App.toast('Meta salva','ok');
+  },
+
+  _delMeta(id){
+    if(!confirm('Excluir esta meta?')) return;
+    data.metas = (data.metas||[]).filter(m=>m.id!==id);
+    saveStore(); this._render_metas(); App.toast('Meta removida','ok');
+  },
+
+  /* -------- 5. DESPESAS FIXAS -------- */
+  _render_despesas(){
+    if(!data.despesasFixas) data.despesasFixas=[];
+    const cats = {};
+    const dEl = document.getElementById('despesasList');
+    if(dEl) dEl.innerHTML = data.despesasFixas.length ? data.despesasFixas.map(d => {
+      if(d.ativo!==false) cats[d.categoria||'Outros'] = (cats[d.categoria||'Outros']||0)+(d.valor||0);
+      return `<div class="expense-row">
+        <div class="li-ic" style="background:var(--danger-bg);color:var(--danger)"><i class="fas fa-receipt"></i></div>
+        <div style="flex:1">
+          <div class="er-name">${U.esc(d.nome)}</div>
+          <div class="er-cat">${U.esc(d.categoria||'Sem categoria')} · mensal</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="er-val">${this._M(d.valor)}</span>
+          <div class="sw ${d.ativo!==false?'on':''}" onclick="FinDash._toggleDesp('${d.id}')" style="transform:scale(.8)"></div>
+          <button class="abtn del" onclick="FinDash._delDesp('${d.id}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>`;
+    }).join('') : '<div class="empty" style="padding:24px"><p style="margin:0">Nenhuma despesa fixa cadastrada.</p></div>';
+
+    const total = this._totalDespFixas();
+    const dtEl = document.getElementById('despesasTotal');
+    if(dtEl) dtEl.textContent = this._M(total);
+
+    // Chart categorias
+    this._destroyChart('despcat');
+    const ctx = document.getElementById('chartDespCat');
+    if(ctx && typeof Chart !== 'undefined' && Object.keys(cats).length){
+      this._charts['despcat'] = new Chart(ctx,{
+        type:'pie',
+        data:{ labels: Object.keys(cats), datasets:[{ data:Object.values(cats),
+          backgroundColor:['#c0392b','#e74c3c','#e67e22','#d35400','#c8851b','#9a7c2a','#8a8090'] }]},
+        options:{ plugins:{legend:{position:'bottom'}}, responsive:true, maintainAspectRatio:false }
+      });
+    }
+  },
+
+  despesaModal(){
+    App.openSheet('Nova despesa fixa',
+      `<div class="field"><label>Nome</label><input id="dpNome" placeholder="Ex.: Aluguel, Software, Telefone"></div>
+       <div class="field"><label>Categoria</label><select id="dpCat">
+         <option>Instalações</option><option>Software / Tecnologia</option><option>Marketing</option>
+         <option>Pessoal</option><option>Transporte</option><option>Comunicação</option><option>Outros</option>
+       </select></div>
+       <div class="field"><label>Valor mensal (R$)</label><input type="number" id="dpValor" placeholder="0,00"></div>`,
+      `<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button>
+       <button class="btn btn-primary" onclick="FinDash._saveDesp()">Adicionar</button>`
+    );
+  },
+
+  _saveDesp(){
+    const nome = document.getElementById('dpNome').value.trim();
+    const categoria = document.getElementById('dpCat').value;
+    const valor = parseFloat(document.getElementById('dpValor').value)||0;
+    if(!nome || valor<=0){ App.toast('Preencha nome e valor','err'); return; }
+    if(!data.despesasFixas) data.despesasFixas=[];
+    data.despesasFixas.push({ id:this._id(), nome, categoria, valor, ativo:true });
+    saveStore(); App.closeSheet(); this._render_despesas(); App.toast('Despesa adicionada','ok');
+  },
+
+  _delDesp(id){
+    if(!confirm('Excluir esta despesa fixa?')) return;
+    data.despesasFixas = (data.despesasFixas||[]).filter(d=>d.id!==id);
+    saveStore(); this._render_despesas(); App.toast('Despesa removida','ok');
+  },
+
+  _toggleDesp(id){
+    const d = (data.despesasFixas||[]).find(x=>x.id===id);
+    if(d){ d.ativo=!(d.ativo!==false); saveStore(); this._render_despesas(); }
+  },
+
+  /* -------- 6. PROJEÇÃO -------- */
+  _render_projecao(){
+    // Media dos últimos 3 meses como baseline
+    const hist = this._lastNMonths(3);
+    const mediaRec = hist.reduce((s,m)=>s+this._receitaMes(m.month,m.year),0)/3;
+    const mediaDesp = hist.reduce((s,m)=>s+this._despMes(m.month,m.year),0)/3;
+    const mediaLucro = mediaRec - mediaDesp;
+
+    // Eventos futuros com valor
+    const now = new Date();
+    const futuroEvs = (data.events||[]).filter(e => e.date && new Date(e.date+'T00:00:00') > now && e.status!=='cancelled');
+    const receitaFutura = futuroEvs.reduce((s,e)=>{
+      const ct = (data.contracts||[]).find(c=>c.eventId===e.id && c.status!=='cancelled');
+      const recebido = (data.receipts||[]).filter(r=>r.eventId===e.id).reduce((s,r)=>s+(r.value||0),0);
+      return s + Math.max(0, (ct?ct.value||0:e.budget||0) - recebido);
+    },0);
+
+    const pkEl = document.getElementById('projKpis');
+    if(pkEl) pkEl.innerHTML = `
+      <div class="kpi k2"><div class="ic"><i class="fas fa-chart-line"></i></div><div class="v">${U.moneyShort(mediaRec)}</div><div class="l">Média mensal (3m)</div></div>
+      <div class="kpi k3"><div class="ic"><i class="fas fa-calendar-plus"></i></div><div class="v">${U.moneyShort(receitaFutura)}</div><div class="l">A receber (contratos)</div></div>
+    `;
+
+    // Próximos 6 meses
+    const projList = [];
+    for(let i=1;i<=6;i++){
+      const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+      const label = d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+      const evsMes = futuroEvs.filter(e=>{const ev=new Date(e.date+'T00:00:00');return ev.getMonth()===d.getMonth()&&ev.getFullYear()===d.getFullYear();});
+      const recContr = evsMes.reduce((s,e)=>{
+        const ct=(data.contracts||[]).find(c=>c.eventId===e.id&&c.status!=='cancelled');
+        return s+(ct?ct.value||0:e.budget||0);
+      },0);
+      const proj = Math.max(mediaRec, recContr);
+      projList.push({ label, evsMes:evsMes.length, proj, desp: mediaDesp, lucro: proj-mediaDesp });
+    }
+
+    const plEl = document.getElementById('projecaoList');
+    if(plEl) plEl.innerHTML = projList.map((p,i) => `
+      <div class="proj-month">
+        <span class="pm-label">${p.label}</span>
+        <div class="pm-bar-wrap"><div class="pm-bar" style="width:${Math.min(100,p.proj/Math.max(1,...projList.map(x=>x.proj))*100).toFixed(0)}%"></div></div>
+        <span class="pm-val" style="color:${p.lucro>=0?'var(--ok)':'var(--danger)'}">${U.moneyShort(p.proj)}</span>
+        <span style="font-size:11px;color:var(--muted);flex-shrink:0;width:40px">${p.evsMes} ev.</span>
+      </div>
+    `).join('');
+
+    // Chart 12 meses
+    this._destroyChart('proj');
+    const hist12 = this._lastNMonths(6).map(m=>({...m, rec:this._receitaMes(m.month,m.year), type:'hist'}));
+    const futuro6 = projList.map((p,i)=>({label:p.label.split(' ')[0], rec:p.proj, type:'proj'}));
+    const allLabels = [...hist12.map(m=>m.label), ...futuro6.map(m=>m.label)];
+    const allVals = [...hist12.map(m=>m.rec), ...futuro6.map(m=>m.rec)];
+    const colors = [...hist12.map(()=>'rgba(107,45,92,.7)'), ...futuro6.map(()=>'rgba(189,154,60,.5)')];
+
+    const ctx = document.getElementById('chartProj');
+    if(ctx && typeof Chart !== 'undefined'){
+      this._charts['proj'] = new Chart(ctx,{
+        type:'bar',
+        data:{ labels:allLabels, datasets:[{ data:allVals, backgroundColor:colors, borderRadius:6 }]},
+        options:{ plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>'Proj: '+U.moneyShort(ctx.raw)}}},
+          scales:{y:{ticks:{callback:v=>U.moneyShort(v)}}}, responsive:true, maintainAspectRatio:false }
+      });
+    }
+
+    // Eventos futuros
+    const peEl = document.getElementById('projEventos');
+    if(peEl) peEl.innerHTML = futuroEvs.length ? futuroEvs.sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8).map(e=>{
+      const cl=(data.clients||[]).find(c=>c.id===e.clientId);
+      const ct=(data.contracts||[]).find(c=>c.eventId===e.id&&c.status!=='cancelled');
+      const recebido=(data.receipts||[]).filter(r=>r.eventId===e.id).reduce((s,r)=>s+(r.value||0),0);
+      const saldo=Math.max(0,(ct?ct.value||0:e.budget||0)-recebido);
+      return `<div class="list-item">
+        <div class="li-ic"><i class="fas ${App.eventIcon(e.type)||'fa-calendar'}"></i></div>
+        <div class="li-body"><div class="li-title">${U.esc(e.type)}${cl?' · '+U.esc(cl.name):''}</div>
+        <div class="li-sub">${U.date(e.date)}</div></div>
+        <div class="li-end"><div class="li-val" style="color:var(--ok)">${U.moneyShort(saldo)}</div><div class="dre-label">a receber</div></div>
+      </div>`;
+    }).join('') : '<div class="empty" style="padding:24px"><p>Nenhum evento futuro com contrato.</p></div>';
+  },
+
+  /* -------- 7. INSIGHTS -------- */
+  _render_insights(){
+    const receita = this._totalReceipts('ano');
+    const despForn = this._filterPayments('ano');
+    const meses = new Date().getMonth()+1;
+    const despFix = this._totalDespFixas()*meses;
+    const lucro = receita - despForn - despFix;
+    const margin = receita > 0 ? (lucro/receita*100).toFixed(1) : 0;
+
+    // Compare with last month
+    const recMes = this._totalReceipts('mes');
+    const lastMon = new Date(); lastMon.setMonth(lastMon.getMonth()-1);
+    const recMesAnt = this._receitaMes(lastMon.getMonth(), lastMon.getFullYear());
+    const varMes = recMesAnt > 0 ? ((recMes-recMesAnt)/recMesAnt*100).toFixed(1) : null;
+
+    const insights = [];
+    if(lucro < 0) insights.push({ ic:'fa-triangle-exclamation', txt:`Atenção: o negócio opera no <b>prejuízo</b> em ${new Date().getFullYear()}. Revise despesas fixas ou aumente receita.` });
+    if(parseFloat(margin) < 20 && lucro >= 0) insights.push({ ic:'fa-percent', txt:`Margem líquida de <b>${margin}%</b> está abaixo do ideal (≥30%). Considere reajustar preços.` });
+    if(parseFloat(margin) >= 30) insights.push({ ic:'fa-trophy', txt:`Margem líquida de <b>${margin}%</b> — ótima saúde financeira!` });
+    if(varMes !== null) insights.push({ ic: varMes>=0?'fa-arrow-trend-up':'fa-arrow-trend-down', txt:`Receita de ${new Date().toLocaleDateString('pt-BR',{month:'long'})} é <b>${varMes>=0?'+':''}${varMes}%</b> em relação ao mês anterior.` });
+    const evsFuturos = (data.events||[]).filter(e=>e.date&&new Date(e.date+'T00:00:00')>new Date()&&e.status!=='cancelled');
+    if(evsFuturos.length) insights.push({ ic:'fa-calendar-check', txt:`Há <b>${evsFuturos.length} evento(s)</b> confirmados nos próximos meses.` });
+    const pagsVencidos = (data.supplierPayments||[]).filter(p=>p.status!=='paid'&&p.dueDate&&new Date(p.dueDate+'T00:00:00')<new Date());
+    if(pagsVencidos.length) insights.push({ ic:'fa-clock', txt:`<b>${pagsVencidos.length} pagamento(s)</b> a fornecedores estão <b>vencidos</b>. Regularize para evitar multas.` });
+
+    const iEl = document.getElementById('insightCards');
+    if(iEl) iEl.innerHTML = `<div class="insight-card">
+      <h3><i class="fas fa-lightbulb" style="margin-right:7px"></i>Diagnóstico do negócio</h3>
+      ${insights.length ? insights.map(ins=>`<div class="insight-item"><i class="fas ${ins.ic}"></i><span>${ins.txt}</span></div>`).join('') : '<div class="insight-item"><i class="fas fa-check-circle"></i><span>Tudo parece saudável! Continue monitorando.</span></div>'}
+    </div>`;
+
+    // KPIs de desempenho
+    const totalEv = (data.events||[]).length;
+    const realizados = (data.events||[]).filter(e=>e.status==='done').length;
+    const taxaConv = totalEv > 0 ? (realizados/totalEv*100).toFixed(0) : 0;
+    const ticketMedio = (data.receipts||[]).length > 0 ? (data.receipts||[]).reduce((s,r)=>s+(r.value||0),0)/(data.receipts||[]).length : 0;
+
+    const kdEl = document.getElementById('kpiDesemp');
+    if(kdEl) kdEl.innerHTML = [
+      ['fa-percent','Taxa de realização',taxaConv+'%','var(--plum)'],
+      ['fa-ticket','Ticket médio',U.moneyShort(ticketMedio),'var(--gold-deep)'],
+      ['fa-users','Total clientes',(data.clients||[]).length,'var(--info)'],
+      ['fa-file-signature','Contratos ativos',(data.contracts||[]).filter(c=>c.status==='signed').length,'var(--ok)'],
+      ['fa-hourglass','Orçamentos pendentes',(data.budgets||[]).filter(b=>b.status==='sent').length,'var(--warn)'],
+      ['fa-handshake','Fornecedores',(data.suppliers||[]).length,'var(--muted)'],
+    ].map(([ic,l,v,c]) => `
+      <div class="dre-row">
+        <span style="display:flex;align-items:center;gap:8px"><i class="fas ${ic}" style="color:${c};width:16px"></i>${l}</span>
+        <span style="font-weight:700;color:${c}">${v}</span>
+      </div>`
+    ).join('');
+
+    // Sazonalidade
+    this._destroyChart('sazon');
+    const meses12 = []; const mLabels = [];
+    for(let m=0;m<12;m++){
+      const ml = new Date(2025,m,1).toLocaleDateString('pt-BR',{month:'short'});
+      mLabels.push(ml);
+      meses12.push((data.events||[]).filter(e=>e.date&&new Date(e.date+'T00:00:00').getMonth()===m).length);
+    }
+    const ctx = document.getElementById('chartSazon');
+    if(ctx && typeof Chart !== 'undefined'){
+      this._charts['sazon'] = new Chart(ctx,{
+        type:'bar',
+        data:{ labels:mLabels, datasets:[{ data:meses12, backgroundColor:'rgba(107,45,92,.6)', borderRadius:5 }]},
+        options:{ plugins:{legend:{display:false}}, scales:{y:{ticks:{stepSize:1}}}, responsive:true, maintainAspectRatio:false }
+      });
+    }
+
+    // Performance fornecedores
+    const fpEl = document.getElementById('fornPerf');
+    if(fpEl){
+      const fpMap = {};
+      (data.supplierPayments||[]).forEach(p=>{
+        if(!fpMap[p.supplierId]) fpMap[p.supplierId]={paid:0,due:0};
+        const sm = App.paySummary ? App.paySummary(p) : {paid:0,pending:0};
+        fpMap[p.supplierId].paid += sm.paid||0;
+        fpMap[p.supplierId].due += sm.pending||0;
+      });
+      const fList = Object.entries(fpMap).sort((a,b)=>(b[1].paid+b[1].due)-(a[1].paid+a[1].due)).slice(0,5);
+      fpEl.innerHTML = fList.length ? fList.map(([sid,v])=>{
+        const sup=(data.suppliers||[]).find(s=>s.id===sid)||{name:'Desconhecido'};
+        return `<div class="dre-row"><span>${U.esc(sup.name)}</span>
+          <span style="font-size:12px"><span style="color:var(--ok)">${U.moneyShort(v.paid)} pago</span>&nbsp;·&nbsp;<span style="color:${v.due>0?'var(--warn)':'var(--muted)'}">${U.moneyShort(v.due)} a pagar</span></span>
+        </div>`;
+      }).join('') : '<div class="empty" style="padding:20px"><p>Sem dados de fornecedores.</p></div>';
+    }
+  },
+
+  exportRelatorio(){
+    const now = new Date();
+    const receita = this._totalReceipts('ano');
+    const despForn = this._filterPayments('ano');
+    const despFix = this._totalDespFixas()*(now.getMonth()+1);
+    const lucro = receita - despForn - despFix;
+    const margin = receita > 0 ? (lucro/receita*100).toFixed(1)+'%' : '—';
+    const company = data.settings.companyName || 'CerimonialPro';
+    const content = `RELATÓRIO DE GESTÃO EMPRESARIAL\n${company}\n${now.toLocaleDateString('pt-BR',{year:'numeric',month:'long'})}\n\n` +
+      `=== DEMONSTRATIVO DE RESULTADO (${now.getFullYear()}) ===\n` +
+      `Receita Bruta:         ${U.money(receita)}\n` +
+      `Custos fornecedores:   ${U.money(despForn)}\n` +
+      `Lucro Bruto:           ${U.money(receita-despForn)}\n` +
+      `Despesas fixas:        ${U.money(despFix)}\n` +
+      `Lucro Líquido:         ${U.money(lucro)}\n` +
+      `Margem líquida:        ${margin}\n\n` +
+      `=== INDICADORES ===\n` +
+      `Eventos realizados:    ${(data.events||[]).filter(e=>e.status==='done').length}\n` +
+      `Total de clientes:     ${(data.clients||[]).length}\n` +
+      `Contratos ativos:      ${(data.contracts||[]).filter(c=>c.status==='signed').length}\n\n` +
+      `=== DESPESAS FIXAS MENSAIS ===\n` +
+      (data.despesasFixas||[]).filter(d=>d.ativo!==false).map(d=>`${d.nome}: ${U.money(d.valor)}`).join('\n') +
+      `\nTotal mensal: ${U.money(this._totalDespFixas())}\n\n` +
+      `Gerado em ${now.toLocaleString('pt-BR')} · CerimonialPro`;
+    const blob = new Blob([content],{type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `relatorio-gestao-${now.toISOString().slice(0,10)}.txt`;
+    a.click(); App.toast('Relatório exportado','ok');
+  }
+};
+window.FinDash = FinDash;
 
 window.App=App; window.Sync=Sync; window.U=U; window.Extenso=Extenso; window.FB=FB;
 /* ===== Source protection (deterrents) ===== */
