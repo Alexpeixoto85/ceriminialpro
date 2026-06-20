@@ -60,7 +60,7 @@
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;overflow-x:hidden;max-width:100%}
 body{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   background:var(--bg); color:var(--ink); font-size:15px; line-height:1.5;
@@ -300,7 +300,7 @@ a{color:inherit; text-decoration:none}
 .sheet-grab{width:40px;height:4px;border-radius:3px;background:var(--line);margin:9px auto 0}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:12px 18px 14px;border-bottom:1px solid var(--line2)}
 .sheet-head h3{font-size:18px;font-weight:600}
-.sheet-body{padding:16px 18px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-body{padding:16px 18px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .sheet-foot{padding:14px 18px calc(16px + var(--safe-b));border-top:1px solid var(--line2);display:flex;gap:10px}
 .sheet-foot .btn{flex:1}
 @media(min-width:560px){.sheet{left:50%;right:auto;transform:translateX(-50%) translateY(100%);width:540px;border-radius:22px;bottom:auto;top:50%;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;transition:.22s;max-height:88vh}.sheet.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}}
@@ -324,12 +324,33 @@ a{color:inherit; text-decoration:none}
 .row2.mb{margin-bottom:14px}
 
 /* items editor table */
-.items-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.items-tbl{width:100%;max-width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
 .items-tbl th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 4px;font-weight:700}
-.items-tbl td{padding:4px 3px;vertical-align:top}
-.items-tbl input{padding:9px 8px;font-size:14px}
-.items-tbl .colq{width:54px}.items-tbl .colp{width:84px}.items-tbl .colx{width:34px}
+.items-tbl td{padding:4px 3px;vertical-align:top;max-width:100%}
+.items-tbl input,.items-tbl select{width:100%;min-width:0;box-sizing:border-box;padding:9px 8px;font-size:14px}
+.items-tbl .colq{width:56px}.items-tbl .colp{width:86px}.items-tbl .colx{width:32px}
 .rmrow{width:32px;height:38px;border:none;background:none;color:var(--danger);font-size:14px}
+/* On narrow screens a 4-column table is too tight to stay legible (and any
+   slack in input sizing forces the whole sheet wider than the viewport).
+   Below 480px each item becomes a compact card instead. */
+@media(max-width:480px){
+  .items-tbl thead{display:none}
+  .items-tbl,.items-tbl tbody{display:block;width:100%}
+  .items-tbl tr{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    border:1px solid var(--line);border-radius:11px;
+    padding:12px 40px 12px 12px;margin-bottom:9px;position:relative
+  }
+  .items-tbl td{display:block;padding:0;width:auto;max-width:none}
+  .items-tbl td.cold{grid-column:1/-1}
+  .items-tbl td.colx{position:absolute;top:9px;right:8px;width:auto}
+  .items-tbl td[data-label]::before{
+    content:attr(data-label);display:block;margin-bottom:4px;
+    font-size:10.5px;font-weight:700;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.04em
+  }
+  .items-tbl .rmrow{width:28px;height:28px;background:var(--line2);border-radius:8px}
+}
 
 /* ===== Toast ===== */
 #toasts{position:fixed;left:14px;right:14px;bottom:calc(82px + var(--safe-b));z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
@@ -563,9 +584,14 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
 .qrow .qv{font-weight:700;color:var(--plum);white-space:nowrap}
 .qrow .qb{font-size:13.5px;font-weight:600}
 .qrow .qs{font-size:11.5px;color:var(--muted)}
-.supchip{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px}
-.supchip input{flex:1;border:none;background:transparent;font-size:13.5px;padding:0}
+.supchip{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;margin-bottom:7px;flex-wrap:wrap}
+.supchip select{flex:1;min-width:0;max-width:100%}
+.supchip input{flex:0 1 100px;min-width:0;border:none;background:transparent;font-size:13.5px;padding:0}
 .supchip .scv{width:96px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px}
+@media(max-width:480px){
+  .supchip select{flex:1 1 100%}
+  .supchip input{flex:1}
+}
 /* ===== Supplier payments module ===== */
 .pay-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:13px}
 .pay-kpis .pk{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;box-shadow:var(--shadow)}
@@ -587,7 +613,11 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
 .inst-main .is{font-size:11.5px;color:var(--muted)}
 .inst-v{font-weight:700;color:var(--plum);white-space:nowrap;font-size:13.5px}
 .inst-ed{display:grid;grid-template-columns:1fr 118px;gap:7px;margin-bottom:7px}
-.inst-ed .ie3{grid-template-columns:1fr 130px 118px}
+.inst-ed.ie3{grid-template-columns:1fr 130px 118px}
+@media(max-width:480px){
+  .inst-ed.ie3{grid-template-columns:1fr 1fr}
+  .inst-ed.ie3 input:first-child{grid-column:1/-1}
+}
 .inst-form{border:1px dashed var(--line);border-radius:11px;padding:10px;margin-bottom:9px;background:var(--line2)}
 .inst-form input,.inst-form select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px;background:var(--surface)}
 .pay-tot{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:11px;background:var(--plum-soft);margin:4px 0 10px;font-size:13px}
@@ -2293,7 +2323,7 @@ Object.assign(App,{
   addBSupplier(sp={}){
     const wrap=document.getElementById('f_bsuppliers'); const row=document.createElement('div'); row.className='supchip';
     const opts=data.suppliers.map(s=>'<option value="'+s.id+'" '+(sp.supplierId===s.id?'selected':'')+'>'+U.esc(s.name)+' ('+U.esc(s.category||'Geral')+')</option>').join('');
-    row.innerHTML='<select class="bsup-id" onchange="App.bsupPick(this)" style="flex:1;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13px"><option value="">— fornecedor —</option>'+opts+'</select>'+
+    row.innerHTML='<select class="bsup-id" onchange="App.bsupPick(this)" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:13px"><option value="">— fornecedor —</option>'+opts+'</select>'+
       '<input class="bsup-v" type="number" step="0.01" min="0" placeholder="R$" value="'+(sp.value||'')+'" oninput="App.calcBTotal()">'+
       '<button class="ax" onclick="this.closest(\'.supchip\').remove();App.calcBTotal()"><i class="fas fa-xmark"></i></button>';
     wrap.appendChild(row);
@@ -2306,10 +2336,10 @@ Object.assign(App,{
   },
   addBItem(it={}){
     const tb=document.getElementById('f_bitems'); const tr=document.createElement('tr');
-    tr.innerHTML='<td><input class="bi-d" value="'+U.esc(it.description)+'" placeholder="Serviço/produto"></td>'+
-      '<td><input class="bi-q" type="number" min="0" value="'+(it.quantity||1)+'" oninput="App.calcBTotal()"></td>'+
-      '<td><input class="bi-p" type="number" step="0.01" min="0" value="'+(it.unitPrice||'')+'" oninput="App.calcBTotal()" placeholder="0,00"></td>'+
-      '<td><button class="rmrow" onclick="this.closest(\'tr\').remove();App.calcBTotal()"><i class="fas fa-xmark"></i></button></td>';
+    tr.innerHTML='<td class="cold" data-label="Descrição"><input class="bi-d" value="'+U.esc(it.description)+'" placeholder="Serviço/produto"></td>'+
+      '<td class="colq" data-label="Qtd"><input class="bi-q" type="number" min="0" value="'+(it.quantity||1)+'" oninput="App.calcBTotal()"></td>'+
+      '<td class="colp" data-label="Valor"><input class="bi-p" type="number" step="0.01" min="0" value="'+(it.unitPrice||'')+'" oninput="App.calcBTotal()" placeholder="0,00"></td>'+
+      '<td class="colx"><button class="rmrow" onclick="this.closest(\'tr\').remove();App.calcBTotal()"><i class="fas fa-xmark"></i></button></td>';
     tb.appendChild(tr);
   },
   calcBTotal(){
