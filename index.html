@@ -1698,7 +1698,7 @@ const App={
   },
   finance(){
     const contracted=data.contracts.filter(c=>c.status!=='cancelled').reduce((s,c)=>s+(c.value||0),0);
-    const received=data.receipts.reduce((s,r)=>s+(r.value||0),0);
+    const received=data.receipts.filter(r=>r.kind!=='repasse').reduce((s,r)=>s+(r.value||0),0);
     return {contracted,received,pending:Math.max(0,contracted-received)};
   },
   eventRow(e,compact){
@@ -1793,7 +1793,7 @@ Object.assign(App,{
     const suppliers=basis?(basis.suppliers||[]):[];
     const supplierCost=suppliers.reduce((s,x)=>s+(x.value||0),0);
     const clientValue=(contract&&contract.value)?contract.value:(basis&&basis.total?basis.total:(e.budget||0));
-    const received=data.receipts.filter(r=>r.eventId===eventId).reduce((s,r)=>s+(r.value||0),0);
+    const received=data.receipts.filter(r=>r.kind!=='repasse'&&r.eventId===eventId).reduce((s,r)=>s+(r.value||0),0);
     const pending=Math.max(0,clientValue-received);
     const result=clientValue-supplierCost;
     const margin=clientValue>0?(result/clientValue*100):0;
@@ -3121,7 +3121,7 @@ Object.assign(App,{
     data.budgets.filter(b=>b.status==='sent'&&b.validUntil).forEach(b=>{const d=U.daysTo(b.validUntil),cl=data.clients.find(c=>c.id===b.clientId);
       if(d!==null&&d<=5)A.push({ic:'fa-file-invoice-dollar',cls:d<0?'ai-danger':'ai-warn',t:'Orçamento '+(b.number||'')+(cl?' · '+cl.name:''),s:d<0?'Validade expirada':d===0?'Vence hoje':'Vence em '+d+' dia(s)',sort:d,go:'budgets',budgetId:(cl&&cl.phone?b.id:'')});});
     data.contracts.filter(c=>c.status!=='cancelled').forEach(c=>{
-      const recv=data.receipts.filter(r=>r.contractId===c.id||r.clientId===c.clientId).reduce((s,r)=>s+(r.value||0),0);
+      const recv=data.receipts.filter(r=>r.kind!=='repasse').filter(r=>r.contractId===c.id||r.clientId===c.clientId).reduce((s,r)=>s+(r.value||0),0);
       const cl=data.clients.find(x=>x.id===c.clientId);
       if((c.value||0)-recv>0.5&&c.status==='signed')A.push({ic:'fa-sack-dollar',cls:'ai-info',t:'A receber'+(cl?' · '+cl.name:''),s:U.money((c.value||0)-recv)+' pendente',sort:50,go:'receipts'});});
     (data.supplierPayments||[]).forEach(p=>{
@@ -3323,7 +3323,7 @@ Object.assign(App,{
     // revenue by month (last 6)
     const months=[],labels=[];
     for(let i=5;i>=0;i--){const d=new Date();d.setMonth(d.getMonth()-i);months.push(d.getMonth()+'-'+d.getFullYear());labels.push(d.toLocaleDateString('pt-BR',{month:'short'}));}
-    const vals=months.map(mk=>{const[m,y]=mk.split('-').map(Number);return data.receipts.filter(r=>{const d=new Date(r.receiptDate+'T00:00:00');return d.getMonth()===m&&d.getFullYear()===y;}).reduce((s,r)=>s+(r.value||0),0);});
+    const vals=months.map(mk=>{const[m,y]=mk.split('-').map(Number);return data.receipts.filter(r=>r.kind!=='repasse').filter(r=>{const d=new Date(r.receiptDate+'T00:00:00');return d.getMonth()===m&&d.getFullYear()===y;}).reduce((s,r)=>s+(r.value||0),0);});
     if(typeof Chart==='undefined')return;
     if(chartRev)chartRev.destroy();
     chartRev=new Chart(document.getElementById('chartRevenue'),{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:'#6b2d5c',borderRadius:8}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>U.moneyShort(v)}}},responsive:true,maintainAspectRatio:false}});
@@ -4398,6 +4398,7 @@ const FinDash = {
   _filterReceipts(period){
     const { from, to } = this._dateRange(period);
     return (data.receipts||[]).filter(r => {
+      if(r.kind==='repasse') return false; // verba do cliente não é receita da empresa
       const d = new Date(r.receiptDate+'T00:00:00');
       return d >= from && d <= to;
     });
@@ -4407,10 +4408,11 @@ const FinDash = {
     const { from, to } = this._dateRange(period);
     let total = 0;
     (data.supplierPayments||[]).forEach(p => {
+      if(p.fromFund) return; // pago com a verba do cliente — não é despesa da empresa
       (p.installments||[{date: p.dueDate, amount: p.amount, paid: p.status==='paid'}]).forEach(inst => {
         if(inst.paid){
-          const d = new Date((inst.date||p.dueDate)+'T00:00:00');
-          if(d >= from && d <= to) total += inst.amount||p.amount||0;
+          const d = new Date((inst.paidDate||inst.dueDate||inst.date||p.dueDate)+'T00:00:00');
+          if(d >= from && d <= to) total += inst.value||inst.amount||p.amount||0;
         }
       });
     });
@@ -4441,6 +4443,7 @@ const FinDash = {
 
   _receitaMes(m, y){
     return (data.receipts||[]).filter(r => {
+      if(r.kind==='repasse') return false; // verba do cliente não é receita
       const d = new Date(r.receiptDate+'T00:00:00');
       return d.getMonth()===m && d.getFullYear()===y;
     }).reduce((s,r) => s+(r.value||0), 0);
@@ -4451,10 +4454,11 @@ const FinDash = {
     const to = new Date(y, m+1, 0, 23, 59, 59);
     let total = 0;
     (data.supplierPayments||[]).forEach(p => {
+      if(p.fromFund) return; // pago com a verba do cliente — não é despesa da empresa
       (p.installments||[{date: p.dueDate, amount: p.amount, paid: p.status==='paid'}]).forEach(inst => {
         if(inst.paid){
-          const d = new Date((inst.date||p.dueDate)+'T00:00:00');
-          if(d >= from && d <= to) total += inst.amount||p.amount||0;
+          const d = new Date((inst.paidDate||inst.dueDate||inst.date||p.dueDate)+'T00:00:00');
+          if(d >= from && d <= to) total += inst.value||inst.amount||p.amount||0;
         }
       });
     });
@@ -4554,6 +4558,7 @@ const FinDash = {
     this._destroyChart('rectipo');
     const tipoMap = {};
     (data.receipts||[]).forEach(r => {
+      if(r.kind==='repasse') return; // verba do cliente não é receita
       const ev = (data.events||[]).find(e => e.id === r.eventId);
       const tipo = ev ? (ev.type||'Outros') : 'Avulso';
       tipoMap[tipo] = (tipoMap[tipo]||0) + (r.value||0);
