@@ -314,7 +314,7 @@ a{color:inherit; text-decoration:none}
 .sheet-foot{padding:14px 18px calc(16px + var(--safe-b));border-top:1px solid var(--line2);display:flex;gap:10px}
 .sheet-foot .btn{flex:1}
 @media(min-width:560px){.sheet{left:50%;right:auto;transform:translateX(-50%) translateY(100%);width:540px;border-radius:22px;bottom:auto;top:50%;transform:translate(-50%,-50%) scale(.96);opacity:0;visibility:hidden;transition:.22s;max-height:88vh}.sheet.open{transform:translate(-50%,-50%) scale(1);opacity:1;visibility:visible}}
-@media(max-width:480px){.sheet-body{max-height:calc(94vh - 120px)}.row2{grid-template-columns:1fr}.sheet-foot{flex-direction:column}.sheet-foot .btn{width:100%}}
+@media(max-width:480px){.sheet-body{max-height:calc(94vh - 120px)}.sheet-foot{flex-direction:column}.sheet-foot .btn{width:100%}}
 
 /* ===== Forms ===== */
 .field{margin-bottom:14px}
@@ -330,8 +330,14 @@ a{color:inherit; text-decoration:none}
 .field textarea{resize:vertical;min-height:80px;line-height:1.5}
 .field .hint{font-size:11.5px;color:var(--muted);margin-top:5px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.row2 .field{margin-bottom:0}
+.row2 .field{margin-bottom:0;min-width:0}
 .row2.mb{margin-bottom:14px}
+/* Grid items don't shrink below their content's natural size by default
+   (e.g. a native type="date" input wants more room than half the sheet on
+   a phone), which forced this 2-column row past the screen edge. min-width:0
+   above lets it shrink; this rule (placed AFTER the base .row2 above so it
+   actually wins the cascade) then stacks the columns on narrow screens. */
+@media(max-width:480px){.row2{grid-template-columns:1fr}}
 
 /* items editor table */
 .items-tbl{width:100%;max-width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
