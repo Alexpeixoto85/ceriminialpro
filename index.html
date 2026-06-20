@@ -1529,7 +1529,7 @@ const Auth={
         const p=JSON.parse(raw);
         data=Object.assign(data,p);
         data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-        ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+        ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','custodyFunds','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       }catch(e){console.warn(e);}
     }
     // Override saveStore to use namespaced key
@@ -3894,7 +3894,7 @@ const Sync={
         if(!confirm('Os dados na nuvem são mais antigos que os locais. Baixar mesmo assim e substituir o local?')){this.setBusy(false);return;}
       }
       data=Object.assign(data,remote);
-      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','custodyFunds','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       saveStore(true); syncCfg.lastSync=new Date().toISOString(); saveSync();
       App.refreshChrome(); App.renderAll(); App.go('dashboard');
       this.updatePill(); this.updateStatus();
@@ -3926,6 +3926,7 @@ const FB={
   _lastPush:null,
   _saveTimer:null,
   _booted:false,
+  _pending:false,
 
   init(){
     const begin=()=>{
@@ -4021,7 +4022,7 @@ const FB={
   _applyRemote(remote){
     data=Object.assign(data, remote);
     data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''}, remote.settings||{});
-    ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+    ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','custodyFunds','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
     // cache offline
     try{ saveToIndexedDB(IDB_KEY,data); }catch(e){}
     if(window._currentEmail){ try{ localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data)); }catch(e){} }
@@ -4042,8 +4043,18 @@ const FB={
   save(){
     if(!window._fbUser) return;
     clearTimeout(this._saveTimer);
+    this._pending=true;
     this.setStatus('syncing','Salvando…');
     this._saveTimer=setTimeout(()=>{ this._pushNow().catch(e=>console.error(e)); }, 800);
+  },
+
+  // Cancela o debounce e envia imediatamente — usado ao trocar de página,
+  // perder o foco da aba ou fechar/minimizar o app, para nunca perder uma
+  // gravação por causa do tempo de espera do debounce.
+  flushNow(){
+    if(!window._fbUser || !this._pending) return;
+    clearTimeout(this._saveTimer);
+    this._pushNow().catch(e=>console.error(e));
   },
 
   async _pushNow(){
@@ -4053,6 +4064,7 @@ const FB={
     this._lastPush=data.updatedAt;
     try{
       await setDoc(doc(db,'usuarios',this.user.uid), data);
+      this._pending=false;
       this.setStatus('on','Salvo ✓');
     }catch(e){
       console.error(e);
@@ -5277,7 +5289,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   Protect.init();
   App.init();
 });
-window.addEventListener('online',()=>{if(syncCfg.auto&&syncCfg.token)Sync.push(true);});
+window.addEventListener('online',()=>{if(syncCfg.auto&&syncCfg.token)Sync.push(true); if(window._fbUser)FB.flushNow();});
+
+// ===== Flush garantido da sincronização Firebase =====
+// O salvamento na nuvem usa um pequeno debounce (para não disparar uma escrita
+// a cada tecla digitada). Se a aba for fechada, minimizada ou perder o foco
+// antes do debounce completar, a gravação pendente pode nunca chegar à nuvem.
+// Os eventos abaixo cobrem os casos mais comuns (trocar de app no celular,
+// bloquear a tela, fechar a aba) forçando o envio imediato do que estiver pendente.
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') FB.flushNow(); });
+window.addEventListener('pagehide',()=>{ FB.flushNow(); });
+window.addEventListener('beforeunload',()=>{ FB.flushNow(); });
 </script>
 </body>
 </html>
