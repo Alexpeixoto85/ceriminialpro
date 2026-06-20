@@ -3716,6 +3716,7 @@ const FB={
     const ref=doc(db,'usuarios',this.user.uid);
     if(this._unsub){ this._unsub(); }
     this._unsub=onSnapshot(ref, snap=>{
+      this._banner(null); // limpa avisos anteriores se a leitura voltou a funcionar
       if(snap.exists()){
         const remote=snap.data();
         // ignora o "eco" da nossa própria gravação
@@ -3726,14 +3727,57 @@ const FB={
         this.setStatus('on','Sincronizado');
       }else{
         // primeiro acesso deste usuário: cria o documento na nuvem
-        this._seedFirstTime().catch(e=>console.error(e));
+        this._seedFirstTime().catch(e=>{ console.error(e); this._diagnose(e,'gravar'); });
       }
       this._ensureBooted();
     }, err=>{
-      console.error(err);
+      console.error('Firestore onSnapshot:', err);
       this.setStatus('err','Erro de conexão');
+      this._diagnose(err,'ler');
       this._ensureBooted();
     });
+  },
+
+  // Mostra um aviso fixo no topo da tela (visível mesmo sem abrir o console)
+  _banner(html,kind){
+    let b=document.getElementById('fbBanner');
+    if(!html){ if(b) b.remove(); return; }
+    if(!b){
+      b=document.createElement('div');
+      b.id='fbBanner';
+      b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99999;padding:12px 44px 12px 16px;font-size:13px;line-height:1.45;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,.18)';
+      document.body.appendChild(b);
+    }
+    const bg = kind==='ok' ? '#1e7e4f' : kind==='warn' ? '#9a6b00' : '#b3261e';
+    b.style.background=bg; b.style.color='#fff';
+    b.innerHTML='<button onclick="document.getElementById(\'fbBanner\').remove()" style="position:absolute;right:10px;top:8px;background:rgba(255,255,255,.2);border:none;color:#fff;width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:14px">&times;</button>'+html;
+  },
+
+  // Traduz o erro do Firebase em uma orientação clara na tela
+  _diagnose(err, acao){
+    const code=(err&&err.code)||'';
+    if(code==='permission-denied' || /Missing or insufficient permissions/i.test(err&&err.message||'')){
+      this._banner(
+        '<b>Não foi possível '+acao+' os dados na nuvem — permissão negada pelo Firestore.</b><br>'+
+        'No <b>Firebase Console</b> do projeto <code>cerimonialpro-6ceb5</code> abra <b>Firestore Database › Regras</b> e publique:'+
+        '<pre style="white-space:pre-wrap;background:rgba(0,0,0,.25);padding:8px 10px;border-radius:7px;margin:8px 0 0;font-size:12px">rules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /usuarios/{uid} {\n      allow read, write: if request.auth != null && request.auth.uid == uid;\n    }\n  }\n}</pre>'
+      ,'err');
+      return;
+    }
+    if(code==='unavailable'){
+      this._banner('<b>Sem conexão com a nuvem.</b> Verifique sua internet. Seus dados locais continuam salvos e serão enviados quando reconectar.','warn');
+      return;
+    }
+    if(code==='unauthenticated'){
+      this._banner('<b>Sessão não autenticada.</b> Saia e entre novamente para reconectar à nuvem.','err');
+      return;
+    }
+    if(code==='not-found' || /database \(default\)/i.test(err&&err.message||'')){
+      this._banner('<b>Banco Firestore não encontrado.</b> No Firebase Console abra <b>Firestore Database</b> e clique em <b>Criar banco de dados</b> (modo de produção).','err');
+      return;
+    }
+    // genérico
+    this._banner('<b>Falha ao '+acao+' na nuvem.</b> '+U.esc((err&&(err.code||err.message))||'Erro desconhecido')+'.','err');
   },
 
   _applyRemote(remote){
@@ -3795,9 +3839,11 @@ const FB={
     try{
       await setDoc(doc(db,'usuarios',this.user.uid), data);
       this.setStatus('on','Salvo ✓');
+      this._banner(null);
     }catch(e){
-      console.error(e);
+      console.error('Firestore setDoc:', e);
       this.setStatus('err','Erro ao salvar');
+      this._diagnose(e,'gravar');
       throw e;
     }
   },
