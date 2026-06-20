@@ -72,6 +72,16 @@ input,select,textarea{font-family:inherit; font-size:16px}
 a{color:inherit; text-decoration:none}
 .hide{display:none!important}
 
+/* iOS Safari auto-zooms the whole page when a focused input/select/textarea
+   has font-size below 16px. Several specific rules below (.dp-field, .items-tbl,
+   .supchip, .inst-form, inline styles, etc.) set smaller sizes for visual density,
+   which is exactly what was breaking the sheet and doc-preview modals on phones.
+   Force 16px on every form field on small screens, overriding any more specific
+   rule or inline style, so focusing a field never triggers that zoom. */
+@media(max-width:768px){
+  input,select,textarea{font-size:16px!important}
+}
+
 /* ===== App shell ===== */
 #app{display:none}
 /* App shell: fixed to the viewport so only .content scrolls internally.
