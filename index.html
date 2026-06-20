@@ -1247,7 +1247,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
 ============================================================ */
 const STORE_KEY='cerimonialProData';
 const SYNC_KEY='cerimonialProSync';
-let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],despesasFixas:[],metas:[],fluxoExtra:[],
+let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],expenses:[],tasks:[],guests:[],despesasFixas:[],metas:[],fluxoExtra:[],
   settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}',protect:{contextMenu:true,selection:true,devKeys:true,drag:true,devtoolsWarn:false}},
   updatedAt:new Date().toISOString()};
 let syncCfg={token:'',gistId:'',auto:false,lastSync:null};
@@ -1308,7 +1308,7 @@ async function loadStore(){
     if(p){
       data=Object.assign(data,p);
       data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','expenses','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
       await saveToIndexedDB(IDB_KEY,data);
     }
   }catch(e){console.warn('IndexedDB error:',e);}
@@ -1502,7 +1502,7 @@ const Auth={
     accounts.push(newAcc);
     this._saveAccounts(accounts);
     // Pre-populate settings for new account
-    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],
+    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],expenses:[],tasks:[],guests:[],
       settings:{companyName:company,userName:user||company,email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}',protect:{contextMenu:true,selection:true,devKeys:true,drag:true,devtoolsWarn:false}},
       updatedAt:new Date().toISOString()};
     localStorage.setItem('cpData_'+email,JSON.stringify(accData));
@@ -1519,7 +1519,7 @@ const Auth={
         const p=JSON.parse(raw);
         data=Object.assign(data,p);
         data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-        ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+        ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','expenses','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       }catch(e){console.warn(e);}
     }
     // Override saveStore to use namespaced key
@@ -1640,7 +1640,7 @@ const App={
   quickAdd(){
     this.openSheet('Criar novo',
       '<div style="display:grid;gap:10px">'+
-      ['eventModal|fa-calendar-plus|Evento|var(--plum)','budgetModal|fa-file-invoice-dollar|Orçamento|var(--gold-deep)','contractModal|fa-file-signature|Contrato|var(--info)','receiptModal|fa-receipt|Recibo|var(--ok)','paymentModal|fa-money-check-dollar|Pagamento a fornecedor|var(--gold-deep)','clientModal|fa-user-plus|Cliente|var(--plum)','taskModal|fa-list-check|Tarefa|var(--warn)']
+      ['eventModal|fa-calendar-plus|Evento|var(--plum)','budgetModal|fa-file-invoice-dollar|Orçamento|var(--gold-deep)','contractModal|fa-file-signature|Contrato|var(--info)','receiptModal|fa-receipt|Recibo / repasse|var(--ok)','paymentModal|fa-money-check-dollar|Pagamento a fornecedor|var(--gold-deep)','expenseModal|fa-cart-shopping|Custo da verba|var(--danger)','clientModal|fa-user-plus|Cliente|var(--plum)','taskModal|fa-list-check|Tarefa|var(--warn)']
       .map(x=>{const[f,i,l,c]=x.split('|');return '<button class="btn btn-ghost" style="justify-content:flex-start;gap:13px" onclick="App.closeSheet();App.'+f+'()"><span style="width:34px;height:34px;border-radius:10px;background:'+c+'1a;color:'+c+';display:grid;place-items:center"><i class=\'fas '+i+'\'></i></span>'+l+'</button>';}).join('')+
       '</div>','');
   },
@@ -1652,7 +1652,7 @@ const App={
     const active=data.events.filter(e=>e.status==='confirmed'||e.status==='pending').length;
     document.getElementById('kEvents').textContent=active;
     document.getElementById('kClients').textContent=data.clients.length;
-    const now=new Date(),mRev=data.receipts.filter(r=>{const d=new Date(r.receiptDate+'T00:00:00');return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,r)=>s+(r.value||0),0);
+    const now=new Date(),mRev=data.receipts.filter(r=>r.kind!=='repasse').filter(r=>{const d=new Date(r.receiptDate+'T00:00:00');return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,r)=>s+(r.value||0),0);
     document.getElementById('kRevenue').textContent=U.moneyShort(mRev);
     const fin=this.finance();
     document.getElementById('kPending').textContent=U.moneyShort(fin.pending);
@@ -1665,22 +1665,36 @@ const App={
   },
   renderFinance(){
     const el=document.getElementById('dashFinance'); if(!el)return;
-    const recv=data.receipts.reduce((s,r)=>s+(r.value||0),0);
     const fin=this.finance();
-    let supPaid=0,supDue=0,supOvd=0;
-    (data.supplierPayments||[]).forEach(p=>{const sm=this.paySummary(p);supPaid+=sm.paid;supDue+=sm.pending;if(sm.overdue)supOvd+=sm.pending;});
-    const caixa=recv-supPaid;
+    // Separate the cerimonialista's own money from custodial client funds (verba/repasse)
+    const honorarios=data.receipts.filter(r=>r.kind!=='repasse').reduce((s,r)=>s+(r.value||0),0);
+    const verbaIn=data.receipts.filter(r=>r.kind==='repasse').reduce((s,r)=>s+(r.value||0),0);
+    let supPaidOwn=0,supPaidFund=0,supDue=0,supOvd=0;
+    (data.supplierPayments||[]).forEach(p=>{const sm=this.paySummary(p);
+      if(p.fromFund)supPaidFund+=sm.paid; else supPaidOwn+=sm.paid;
+      supDue+=sm.pending; if(sm.overdue)supOvd+=sm.pending;});
+    const expFund=(data.expenses||[]).reduce((s,x)=>s+(x.value||0),0);
+    const verbaOut=supPaidFund+expFund;
+    const verbaSaldo=verbaIn-verbaOut;
+    const caixa=honorarios-supPaidOwn;
     const row=(label,val,color,strong)=>'<div class="flex spread" style="padding:8px 0;border-bottom:1px solid var(--line2)"><span style="font-size:13px;color:var(--muted)'+(strong?';font-weight:700;color:var(--ink)':'')+'">'+label+'</span><span style="font-weight:700'+(color?';color:'+color:'')+'">'+U.money(val)+'</span></div>';
     el.innerHTML=
-      '<div style="font-size:11px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Entradas (clientes)</div>'+
-      row('Recebido',recv,'var(--ok)')+
+      '<div style="font-size:11px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Sua receita (honorários)</div>'+
+      row('Recebido',honorarios,'var(--ok)')+
       row('A receber',fin.pending,fin.pending>0?'var(--warn)':'var(--ok)')+
-      '<div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 2px">Saídas (fornecedores)</div>'+
-      row('Pago a fornecedores',supPaid,'var(--ink)')+
+      '<div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.05em;margin:10px 0 2px">Saídas do seu caixa (fornecedores)</div>'+
+      row('Pago a fornecedores',supPaidOwn,'var(--ink)')+
       row('A pagar a fornecedores',supDue,supDue>0?'var(--warn)':'var(--ok)')+
       (supOvd>0?row('↳ vencido',supOvd,'var(--danger)'):'')+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding:11px 12px;border-radius:11px;background:var(--plum-soft)"><span style="font-weight:700;color:var(--plum)">Saldo em caixa</span><span style="font-family:\'Fraunces\',serif;font-weight:700;font-size:18px;color:'+(caixa>=0?'var(--ok)':'var(--danger)')+'">'+U.money(caixa)+'</span></div>'+
-      '<div class="hint" style="margin-top:6px">Saldo = recebido de clientes − pago a fornecedores. Compromissos futuros com fornecedores: <b>'+U.money(supDue)+'</b>.</div>';
+      (verbaIn>0||verbaOut>0?
+        '<div style="font-size:11px;font-weight:700;color:var(--info);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 2px"><i class="fas fa-hand-holding-dollar"></i> Verba de clientes (administrada)</div>'+
+        row('Repassado pelos clientes',verbaIn,'var(--info)')+
+        row('Já utilizado (pago)',verbaOut,'var(--ink)')+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:10px 12px;border-radius:11px;background:var(--info-bg)"><span style="font-weight:700;color:var(--info)">A prestar contas</span><span style="font-family:\'Fraunces\',serif;font-weight:700;font-size:16px;color:'+(verbaSaldo>=-0.005?'var(--info)':'var(--danger)')+'">'+U.money(verbaSaldo)+'</span></div>'+
+        '<div class="hint" style="margin-top:6px">Dinheiro de clientes sob sua administração — <b>não é receita sua</b>. Detalhe e gere o PDF em cada evento (Prestação de contas).</div>'
+        :
+        '<div class="hint" style="margin-top:6px">Saldo = honorários recebidos − pago a fornecedores do seu caixa. Compromissos futuros com fornecedores: <b>'+U.money(supDue)+'</b>.</div>')+'';
   },
   finance(){
     const contracted=data.contracts.filter(c=>c.status!=='cancelled').reduce((s,c)=>s+(c.value||0),0);
@@ -1743,7 +1757,8 @@ Object.assign(App,{
       '<div class="field"><label>Status</label><select id="f_estatus">'+sts+'</select></div>'+
       '<div class="field"><label>Observações</label><textarea id="f_eobs">'+U.esc(e.observations)+'</textarea></div>'+
       (id?'<button class="btn btn-ghost btn-block mb" onclick="App.openEventGuests(\''+id+'\')"><i class="fas fa-clipboard-check"></i> Lista de convidados / check-in</button>':'')+
-      (id?'<button class="btn btn-ghost btn-block mb" onclick="App.eventCostReport(\''+id+'\')"><i class="fas fa-chart-pie"></i> Relatório de custos do evento</button>':''),
+      (id?'<button class="btn btn-ghost btn-block mb" onclick="App.eventCostReport(\''+id+'\')"><i class="fas fa-chart-pie"></i> Relatório de custos do evento</button>':'')+
+      (id?'<button class="btn btn-ghost btn-block mb" onclick="App._acctEvent=null;App.eventAccountability(\''+id+'\')"><i class="fas fa-hand-holding-dollar"></i> Prestação de contas (verba do cliente)</button>':''),
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveEvent()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
   },
   saveEvent(){
@@ -1973,7 +1988,7 @@ Object.assign(App,{
   },
   waSupplier(id){const s=data.suppliers.find(x=>x.id===id);window.open(U.waLink(s.phone,'Olá '+s.name+'! '),'_blank');},
   del(coll,id){
-    const labels={events:'evento',clients:'cliente',suppliers:'fornecedor',budgets:'orçamento',contracts:'contrato',receipts:'recibo',supplierPayments:'pagamento',tasks:'tarefa',guests:'convidado'};
+    const labels={events:'evento',clients:'cliente',suppliers:'fornecedor',budgets:'orçamento',contracts:'contrato',receipts:'recibo',supplierPayments:'pagamento',expenses:'custo',tasks:'tarefa',guests:'convidado'};
     if(!confirm('Excluir este '+labels[coll]+'?'))return;
     data[coll]=data[coll].filter(x=>x.id!==id); saveStore();
     this.go(document.querySelector('.page.active').id.replace('page-',''));
@@ -2419,7 +2434,7 @@ Object.assign(App,{
       const cl=data.clients.find(c=>c.id===r.clientId);
       return '<div class="list-item">'+
         '<div class="li-ic" style="background:var(--ok-bg);color:var(--ok)"><i class="fas fa-receipt"></i></div>'+
-        '<div class="li-body" onclick="App.receiptModal(\''+r.id+'\')"><div class="li-title">'+U.esc(r.number||'Recibo')+(cl?' · '+U.esc(cl.name):'')+'</div><div class="li-sub">'+U.date(r.receiptDate)+' · '+U.esc(r.paymentMethod||'')+'</div></div>'+
+        '<div class="li-body" onclick="App.receiptModal(\''+r.id+'\')"><div class="li-title">'+U.esc(r.number||'Recibo')+(cl?' · '+U.esc(cl.name):'')+(r.kind==='repasse'?' <span class="badge b-info" style="font-size:9.5px">Verba</span>':'')+'</div><div class="li-sub">'+U.date(r.receiptDate)+' · '+U.esc(r.paymentMethod||'')+'</div></div>'+
         '<div class="li-end"><div class="li-val" style="color:var(--ok)">'+U.money(r.value)+'</div></div>'+
         '<div class="li-actions"><button class="abtn pdf" onclick="DocPreview.open(\'receipt\',\''+r.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waDoc(\'receipt\',\''+r.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'receipts\',\''+r.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
     }).join('')+'</div>';
@@ -2431,12 +2446,25 @@ Object.assign(App,{
     const pays=['Pix','Dinheiro','Cartão de crédito','Cartão de débito','Transferência','Boleto','Cheque'];
     this.openSheet(id?'Editar recibo':'Novo recibo',
       '<input type="hidden" id="f_reid" value="'+(r.id||'')+'">'+
+      '<div class="field"><label>Tipo de entrada</label><select id="f_rekind" onchange="App._reKindHint()">'+
+        '<option value="fee"'+((r.kind||'fee')==='fee'?' selected':'')+'>Honorário — sua receita</option>'+
+        '<option value="repasse"'+(r.kind==='repasse'?' selected':'')+'>Repasse / verba do cliente (a prestar contas)</option>'+
+      '</select><div class="hint" id="f_rekindhint"></div></div>'+
       '<div class="field"><label>Cliente <span class="req">*</span></label><select id="f_reclient"><option value="">— selecione —</option>'+cls+'</select></div>'+
       '<div class="field"><label>Evento</label><select id="f_reevent"><option value="">— opcional —</option>'+evs+'</select></div>'+
       '<div class="row2 mb"><div class="field"><label>Data</label><input type="date" id="f_redate" value="'+(r.receiptDate||new Date().toISOString().slice(0,10))+'"></div><div class="field"><label>Valor (R$) <span class="req">*</span></label><input type="number" step="0.01" id="f_revalue" value="'+(r.value||'')+'"></div></div>'+
       '<div class="field"><label>Forma de pagamento</label><select id="f_repay">'+pays.map(p=>'<option '+(r.paymentMethod===p?'selected':'')+'>'+p+'</option>').join('')+'</select></div>'+
       '<div class="field"><label>Referente a</label><textarea id="f_redesc" placeholder="Ex.: Entrada referente ao contrato de cerimonial">'+U.esc(r.description)+'</textarea></div>',
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveReceipt()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
+    this._reKindHint();
+  },
+  _reKindHint(){
+    const sel=document.getElementById('f_rekind'); const h=document.getElementById('f_rekindhint'); if(!sel||!h)return;
+    if(sel.value==='repasse'){
+      h.innerHTML='💼 Valor que <b>entra para você administrar</b> e pagar fornecedores/custos do cliente. <b>Não conta como sua receita</b> — aparece na <b>Prestação de contas</b> do evento.';
+    }else{
+      h.innerHTML='💰 Pagamento do seu serviço de cerimonial/assessoria. Entra como <b>receita</b> no caixa.';
+    }
   },
   saveReceipt(){
     const id=document.getElementById('f_reid').value, cid=document.getElementById('f_reclient').value, val=parseFloat(document.getElementById('f_revalue').value)||0;
@@ -2444,6 +2472,7 @@ Object.assign(App,{
     if(val<=0)return this.toast('Informe um valor válido','err');
     if(val>999999999)return this.toast('Valor muito alto','err');
     const o={clientId:cid,eventId:document.getElementById('f_reevent').value,receiptDate:document.getElementById('f_redate').value,
+      kind:document.getElementById('f_rekind').value,
       value:val,paymentMethod:document.getElementById('f_repay').value,description:document.getElementById('f_redesc').value.trim(),updatedAt:new Date().toISOString()};
     if(id){const i=data.receipts.findIndex(x=>x.id===id);o.number=data.receipts[i].number;data.receipts[i]={...data.receipts[i],...o};}
     else{o.id=U.id('re');o.createdAt=new Date().toISOString();o.number='REC-'+String(data.receipts.length+1).padStart(4,'0');data.receipts.push(o);}
@@ -2462,6 +2491,142 @@ Object.assign(App,{
       filename=(doc.number||'recibo')+'.pdf';
     }
     this._waWithPdf(type,id,cl.phone,msg,filename);
+  },
+});
+
+/* ===== CUSTOS DA VERBA + PRESTAÇÃO DE CONTAS ===== */
+Object.assign(App,{
+  expenseModal(id, presetEventId){
+    const x=id?(data.expenses.find(e=>e.id===id)||{}):{};
+    if(presetEventId&&!x.eventId)x.eventId=presetEventId;
+    const cats=['Transporte','Estacionamento','Taxas / cartório','Decoração','Locação','Alimentação da equipe','Gorjeta','Compras diversas','Outro'];
+    const evs=data.events.map(e=>{const cl=data.clients.find(c=>c.id===e.clientId);return '<option value="'+e.id+'" '+(x.eventId===e.id?'selected':'')+'>'+U.esc(e.type)+(cl?' - '+U.esc(cl.name):'')+'</option>';}).join('');
+    const pays=['Pix','Dinheiro','Cartão','Transferência','Boleto'];
+    this.openSheet(id?'Editar custo':'Novo custo da verba',
+      '<input type="hidden" id="f_xid" value="'+(x.id||'')+'">'+
+      '<div class="hint" style="background:var(--info-bg);padding:9px 11px;border-radius:9px;margin-bottom:10px">Custo pago <b>com a verba repassada pelo cliente</b> (transporte, taxas, compras, gorjetas...). Entra na <b>prestação de contas</b> do evento — não sai do seu caixa.</div>'+
+      '<div class="field"><label>Evento <span class="req">*</span></label><select id="f_xevent"><option value="">— selecione —</option>'+evs+'</select></div>'+
+      '<div class="row2 mb"><div class="field"><label>Data</label><input type="date" id="f_xdate" value="'+(x.date||new Date().toISOString().slice(0,10))+'"></div><div class="field"><label>Valor (R$) <span class="req">*</span></label><input type="number" step="0.01" id="f_xvalue" value="'+(x.value||'')+'"></div></div>'+
+      '<div class="row2 mb"><div class="field"><label>Categoria</label><select id="f_xcat">'+cats.map(c=>'<option '+(x.category===c?'selected':'')+'>'+c+'</option>').join('')+'</select></div><div class="field"><label>Forma de pagamento</label><select id="f_xpay">'+pays.map(p=>'<option '+(x.method===p?'selected':'')+'>'+p+'</option>').join('')+'</select></div></div>'+
+      '<div class="field"><label>Descrição</label><input id="f_xdesc" value="'+U.esc(x.description||'')+'" placeholder="Ex.: Uber ida e volta ao salão"></div>',
+      '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveExpense()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
+  },
+  saveExpense(){
+    const id=document.getElementById('f_xid').value;
+    const eventId=document.getElementById('f_xevent').value;
+    const val=parseFloat(document.getElementById('f_xvalue').value)||0;
+    if(!eventId)return this.toast('Selecione o evento','err');
+    if(val<=0)return this.toast('Informe um valor válido','err');
+    if(val>999999999)return this.toast('Valor muito alto','err');
+    const ev=data.events.find(e=>e.id===eventId);
+    const o={eventId,clientId:ev?ev.clientId:'',date:document.getElementById('f_xdate').value,value:val,
+      category:document.getElementById('f_xcat').value,method:document.getElementById('f_xpay').value,
+      description:document.getElementById('f_xdesc').value.trim(),updatedAt:new Date().toISOString()};
+    if(id){const i=data.expenses.findIndex(e=>e.id===id);o.number=data.expenses[i].number;data.expenses[i]={...data.expenses[i],...o};}
+    else{o.id=U.id('xp');o.createdAt=new Date().toISOString();o.number='CST-'+String(data.expenses.length+1).padStart(4,'0');data.expenses.push(o);}
+    saveStore();this.closeSheet();
+    if(this._acctEvent===eventId){this.eventAccountability(eventId);} else {this.renderDashboard();}
+    this.toast('Custo salvo','ok');
+  },
+
+  // Aggregate the client-fund accounting for one event
+  accountabilityData(eventId){
+    const e=data.events.find(x=>x.id===eventId); if(!e)return null;
+    const cl=data.clients.find(c=>c.id===e.clientId)||{};
+    const deposits=data.receipts.filter(r=>r.eventId===eventId&&r.kind==='repasse')
+      .map(r=>({date:r.receiptDate,label:r.description||'Repasse de verba',value:r.value||0,ref:r.number||'',method:r.paymentMethod||''}))
+      .sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const totalIn=deposits.reduce((s,d)=>s+d.value,0);
+    const disb=[];
+    (data.supplierPayments||[]).filter(p=>p.fromFund&&p.eventId===eventId).forEach(p=>{
+      const sup=data.suppliers.find(s=>s.id===p.supplierId);
+      (p.installments||[]).filter(i=>i.paid).forEach(i=>{
+        disb.push({date:i.paidDate||i.dueDate||'',cat:'Fornecedor',label:(sup?sup.name:'Fornecedor')+(i.label?' · '+i.label:''),value:i.value||0,ref:p.number||''});
+      });
+    });
+    (data.expenses||[]).filter(x=>x.eventId===eventId).forEach(x=>{
+      disb.push({date:x.date||'',cat:x.category||'Custo',label:x.description||x.category||'Custo',value:x.value||0,ref:x.number||''});
+    });
+    disb.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const totalOut=disb.reduce((s,d)=>s+d.value,0);
+    let committedPending=0;
+    (data.supplierPayments||[]).filter(p=>p.fromFund&&p.eventId===eventId).forEach(p=>{const sm=this.paySummary(p);committedPending+=sm.pending;});
+    const balance=totalIn-totalOut;
+    return {e,cl,deposits,disb,totalIn,totalOut,balance,committedPending};
+  },
+
+  eventAccountability(eventId){
+    const d=this.accountabilityData(eventId); if(!d)return;
+    this._acctEvent=eventId;
+    const balPos=d.balance>=-0.005;
+    const balLabel=Math.abs(d.balance)<0.005?'Verba totalmente utilizada':(balPos?'Saldo a devolver ao cliente':'Cliente deve complementar');
+    const balColor=Math.abs(d.balance)<0.005?'var(--muted)':(balPos?'var(--ok)':'var(--danger)');
+    const drow=(it)=>'<div class="flex spread" style="padding:7px 0;border-bottom:1px solid var(--line2);font-size:12.5px"><span><span class="muted">'+U.date(it.date)+'</span> · '+U.esc(it.label)+(it.cat&&it.cat!=='Fornecedor'?' <span class="badge b-muted" style="font-size:9px">'+U.esc(it.cat)+'</span>':'')+'</span><span style="font-weight:600;white-space:nowrap">'+U.money(it.value)+'</span></div>';
+    const sumrow=(label,val,color,strong)=>'<div class="flex spread" style="padding:8px 0;border-bottom:1px solid var(--line2)"><span style="font-size:13px;color:var(--muted)'+(strong?';font-weight:700;color:var(--ink)':'')+'">'+label+'</span><span style="font-weight:700'+(color?';color:'+color:'')+'">'+U.money(val)+'</span></div>';
+    const depHtml=d.deposits.length?d.deposits.map(drow).join(''):'<div class="hint" style="margin:4px 0">Nenhum repasse registrado. Lance uma entrada do tipo <b>Repasse / verba</b> vinculada a este evento.</div>';
+    const disbHtml=d.disb.length?d.disb.map(drow).join(''):'<div class="hint" style="margin:4px 0">Nenhum custo lançado na verba ainda.</div>';
+    const body=
+      '<div style="font-size:14px;font-weight:700;margin-bottom:2px">'+U.esc(d.e.type)+(d.cl.name?' · '+U.esc(d.cl.name):'')+'</div>'+
+      '<div class="small muted mb">'+U.dateLong(d.e.date)+'</div>'+
+      '<div style="display:flex;gap:9px;margin-bottom:12px">'+
+        '<button class="btn btn-ghost btn-sm" style="flex:1" onclick="App.receiptModal()"><i class="fas fa-arrow-down"></i> + Repasse</button>'+
+        '<button class="btn btn-ghost btn-sm" style="flex:1" onclick="App.expenseModal(\''+'\',\''+eventId+'\')"><i class="fas fa-arrow-up"></i> + Custo</button>'+
+      '</div>'+
+      '<div style="font-size:11px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Repasses recebidos do cliente</div>'+
+      depHtml+
+      sumrow('Total repassado',d.totalIn,'var(--ok)',true)+
+      '<div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 2px">Pagamentos e custos (com a verba)</div>'+
+      disbHtml+
+      sumrow('Total utilizado',d.totalOut,'var(--ink)',true)+
+      (d.committedPending>0?'<div class="hint" style="margin-top:6px;color:var(--warn)"><i class="fas fa-clock"></i> Compromissos da verba ainda a pagar: <b>'+U.money(d.committedPending)+'</b></div>':'')+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:13px;padding:12px 13px;border-radius:11px;background:var(--plum-soft)"><span style="font-weight:700;color:var(--plum)">'+balLabel+'</span><span style="font-family:\'Fraunces\',serif;font-weight:700;font-size:18px;color:'+balColor+'">'+U.money(Math.abs(d.balance))+'</span></div>';
+    this.openSheet('Prestação de contas',body,
+      '<button class="btn btn-ghost" onclick="App._acctEvent=null;App.eventModal(\''+eventId+'\')">Voltar</button><button class="btn btn-primary" onclick="App.pdfAccountability(\''+eventId+'\')"><i class="fas fa-file-pdf"></i> Gerar PDF</button>');
+  },
+
+  pdfAccountability(eventId){
+    const d=this.accountabilityData(eventId); if(!d)return;
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth(), M=18;
+    PDF.decorate(doc); let y=PDF.header(doc,'Prestação','de contas');
+    const [r,g,bb]=PDF.rgb(data.settings.accent);
+    doc.setFont('times','bold');doc.setFontSize(13);doc.setTextColor(r,g,bb);
+    doc.text('PRESTAÇÃO DE CONTAS',W/2,y,{align:'center'});doc.setTextColor(40,35,48);y+=4;
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.3);doc.line(W/2-46,y,W/2+46,y);y+=9;
+    doc.setFont('helvetica','normal');doc.setFontSize(10);
+    if(d.cl.name){doc.text('Cliente: '+d.cl.name,M,y);y+=6;}
+    doc.text('Evento: '+d.e.type+' · '+U.dateLong(d.e.date),M,y);y+=4;
+    const newPage=()=>{PDF.footer(doc);doc.addPage();PDF.decorate(doc);y=24;};
+    const sectionTitle=(t,col)=>{if(y>262)newPage();const c=PDF.rgb(col);doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(c[0],c[1],c[2]);doc.text(t,M,y);doc.setTextColor(40,35,48);y+=2;doc.setDrawColor(c[0],c[1],c[2]);doc.setLineWidth(0.3);doc.line(M,y,W-M,y);y+=5;};
+    const lineItem=(left,right,bold)=>{if(y>272)newPage();doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(9.3);
+      const lw=doc.splitTextToSize(left,W-M-M-34);doc.text(lw,M,y);doc.text(right,W-M,y,{align:'right'});
+      const h=Math.max(lw.length*4.2,5);doc.setDrawColor(236,228,236);doc.setLineWidth(0.15);doc.line(M,y+1.6,W-M,y+1.6);y+=h+1.2;};
+    y+=6;
+    sectionTitle('REPASSES RECEBIDOS DO CLIENTE','#2e8b57');
+    if(d.deposits.length)d.deposits.forEach(it=>lineItem(U.date(it.date)+'   '+it.label+(it.method?'  ('+it.method+')':''),U.money(it.value)));
+    else{doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(120,110,126);doc.text('Nenhum repasse registrado.',M,y);doc.setTextColor(40,35,48);y+=6;}
+    lineItem('Total repassado',U.money(d.totalIn),true);y+=3;
+    sectionTitle('PAGAMENTOS E CUSTOS REALIZADOS','#b03a2e');
+    if(d.disb.length)d.disb.forEach(it=>lineItem(U.date(it.date)+'   ['+it.cat+'] '+it.label,U.money(it.value)));
+    else{doc.setFont('helvetica','italic');doc.setFontSize(9);doc.setTextColor(120,110,126);doc.text('Nenhum custo lançado.',M,y);doc.setTextColor(40,35,48);y+=6;}
+    lineItem('Total utilizado',U.money(d.totalOut),true);y+=4;
+    if(y>250)newPage();
+    const balPos=d.balance>=-0.005; const balAbs=Math.abs(d.balance);
+    const balLabel=balAbs<0.005?'VERBA TOTALMENTE UTILIZADA':(balPos?'SALDO A DEVOLVER AO CLIENTE':'CLIENTE DEVE COMPLEMENTAR');
+    const bc=balAbs<0.005?[120,110,126]:(balPos?[46,139,87]:[176,58,46]);
+    doc.setFillColor(243,233,240);doc.roundedRect(M,y,W-2*M,14,2.5,2.5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(74,31,64);doc.text(balLabel,M+4,y+9);
+    doc.setTextColor(bc[0],bc[1],bc[2]);doc.setFontSize(12.5);doc.text(U.money(balAbs),W-M-4,y+9,{align:'right'});doc.setTextColor(40,35,48);y+=20;
+    if(d.committedPending>0){doc.setFont('helvetica','italic');doc.setFontSize(8.6);doc.setTextColor(176,120,30);doc.text('Obs.: compromissos da verba ainda a pagar: '+U.money(d.committedPending)+'.',M,y);doc.setTextColor(40,35,48);y+=7;}
+    if(y>238)newPage();
+    doc.setFont('times','italic');doc.setFontSize(8.6);doc.setTextColor(110,100,118);
+    doc.splitTextToSize('Declaro que os valores acima refletem os repasses recebidos e os pagamentos realizados em nome do(a) cliente para o evento, com os respectivos comprovantes à disposição.',W-2*M).forEach(l=>{doc.text(l,M,y);y+=4.2;});
+    doc.setTextColor(40,35,48);y+=12;
+    const city=(data.settings.address||'').split(/[-,]/)[0]||'';
+    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text((city.trim()?city.trim()+', ':'')+U.dateLong(new Date().toISOString().slice(0,10)),W-M,y,{align:'right'});y+=16;
+    if(data.settings.signature){PDF.sign(doc,W/2,y);}
+    doc.setDrawColor(60,55,68);doc.setLineWidth(0.4);doc.line(W/2-38,y,W/2+38,y);y+=5;
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text(data.settings.companyName||'',W/2,y,{align:'center'});
+    PDF.footer(doc);PDF.open(doc,'prestacao-contas-'+(d.e.type||'evento').toLowerCase().replace(/\s+/g,'-')+'.pdf');this.toast('PDF gerado','ok');
   },
 });
 
@@ -2579,6 +2744,7 @@ Object.assign(App,{
       '<div class="field"><label>Fornecedor <span class="req">*</span></label><select id="f_psup"><option value="">— selecione —</option>'+sup+'</select></div>'+
       '<div class="field"><label>Evento <span class="muted" style="font-weight:400">(p/ relatório de custos)</span></label><select id="f_pevent"><option value="">— opcional —</option>'+evs+'</select></div>'+
       '<div class="field"><label>Referência</label><input id="f_pdesc" value="'+U.esc(p.description||'')+'" placeholder="Ex.: Buffet 120 convidados — casamento"></div>'+
+      '<label class="field" style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;background:var(--info-bg);padding:10px 12px;border-radius:10px;margin-bottom:10px"><input type="checkbox" id="f_pfund" '+(p.fromFund?'checked':'')+' style="width:18px;height:18px;margin-top:1px;flex-shrink:0"><span style="font-size:12.5px;line-height:1.35"><b>Pago com a verba repassada pelo cliente</b><br><span class="muted">Marque quando o cliente adiantou o dinheiro para você administrar. Entra na <b>prestação de contas</b> do evento (não sai do seu caixa).</span></span></label>'+
       '<div class="field"><label>Valor total acordado (R$)</label><input type="number" step="0.01" min="0" id="f_pcontract" value="'+(p.contractedValue||'')+'" placeholder="Valor fechado com o fornecedor" oninput="App._payRecalc()"></div>'+
       '<div class="hint" style="margin-bottom:6px">Deixe em branco para somar automaticamente as parcelas abaixo.</div>'+
       '<label style="font-size:13px;font-weight:700;margin:10px 0 8px;display:block"><i class="fas fa-calendar-day" style="color:var(--plum)"></i> Parcelas & agendamento</label>'+
@@ -2720,6 +2886,7 @@ Object.assign(App,{
       supplierId,
       eventId:document.getElementById('f_pevent').value,
       description:document.getElementById('f_pdesc').value.trim(),
+      fromFund:!!(document.getElementById('f_pfund')&&document.getElementById('f_pfund').checked),
       contractedValue:contracted,
       installments:inst,
       updatedAt:new Date().toISOString()
@@ -3103,7 +3270,7 @@ Object.assign(App,{
     if(!confirm('Isso apaga TODOS os dados deste dispositivo. Continuar?'))return;
     if(!confirm('Tem certeza? Esta ação não pode ser desfeita.'))return;
     const set=data.settings;
-    data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],settings:set,updatedAt:new Date().toISOString()};
+    data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],expenses:[],tasks:[],guests:[],settings:set,updatedAt:new Date().toISOString()};
     saveStore();this.renderAll();this.go('dashboard');this.toast('Dados apagados','ok');
   },
 });
@@ -3583,7 +3750,7 @@ const Sync={
         if(!confirm('Os dados na nuvem são mais antigos que os locais. Baixar mesmo assim e substituir o local?')){this.setBusy(false);return;}
       }
       data=Object.assign(data,remote);
-      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','expenses','tasks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       saveStore(true); syncCfg.lastSync=new Date().toISOString(); saveSync();
       App.refreshChrome(); App.renderAll(); App.go('dashboard');
       this.updatePill(); this.updateStatus();
@@ -3710,7 +3877,7 @@ const FB={
   _applyRemote(remote){
     data=Object.assign(data, remote);
     data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''}, remote.settings||{});
-    ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
+    ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','expenses','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
     // cache offline
     try{ saveToIndexedDB(IDB_KEY,data); }catch(e){}
     if(window._currentEmail){ try{ localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data)); }catch(e){} }
@@ -4465,6 +4632,7 @@ const FinDash = {
       const sm = App.paySummary ? App.paySummary(p) : {paid:0, pending:0};
       totalPago += sm.paid||0;
     });
+    totalPago += (data.expenses||[]).reduce((s,x)=>s+(x.value||0),0);
     const saldo = recv - totalPago;
 
     const kEl = document.getElementById('fluxoKpis');
