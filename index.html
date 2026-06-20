@@ -17,9 +17,7 @@
 <!-- ===== Firebase SDK v12.14.0 (Auth Google + Firestore em nuvem) ===== -->
 <script type="module">
   import { initializeApp }   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
-           createUserWithEmailAndPassword, signInWithEmailAndPassword,
-           sendPasswordResetEmail, updateProfile, setPersistence, browserLocalPersistence }
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, onSnapshot }
     from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
@@ -40,14 +38,9 @@
     const db          = getFirestore(firebaseApp);
     const provider    = new GoogleAuthProvider();
 
-    // Mantém a sessão salva no aparelho (login persistente entre recarregamentos)
-    try { await setPersistence(auth, browserLocalPersistence); } catch(e){ console.warn('persistence:', e); }
-
     // Expõe para o código global
     window._firebase = { auth, db, provider, signInWithPopup, signOut,
-                         onAuthStateChanged, createUserWithEmailAndPassword,
-                         signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile,
-                         doc, setDoc, getDoc, onSnapshot };
+                         onAuthStateChanged, doc, setDoc, getDoc, onSnapshot };
     document.dispatchEvent(new Event('firebase-ready'));
   } catch (e) {
     console.error('Falha ao iniciar Firebase:', e);
@@ -1018,7 +1011,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
       <div class="card" id="fbSettingsCard" style="display:none">
         <div class="card-h"><h3><i class="fas fa-cloud" style="color:var(--gold-deep);margin-right:7px"></i>Conta Google · Sincronização automática</h3></div>
         <div class="card-pad">
-          <div class="alert" style="background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"><i class="fas fa-circle-check"></i> <b>Dados sincronizados na nuvem!</b> Salvos automaticamente no Firebase e disponíveis em qualquer aparelho onde você entrar com o mesmo e-mail (por senha ou Google).</div>
+          <div class="alert" style="background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:14px"><i class="fas fa-circle-check"></i> <b>Dados sincronizados na nuvem!</b> Salvos automaticamente no Firebase e disponíveis em qualquer dispositivo onde você entrar com o mesmo e-mail Google.</div>
           <div class="fb-user" style="background:var(--bg);border-radius:12px;padding:12px 14px">
             <div id="fbUserAvatar"></div>
             <div style="flex:1;min-width:0">
@@ -1341,17 +1334,6 @@ async function saveStore(silent){
 
 function saveSync(){localStorage.setItem(SYNC_KEY,JSON.stringify(syncCfg));}
 
-/* Cria um conjunto de dados novo e limpo (usado na 1ª gravação na nuvem) */
-function freshData(seed){
-  seed=seed||{};
-  const base={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],despesasFixas:[],metas:[],fluxoExtra:[],
-    settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}',protect:{contextMenu:true,selection:true,devKeys:true,drag:true,devtoolsWarn:false}},
-    updatedAt:new Date().toISOString()};
-  if(seed.companyName) base.settings.companyName=seed.companyName;
-  if(seed.userName)    base.settings.userName=seed.userName;
-  return base;
-}
-
 /* ===== utils ===== */
 const U={
   id:(p='id')=>p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),
@@ -1389,36 +1371,47 @@ const Auth={
   _initials(name){const p=(name||'').trim().split(/\s+/);return ((p[0]?.[0]||'')+(p.length>1?p[p.length-1][0]:'')).toUpperCase()||'?';},
 
   init(){
-    // Migração do antigo sistema de conta única → preserva dados locais p/ eventual migração
+    // Migration: if old single-account system exists, convert it
     const oldPass=localStorage.getItem('cp_pass');
+    const oldLoggedIn=localStorage.getItem('cp_loggedin');
     const oldData=localStorage.getItem(STORE_KEY);
     if((oldPass || oldData) && this._accounts().length===0){
       let companyName='CerimonialPro';
       let userName='Cerimonialista';
       try{const d=JSON.parse(oldData||'{}');companyName=d.settings?.companyName||companyName;userName=d.settings?.userName||userName;}catch{}
       const migratedEmail='admin@local';
-      this._saveAccounts([{email:migratedEmail,name:companyName,userName,hash:oldPass||'',createdAt:new Date().toISOString()}]);
+      const migrated={email:migratedEmail,name:companyName,userName,hash:oldPass||'',createdAt:new Date().toISOString()};
+      this._saveAccounts([migrated]);
       if(oldData) localStorage.setItem('cpData_'+migratedEmail, oldData);
       localStorage.removeItem('cp_pass');
       localStorage.removeItem('cp_loggedin');
+      // If user was already logged in OR had no password set, restore session automatically
+      if(oldLoggedIn==='1' || !oldPass){
+        localStorage.setItem(SESSION_KEY, migratedEmail);
+        this._loadSession(migratedEmail).catch(e=>console.error(e));
+        return;
+      }
     }
-    // IMPORTANTE: o estado de login agora é controlado pelo Firebase (onAuthStateChanged
-    // em FB.init). Não iniciamos mais sessão local — assim os dados ficam na nuvem e
-    // sincronizam entre aparelhos. Aqui apenas preparamos a tela de login.
+
+    const session=localStorage.getItem(SESSION_KEY);
+    if(session){ this._loadSession(session).catch(e=>console.error(e)); return; }
+
     this._renderLoginUI();
-    const last=localStorage.getItem(SESSION_KEY);
-    if(last){ const i=document.getElementById('loginEmail'); if(i && !i.value) i.value=last; }
   },
 
   _renderLoginUI(){
     const accounts=this._accounts();
-    const last=localStorage.getItem(SESSION_KEY);
-    // Mostra seletor de contas locais (atalho de preenchimento), se houver
+    if(accounts.length===0){
+      // No accounts — push user to register
+      this.switchTab('register');
+      return;
+    }
+    // Show account selector
     if(accounts.length>0){
       const sel=document.getElementById('accountSelector');
       const list=document.getElementById('accountList');
-      if(sel) sel.style.display='block';
-      if(list) list.innerHTML=accounts.map(a=>`
+      sel.style.display='block';
+      list.innerHTML=accounts.map(a=>`
         <button class="acc-item" onclick="Auth._pickAccount('${a.email}')">
           <div class="acc-avatar">${this._initials(a.name)}</div>
           <div class="acc-info">
@@ -1427,12 +1420,6 @@ const Auth={
           </div>
           <i class="fas fa-chevron-right" style="color:var(--faint);font-size:12px"></i>
         </button>`).join('');
-      this.switchTab('login');
-    } else if(last){
-      this.switchTab('login');
-    } else {
-      // Primeiro acesso neste aparelho → incentiva criar conta
-      this.switchTab('register');
     }
   },
 
@@ -1483,28 +1470,21 @@ const Auth={
     bar.style.width=l.w; bar.style.background=l.bg; lbl.textContent=l.t;
   },
 
-  async login(){
+  login(){
     const errEl=document.getElementById('loginErr'); errEl.style.display='none';
-    errEl.style.background=''; errEl.style.color='';
     const email=document.getElementById('loginEmail').value.trim().toLowerCase();
     const pass=document.getElementById('loginPass').value;
-    const showErr=msg=>{errEl.style.display='block';errEl.style.background='';errEl.style.color='';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> '+msg;};
-    if(!email){showErr('Informe o e-mail.');return;}
-    if(!pass){showErr('Informe a senha.');return;}
-    if(!window._firebase){showErr('Conexão com o servidor indisponível. Verifique sua internet e tente novamente em instantes.');return;}
-    showErr('<i class="fas fa-spinner fa-spin"></i> Entrando…');
-    try{
-      const { auth, signInWithEmailAndPassword }=window._firebase;
-      FB._pendingProfile=null; // é login, não cadastro
-      await signInWithEmailAndPassword(auth, email, pass);
-      // o restante acontece em onAuthStateChanged → FB.onLogin (sincroniza da nuvem)
-    }catch(e){
-      console.error(e);
-      showErr(Auth._mapErr(e));
-    }
+    if(!email){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Informe o e-mail.';return;}
+    if(!pass){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Informe a senha.';return;}
+    const accounts=this._accounts();
+    const acc=accounts.find(a=>a.email===email);
+    if(!acc){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Conta não encontrada. <button type="button" onclick="Auth.switchTab(\'register\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Criar conta?</button>';return;}
+    if(this._hash(pass)!==acc.hash){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Senha incorreta. Tente novamente.';return;}
+    localStorage.setItem(SESSION_KEY,email);
+    this._loadSession(email).catch(e=>console.error(e));
   },
 
-  async register(){
+  register(){
     const errEl=document.getElementById('registerErr'); errEl.style.display='none';
     const company=document.getElementById('regCompany').value.trim();
     const user=document.getElementById('regUser').value.trim();
@@ -1516,54 +1496,18 @@ const Auth={
     if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr('Informe um e-mail válido.');return;}
     if(pass.length<6){showErr('A senha deve ter pelo menos 6 caracteres.');return;}
     if(pass!==pass2){showErr('As senhas não coincidem.');return;}
-    if(!window._firebase){showErr('Conexão com o servidor indisponível. Verifique sua internet e tente novamente em instantes.');return;}
-    showErr('<i class="fas fa-spinner fa-spin"></i> Criando conta…');
-    try{
-      const { auth, createUserWithEmailAndPassword, updateProfile }=window._firebase;
-      // Marca como cadastro novo → a 1ª gravação na nuvem começará limpa, com a empresa
-      FB._pendingProfile={companyName:company,userName:user||company,fresh:true};
-      const cred=await createUserWithEmailAndPassword(auth, email, pass);
-      try{ await updateProfile(cred.user,{displayName:user||company}); }catch(e){}
-      // o restante acontece em onAuthStateChanged → FB.onLogin → semeia a conta na nuvem
-    }catch(e){
-      console.error(e);
-      FB._pendingProfile=null;
-      showErr(Auth._mapErr(e));
-    }
-  },
-
-  async forgotPass(){
-    const errEl=document.getElementById('loginErr');
-    const email=document.getElementById('loginEmail').value.trim().toLowerCase();
-    const show=(msg,ok)=>{errEl.style.display='block';errEl.style.background=ok?'var(--ok-bg)':'';errEl.style.color=ok?'var(--ok)':'';errEl.innerHTML='<i class="fas fa-'+(ok?'circle-check':'circle-exclamation')+'"></i> '+msg;};
-    if(!email){show('Informe o e-mail da conta para redefinir a senha.');return;}
-    if(!window._firebase){show('Conexão indisponível. Verifique sua internet.');return;}
-    try{
-      const { auth, sendPasswordResetEmail }=window._firebase;
-      await sendPasswordResetEmail(auth, email);
-      show('Enviamos um link de redefinição para <b>'+U.esc(email)+'</b>. Verifique sua caixa de entrada (e o spam).', true);
-    }catch(e){
-      console.error(e);
-      show(Auth._mapErr(e));
-    }
-  },
-
-  _mapErr(e){
-    const c=(e&&e.code)||'';
-    const m={
-      'auth/invalid-email':'E-mail inválido.',
-      'auth/missing-email':'Informe o e-mail.',
-      'auth/user-disabled':'Esta conta foi desativada.',
-      'auth/user-not-found':'Conta não encontrada. Crie uma conta primeiro.',
-      'auth/wrong-password':'Senha incorreta. Tente novamente.',
-      'auth/invalid-credential':'E-mail ou senha incorretos.',
-      'auth/email-already-in-use':'Este e-mail já está cadastrado. Use a aba “Entrar”.',
-      'auth/weak-password':'A senha deve ter pelo menos 6 caracteres.',
-      'auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
-      'auth/network-request-failed':'Falha de rede. Verifique sua conexão com a internet.',
-      'auth/operation-not-allowed':'Login por e-mail/senha não está habilitado. Ative em Firebase › Authentication › Sign-in method › E-mail/senha.'
-    };
-    return m[c] || ('Não foi possível concluir. '+(e.message||c||'Erro desconhecido.'));
+    const accounts=this._accounts();
+    if(accounts.find(a=>a.email===email)){showErr('Este e-mail já está cadastrado. <button type="button" onclick="Auth.switchTab(\'login\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Entrar?</button>');return;}
+    const newAcc={email,name:company,userName:user||company,hash:this._hash(pass),createdAt:new Date().toISOString()};
+    accounts.push(newAcc);
+    this._saveAccounts(accounts);
+    // Pre-populate settings for new account
+    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],
+      settings:{companyName:company,userName:user||company,email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}',protect:{contextMenu:true,selection:true,devKeys:true,drag:true,devtoolsWarn:false}},
+      updatedAt:new Date().toISOString()};
+    localStorage.setItem('cpData_'+email,JSON.stringify(accData));
+    localStorage.setItem(SESSION_KEY,email);
+    this._loadSession(email).catch(e=>console.error(e));
   },
 
   async _loadSession(email){
@@ -1583,10 +1527,40 @@ const Auth={
     App.start();
   },
 
+  forgotPass(){
+    const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+    if(!email){
+      document.getElementById('loginErr').style.display='block';
+      document.getElementById('loginErr').innerHTML='<i class="fas fa-circle-exclamation"></i> Informe o e-mail da conta para redefinir a senha.';
+      return;
+    }
+    const accounts=this._accounts();
+    const idx=accounts.findIndex(a=>a.email===email);
+    if(idx===-1){
+      document.getElementById('loginErr').style.display='block';
+      document.getElementById('loginErr').innerHTML='<i class="fas fa-circle-exclamation"></i> Conta não encontrada com esse e-mail.';
+      return;
+    }
+    if(confirm('Redefinir senha da conta "'+accounts[idx].name+'" ('+email+')?\n\nVocê precisará criar uma nova senha. Os dados permanecem intactos.')){
+      accounts.splice(idx,1);
+      this._saveAccounts(accounts);
+      // Keep data, just remove account so user re-registers with same email
+      // Actually let them re-create password only:
+      // Re-add with blank hash so they can re-register
+      alert('Senha removida. Crie sua conta novamente com o mesmo e-mail para acessar seus dados.');
+      this.switchTab('register');
+      document.getElementById('regEmail').value=email;
+    }
+  },
+
   logout(){
-    // Usuário Firebase (e-mail/senha ou Google) → encerra a sessão na nuvem
-    if(window._fbUser || (window._firebase && window._firebase.auth.currentUser)){ FB.logout(); return; }
+    if(window._fbUser){ FB.logout(); return; }
     if(confirm('Deseja sair do sistema? Seus dados permanecem salvos.')){
+      // Save current data before logout
+      if(window._currentEmail){
+        data.updatedAt=new Date().toISOString();
+        localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data));
+      }
       localStorage.removeItem(SESSION_KEY);
       location.reload();
     }
@@ -1598,8 +1572,7 @@ const Auth={
 ============================================================ */
 const App={
   curFilter:'all',
-  async init(){
-    try{ await loadStore(); }catch(e){ console.warn(e); }
+  init(){
     Auth.init();
     FB.init();
   },
@@ -3642,7 +3615,6 @@ const FB={
   _lastPush:null,
   _saveTimer:null,
   _booted:false,
-  _pendingProfile:null,
 
   init(){
     const begin=()=>{
@@ -3696,8 +3668,7 @@ const FB={
     this.user=user;
     window._fbUser=user;
     window._currentEmail=user.email||user.uid; // cache local namespeado por e-mail
-    try{ if(user.email) localStorage.setItem(SESSION_KEY,user.email); }catch(e){}
-    // Atualiza o cabeçalho do menu com identidade da conta
+    // Atualiza o cabeçalho do menu com identidade Google
     const drCo=document.getElementById('drCompany');
     if(drCo && (!data.settings.companyName || data.settings.companyName==='CerimonialPro'))
       drCo.textContent=user.displayName||user.email;
@@ -3716,7 +3687,6 @@ const FB={
     const ref=doc(db,'usuarios',this.user.uid);
     if(this._unsub){ this._unsub(); }
     this._unsub=onSnapshot(ref, snap=>{
-      this._banner(null); // limpa avisos anteriores se a leitura voltou a funcionar
       if(snap.exists()){
         const remote=snap.data();
         // ignora o "eco" da nossa própria gravação
@@ -3726,58 +3696,15 @@ const FB={
         this._applyRemote(remote);
         this.setStatus('on','Sincronizado');
       }else{
-        // primeiro acesso deste usuário: cria o documento na nuvem
-        this._seedFirstTime().catch(e=>{ console.error(e); this._diagnose(e,'gravar'); });
+        // primeiro acesso deste usuário: envia os dados atuais (migra local → nuvem)
+        this._pushNow().catch(e=>console.error(e));
       }
       this._ensureBooted();
     }, err=>{
-      console.error('Firestore onSnapshot:', err);
+      console.error(err);
       this.setStatus('err','Erro de conexão');
-      this._diagnose(err,'ler');
       this._ensureBooted();
     });
-  },
-
-  // Mostra um aviso fixo no topo da tela (visível mesmo sem abrir o console)
-  _banner(html,kind){
-    let b=document.getElementById('fbBanner');
-    if(!html){ if(b) b.remove(); return; }
-    if(!b){
-      b=document.createElement('div');
-      b.id='fbBanner';
-      b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:99999;padding:12px 44px 12px 16px;font-size:13px;line-height:1.45;font-family:inherit;box-shadow:0 2px 10px rgba(0,0,0,.18)';
-      document.body.appendChild(b);
-    }
-    const bg = kind==='ok' ? '#1e7e4f' : kind==='warn' ? '#9a6b00' : '#b3261e';
-    b.style.background=bg; b.style.color='#fff';
-    b.innerHTML='<button onclick="document.getElementById(\'fbBanner\').remove()" style="position:absolute;right:10px;top:8px;background:rgba(255,255,255,.2);border:none;color:#fff;width:26px;height:26px;border-radius:7px;cursor:pointer;font-size:14px">&times;</button>'+html;
-  },
-
-  // Traduz o erro do Firebase em uma orientação clara na tela
-  _diagnose(err, acao){
-    const code=(err&&err.code)||'';
-    if(code==='permission-denied' || /Missing or insufficient permissions/i.test(err&&err.message||'')){
-      this._banner(
-        '<b>Não foi possível '+acao+' os dados na nuvem — permissão negada pelo Firestore.</b><br>'+
-        'No <b>Firebase Console</b> do projeto <code>cerimonialpro-6ceb5</code> abra <b>Firestore Database › Regras</b> e publique:'+
-        '<pre style="white-space:pre-wrap;background:rgba(0,0,0,.25);padding:8px 10px;border-radius:7px;margin:8px 0 0;font-size:12px">rules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /usuarios/{uid} {\n      allow read, write: if request.auth != null && request.auth.uid == uid;\n    }\n  }\n}</pre>'
-      ,'err');
-      return;
-    }
-    if(code==='unavailable'){
-      this._banner('<b>Sem conexão com a nuvem.</b> Verifique sua internet. Seus dados locais continuam salvos e serão enviados quando reconectar.','warn');
-      return;
-    }
-    if(code==='unauthenticated'){
-      this._banner('<b>Sessão não autenticada.</b> Saia e entre novamente para reconectar à nuvem.','err');
-      return;
-    }
-    if(code==='not-found' || /database \(default\)/i.test(err&&err.message||'')){
-      this._banner('<b>Banco Firestore não encontrado.</b> No Firebase Console abra <b>Firestore Database</b> e clique em <b>Criar banco de dados</b> (modo de produção).','err');
-      return;
-    }
-    // genérico
-    this._banner('<b>Falha ao '+acao+' na nuvem.</b> '+U.esc((err&&(err.code||err.message))||'Erro desconhecido')+'.','err');
   },
 
   _applyRemote(remote){
@@ -3800,29 +3727,6 @@ const FB={
     this._renderUserCard();
   },
 
-  // Primeira vez que esta conta acessa: monta o documento inicial na nuvem
-  async _seedFirstTime(){
-    const email=(this.user&&this.user.email)||'';
-    const seed=this._pendingProfile;
-    if(seed && seed.fresh){
-      // Cadastro novo → começa limpo, apenas com o nome da empresa/usuário
-      data=freshData({companyName:seed.companyName,userName:seed.userName});
-    }else{
-      // Login de conta que ainda não tem dados na nuvem.
-      // Tenta migrar dados locais antigos deste mesmo e-mail (se existirem neste aparelho).
-      let migrated=null;
-      try{ const raw=localStorage.getItem('cpData_'+email); if(raw) migrated=JSON.parse(raw); }catch(e){}
-      if(migrated){
-        data=Object.assign(freshData({}), migrated);
-        ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
-      }else{
-        data=freshData({companyName:this.user.displayName||'CerimonialPro',userName:this.user.displayName||'Cerimonialista'});
-      }
-    }
-    this._pendingProfile=null;
-    await this._pushNow();
-  },
-
   // chamado pelo saveStore (debounced)
   save(){
     if(!window._fbUser) return;
@@ -3839,11 +3743,9 @@ const FB={
     try{
       await setDoc(doc(db,'usuarios',this.user.uid), data);
       this.setStatus('on','Salvo ✓');
-      this._banner(null);
     }catch(e){
-      console.error('Firestore setDoc:', e);
+      console.error(e);
       this.setStatus('err','Erro ao salvar');
-      this._diagnose(e,'gravar');
       throw e;
     }
   },
@@ -3855,10 +3757,10 @@ const FB={
       if(state==='syncing'){ pill.classList.add('syncing','spin'); }
       else if(state==='err'){ pill.classList.add('err'); }
       else { pill.classList.add('on'); }
-      const lbl=document.getElementById('syncLabel'); if(lbl) lbl.textContent='Nuvem';
+      const lbl=document.getElementById('syncLabel'); if(lbl) lbl.textContent='Google';
       const ic=pill.querySelector('i'); if(ic) ic.className=state==='err'?'fas fa-cloud-exclamation':state==='syncing'?'fas fa-cloud-arrow-up':'fas fa-cloud';
     }
-    const dr=document.getElementById('drSync'); if(dr) dr.textContent=state==='err'?'Erro':state==='syncing'?'Sincronizando…':'Nuvem';
+    const dr=document.getElementById('drSync'); if(dr) dr.textContent=state==='err'?'Erro':state==='syncing'?'Sincronizando…':'Nuvem (Google)';
     const fs=document.getElementById('fbStatus'); if(fs) fs.innerHTML='<i class="fas fa-clock"></i> '+label+(this._lastPush?' · '+new Date(this._lastPush).toLocaleString('pt-BR'):'');
   },
 
@@ -3872,7 +3774,7 @@ const FB={
         ? '<img src="'+this.user.photoURL+'" alt="">'
         : '<div class="fb-av">'+U.initials(this.user.displayName||this.user.email)+'</div>';
     }
-    const nm=document.getElementById('fbUserName'); if(nm) nm.textContent=this.user.displayName||'Minha conta';
+    const nm=document.getElementById('fbUserName'); if(nm) nm.textContent=this.user.displayName||'Usuário Google';
     const em=document.getElementById('fbUserEmail'); if(em) em.textContent=this.user.email||'';
   },
 };
