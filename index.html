@@ -1696,6 +1696,7 @@ const App={
         row('Repassado pelos clientes',verbaIn,'var(--info)')+
         row('Já utilizado (pago)',verbaOut,'var(--ink)')+
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:10px 12px;border-radius:11px;background:var(--info-bg)"><span style="font-weight:700;color:var(--info)">A prestar contas</span><span style="font-family:\'Fraunces\',serif;font-weight:700;font-size:16px;color:'+(verbaSaldo>=-0.005?'var(--info)':'var(--danger)')+'">'+U.money(verbaSaldo)+'</span></div>'+
+        (verbaSaldo<-0.005?'<div class="hint" style="margin-top:6px;background:var(--danger-bg);color:var(--danger);padding:9px 11px;border-radius:9px"><i class="fas fa-triangle-exclamation"></i> Você gastou mais verba ('+U.money(verbaOut)+') do que registrou de repasse ('+U.money(verbaIn)+'). Provavelmente o dinheiro que o cliente repassou foi lançado como <b>Honorário</b>. Em <b>Recibos</b>, toque no ícone ⇄ para marcá-lo como <b>Verba do cliente</b> — assim ele sai da receita.</div>':'')+
         '<div class="hint" style="margin-top:6px">Dinheiro de clientes sob sua administração — <b>não é receita sua</b>. Detalhe e gere o PDF em cada evento (Prestação de contas).</div>'
         :
         '<div class="hint" style="margin-top:6px">Saldo = honorários recebidos − pago a fornecedores do seu caixa. Compromissos futuros com fornecedores: <b>'+U.money(supDue)+'</b>.</div>')+'';
@@ -2440,7 +2441,7 @@ Object.assign(App,{
         '<div class="li-ic" style="background:var(--ok-bg);color:var(--ok)"><i class="fas fa-receipt"></i></div>'+
         '<div class="li-body" onclick="App.receiptModal(\''+r.id+'\')"><div class="li-title">'+U.esc(r.number||'Recibo')+(cl?' · '+U.esc(cl.name):'')+(r.kind==='repasse'?' <span class="badge b-info" style="font-size:9.5px">Verba</span>':'')+'</div><div class="li-sub">'+U.date(r.receiptDate)+' · '+U.esc(r.paymentMethod||'')+'</div></div>'+
         '<div class="li-end"><div class="li-val" style="color:var(--ok)">'+U.money(r.value)+'</div></div>'+
-        '<div class="li-actions"><button class="abtn pdf" onclick="DocPreview.open(\'receipt\',\''+r.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waDoc(\'receipt\',\''+r.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'receipts\',\''+r.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
+        '<div class="li-actions"><button class="abtn" title="'+(r.kind==='repasse'?'Marcar como Honorário (receita)':'Marcar como Verba do cliente')+'" onclick="App.toggleReceiptKind(\''+r.id+'\')"><i class="fas fa-right-left"></i></button><button class="abtn pdf" onclick="DocPreview.open(\'receipt\',\''+r.id+'\')"><i class="fas fa-eye"></i></button>'+(cl&&cl.phone?'<button class="abtn wa" onclick="App.waDoc(\'receipt\',\''+r.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+'<button class="abtn del" onclick="App.del(\'receipts\',\''+r.id+'\')"><i class="fas fa-trash"></i></button></div></div>';
     }).join('')+'</div>';
   },
   receiptModal(id){
@@ -2481,6 +2482,13 @@ Object.assign(App,{
     if(id){const i=data.receipts.findIndex(x=>x.id===id);o.number=data.receipts[i].number;data.receipts[i]={...data.receipts[i],...o};}
     else{o.id=U.id('re');o.createdAt=new Date().toISOString();o.number='REC-'+String(data.receipts.length+1).padStart(4,'0');data.receipts.push(o);}
     saveStore();this.closeSheet();this.renderReceipts();this.renderDashboard();this.toast('Recibo salvo','ok');
+  },
+  toggleReceiptKind(id){
+    const r=data.receipts.find(x=>x.id===id); if(!r)return;
+    r.kind=(r.kind==='repasse')?'fee':'repasse';
+    r.updatedAt=new Date().toISOString();
+    saveStore();this.renderReceipts();this.renderDashboard();
+    this.toast(r.kind==='repasse'?'Marcado como Verba do cliente — sai da receita':'Marcado como Honorário — entra na receita','ok');
   },
   waDoc(type,id){
     const coll=type==='contract'?'contracts':'receipts';
