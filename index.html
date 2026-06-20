@@ -4526,6 +4526,7 @@ const FinDash = {
     const lucro = this._lucro(receita, despForn, despFix);
     const ticket = (() => {
       const evs = (data.receipts||[]).filter(r => {
+        if(r.kind==='repasse') return false; // verba não é receita
         if(period==='total') return true;
         const {from,to} = this._dateRange(period);
         return new Date(r.receiptDate+'T00:00:00') >= from && new Date(r.receiptDate+'T00:00:00') <= to;
@@ -4605,9 +4606,10 @@ const FinDash = {
       ).join('');
     }
 
-    // Top clientes
+    // Top clientes (apenas receita — verba do cliente não conta)
     const tcMap = {};
     (data.receipts||[]).forEach(r => {
+      if(r.kind==='repasse') return;
       tcMap[r.clientId] = (tcMap[r.clientId]||0) + (r.value||0);
     });
     const sorted = Object.entries(tcMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -4617,7 +4619,7 @@ const FinDash = {
       return `<div class="list-item">
         <div class="li-ic" style="background:var(--gold-soft);color:var(--gold-deep);font-weight:700">${i+1}</div>
         <div class="li-body"><div class="li-title">${U.esc(cl.name)}</div>
-        <div class="li-sub">${(data.receipts||[]).filter(r=>r.clientId===cid).length} recibo(s)</div></div>
+        <div class="li-sub">${(data.receipts||[]).filter(r=>r.clientId===cid&&r.kind!=='repasse').length} recibo(s)</div></div>
         <div class="li-end"><div class="li-val" style="color:var(--ok)">${this._M(val)}</div></div>
       </div>`;
     }).join('') : '<div class="empty" style="padding:24px"><p style="margin:0">Nenhum recibo registrado ainda.</p></div>';
@@ -4700,7 +4702,7 @@ const FinDash = {
 
     // A receber: contratos com saldo pendente
     (data.contracts||[]).filter(c=>c.status!=='cancelled').forEach(ct => {
-      const recebido = (data.receipts||[]).filter(r=>r.contractId===ct.id).reduce((s,r)=>s+(r.value||0),0);
+      const recebido = (data.receipts||[]).filter(r=>r.kind!=='repasse'&&r.contractId===ct.id).reduce((s,r)=>s+(r.value||0),0);
       const saldoCt = (ct.value||0) - recebido;
       if(saldoCt > 0){
         const cl = (data.clients||[]).find(c=>c.id===ct.clientId);
@@ -4952,7 +4954,7 @@ const FinDash = {
     const futuroEvs = (data.events||[]).filter(e => e.date && new Date(e.date+'T00:00:00') > now && e.status!=='cancelled');
     const receitaFutura = futuroEvs.reduce((s,e)=>{
       const ct = (data.contracts||[]).find(c=>c.eventId===e.id && c.status!=='cancelled');
-      const recebido = (data.receipts||[]).filter(r=>r.eventId===e.id).reduce((s,r)=>s+(r.value||0),0);
+      const recebido = (data.receipts||[]).filter(r=>r.kind!=='repasse'&&r.eventId===e.id).reduce((s,r)=>s+(r.value||0),0);
       return s + Math.max(0, (ct?ct.value||0:e.budget||0) - recebido);
     },0);
 
@@ -5009,7 +5011,7 @@ const FinDash = {
     if(peEl) peEl.innerHTML = futuroEvs.length ? futuroEvs.sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8).map(e=>{
       const cl=(data.clients||[]).find(c=>c.id===e.clientId);
       const ct=(data.contracts||[]).find(c=>c.eventId===e.id&&c.status!=='cancelled');
-      const recebido=(data.receipts||[]).filter(r=>r.eventId===e.id).reduce((s,r)=>s+(r.value||0),0);
+      const recebido=(data.receipts||[]).filter(r=>r.kind!=='repasse'&&r.eventId===e.id).reduce((s,r)=>s+(r.value||0),0);
       const saldo=Math.max(0,(ct?ct.value||0:e.budget||0)-recebido);
       return `<div class="list-item">
         <div class="li-ic"><i class="fas ${App.eventIcon(e.type)||'fa-calendar'}"></i></div>
@@ -5055,7 +5057,8 @@ const FinDash = {
     const totalEv = (data.events||[]).length;
     const realizados = (data.events||[]).filter(e=>e.status==='done').length;
     const taxaConv = totalEv > 0 ? (realizados/totalEv*100).toFixed(0) : 0;
-    const ticketMedio = (data.receipts||[]).length > 0 ? (data.receipts||[]).reduce((s,r)=>s+(r.value||0),0)/(data.receipts||[]).length : 0;
+    const _recRev=(data.receipts||[]).filter(r=>r.kind!=='repasse');
+    const ticketMedio = _recRev.length > 0 ? _recRev.reduce((s,r)=>s+(r.value||0),0)/_recRev.length : 0;
 
     const kdEl = document.getElementById('kpiDesemp');
     if(kdEl) kdEl.innerHTML = [
