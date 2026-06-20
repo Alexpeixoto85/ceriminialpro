@@ -738,6 +738,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
           <button class="btn btn-ghost" onclick="App.budgetModal()"><i class="fas fa-file-invoice-dollar"></i> Orçamento</button>
           <button class="btn btn-ghost" onclick="App.contractModal()"><i class="fas fa-file-signature"></i> Contrato</button>
           <button class="btn btn-ghost" onclick="App.receiptModal()"><i class="fas fa-receipt"></i> Recibo</button>
+          <button class="btn btn-ghost" onclick="App.custodyModal()"><i class="fas fa-vault"></i> Verba de terceiros</button>
           <button class="btn btn-ghost" onclick="App.go('gestao')" style="grid-column:span 2;background:var(--plum-soft);color:var(--plum);border-color:var(--plum)"><i class="fas fa-building"></i> Painel de Gestão Empresarial</button>
         </div>
       </div>
@@ -808,6 +809,14 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
       </div>
       <div class="toolbar"><div class="search"><i class="fas fa-search"></i><input id="paySearch" placeholder="Buscar por fornecedor ou referência" oninput="App.renderPayments()"></div></div>
       <div id="paymentsList"></div>
+    </section>
+
+    <!-- CUSTODY FUNDS (verba de terceiros p/ pagar fornecedores) -->
+    <section class="page" id="page-custody">
+      <div class="page-head"><div><h1>Verba de Terceiros</h1><div class="sub" id="cfCount">Dinheiro do cliente para pagar fornecedores</div></div><button class="btn btn-primary btn-sm" onclick="App.custodyModal()"><i class="fas fa-plus"></i> Nova</button></div>
+      <div class="pay-kpis" id="cfKpis"></div>
+      <div class="toolbar"><div class="search"><i class="fas fa-search"></i><input id="cfSearch" placeholder="Buscar por cliente ou evento" oninput="App.renderCustody()"></div></div>
+      <div id="custodyList"></div>
     </section>
 
     <!-- BUDGETS -->
@@ -1218,6 +1227,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
     <div class="grp">Financeiro & documentos</div>
     <a data-target="gestao" onclick="App.go('gestao')" style="font-weight:700;color:var(--plum)"><i class="fas fa-building" style="color:var(--plum)"></i> Gestão Empresarial</a>
     <a data-target="payments" onclick="App.go('payments')"><i class="fas fa-money-check-dollar"></i> Pagamentos</a>
+    <a data-target="custody" onclick="App.go('custody')"><i class="fas fa-vault"></i> Verba de Terceiros</a>
     <a data-target="budgets" onclick="App.go('budgets')"><i class="fas fa-file-invoice-dollar"></i> Orçamentos</a>
     <a data-target="contracts" onclick="App.go('contracts')"><i class="fas fa-file-signature"></i> Contratos</a>
     <a data-target="receipts" onclick="App.go('receipts')"><i class="fas fa-receipt"></i> Recibos</a>
@@ -1247,7 +1257,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
 ============================================================ */
 const STORE_KEY='cerimonialProData';
 const SYNC_KEY='cerimonialProSync';
-let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],despesasFixas:[],metas:[],fluxoExtra:[],
+let data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],custodyFunds:[],tasks:[],guests:[],despesasFixas:[],metas:[],fluxoExtra:[],
   settings:{companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}',protect:{contextMenu:true,selection:true,devKeys:true,drag:true,devtoolsWarn:false}},
   updatedAt:new Date().toISOString()};
 let syncCfg={token:'',gistId:'',auto:false,lastSync:null};
@@ -1308,7 +1318,7 @@ async function loadStore(){
     if(p){
       data=Object.assign(data,p);
       data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''},p.settings||{});
-      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+      ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','custodyFunds','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
       await saveToIndexedDB(IDB_KEY,data);
     }
   }catch(e){console.warn('IndexedDB error:',e);}
@@ -1502,7 +1512,7 @@ const Auth={
     accounts.push(newAcc);
     this._saveAccounts(accounts);
     // Pre-populate settings for new account
-    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],
+    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],custodyFunds:[],tasks:[],guests:[],
       settings:{companyName:company,userName:user||company,email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}',protect:{contextMenu:true,selection:true,devKeys:true,drag:true,devtoolsWarn:false}},
       updatedAt:new Date().toISOString()};
     localStorage.setItem('cpData_'+email,JSON.stringify(accData));
@@ -1612,6 +1622,7 @@ const App={
     if(t==='clients')this.renderClients();
     if(t==='suppliers')this.renderSuppliers();
     if(t==='payments')this.renderPayments();
+    if(t==='custody')this.renderCustody();
     if(t==='budgets')this.renderBudgets();
     if(t==='contracts')this.renderContracts();
     if(t==='receipts')this.renderReceipts();
@@ -1636,11 +1647,11 @@ const App={
     document.getElementById('toasts').appendChild(t);
     setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(10px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2600);
   },
-  renderAll(){this.renderDashboard();this.renderEvents();this.renderClients();this.renderSuppliers();this.renderPayments();this.renderBudgets();this.renderContracts();this.renderReceipts();},
+  renderAll(){this.renderDashboard();this.renderEvents();this.renderClients();this.renderSuppliers();this.renderPayments();this.renderCustody();this.renderBudgets();this.renderContracts();this.renderReceipts();},
   quickAdd(){
     this.openSheet('Criar novo',
       '<div style="display:grid;gap:10px">'+
-      ['eventModal|fa-calendar-plus|Evento|var(--plum)','budgetModal|fa-file-invoice-dollar|Orçamento|var(--gold-deep)','contractModal|fa-file-signature|Contrato|var(--info)','receiptModal|fa-receipt|Recibo|var(--ok)','paymentModal|fa-money-check-dollar|Pagamento a fornecedor|var(--gold-deep)','clientModal|fa-user-plus|Cliente|var(--plum)','taskModal|fa-list-check|Tarefa|var(--warn)']
+      ['eventModal|fa-calendar-plus|Evento|var(--plum)','budgetModal|fa-file-invoice-dollar|Orçamento|var(--gold-deep)','contractModal|fa-file-signature|Contrato|var(--info)','receiptModal|fa-receipt|Recibo|var(--ok)','paymentModal|fa-money-check-dollar|Pagamento a fornecedor|var(--gold-deep)','custodyModal|fa-vault|Verba de terceiros|var(--plum)','clientModal|fa-user-plus|Cliente|var(--plum)','taskModal|fa-list-check|Tarefa|var(--warn)']
       .map(x=>{const[f,i,l,c]=x.split('|');return '<button class="btn btn-ghost" style="justify-content:flex-start;gap:13px" onclick="App.closeSheet();App.'+f+'()"><span style="width:34px;height:34px;border-radius:10px;background:'+c+'1a;color:'+c+';display:grid;place-items:center"><i class=\'fas '+i+'\'></i></span>'+l+'</button>';}).join('')+
       '</div>','');
   },
@@ -1668,8 +1679,13 @@ const App={
     const recv=data.receipts.reduce((s,r)=>s+(r.value||0),0);
     const fin=this.finance();
     let supPaid=0,supDue=0,supOvd=0;
-    (data.supplierPayments||[]).forEach(p=>{const sm=this.paySummary(p);supPaid+=sm.paid;supDue+=sm.pending;if(sm.overdue)supOvd+=sm.pending;});
+    (data.supplierPayments||[]).forEach(p=>{
+      const sm=this.paySummary(p);
+      if(!p.fundId){ supPaid+=sm.paid; supDue+=sm.pending; if(sm.overdue)supOvd+=sm.pending; }
+    });
     const caixa=recv-supPaid;
+    let cfReceived=0,cfBalance=0;
+    (data.custodyFunds||[]).forEach(f=>{const b=this.custodyBalance(f);cfReceived+=b.received;cfBalance+=b.balance;});
     const row=(label,val,color,strong)=>'<div class="flex spread" style="padding:8px 0;border-bottom:1px solid var(--line2)"><span style="font-size:13px;color:var(--muted)'+(strong?';font-weight:700;color:var(--ink)':'')+'">'+label+'</span><span style="font-weight:700'+(color?';color:'+color:'')+'">'+U.money(val)+'</span></div>';
     el.innerHTML=
       '<div style="font-size:11px;font-weight:700;color:var(--ok);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Entradas (clientes)</div>'+
@@ -1679,8 +1695,9 @@ const App={
       row('Pago a fornecedores',supPaid,'var(--ink)')+
       row('A pagar a fornecedores',supDue,supDue>0?'var(--warn)':'var(--ok)')+
       (supOvd>0?row('↳ vencido',supOvd,'var(--danger)'):'')+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding:11px 12px;border-radius:11px;background:var(--plum-soft)"><span style="font-weight:700;color:var(--plum)">Saldo em caixa</span><span style="font-family:\'Fraunces\',serif;font-weight:700;font-size:18px;color:'+(caixa>=0?'var(--ok)':'var(--danger)')+'">'+U.money(caixa)+'</span></div>'+
-      '<div class="hint" style="margin-top:6px">Saldo = recebido de clientes − pago a fornecedores. Compromissos futuros com fornecedores: <b>'+U.money(supDue)+'</b>.</div>';
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:11px;padding:11px 12px;border-radius:11px;background:var(--plum-soft)"><span style="font-weight:700;color:var(--plum)">Saldo em caixa (seu)</span><span style="font-family:\'Fraunces\',serif;font-weight:700;font-size:18px;color:'+(caixa>=0?'var(--ok)':'var(--danger)')+'">'+U.money(caixa)+'</span></div>'+
+      '<div class="hint" style="margin-top:6px">Saldo = recebido de clientes (seu honorário) − pago a fornecedores com recursos próprios. Compromissos futuros com fornecedores: <b>'+U.money(supDue)+'</b>.</div>'+
+      (cfReceived>0?'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:11px 12px;border-radius:11px;background:var(--gold-soft)"><span style="font-weight:700;color:var(--gold-deep)"><i class="fas fa-vault"></i> Verba de terceiros em mãos</span><span style="font-family:\'Fraunces\',serif;font-weight:700;font-size:18px;color:'+(cfBalance>=0?'var(--ok)':'var(--danger)')+'">'+U.money(cfBalance)+'</span></div><div class="hint" style="margin-top:6px">Dinheiro que clientes entregaram só para pagar fornecedores — não é seu, não soma ao saldo acima. <a style="color:var(--plum);font-weight:600" onclick="App.go(\'custody\')">Ver verbas</a></div>':'');
   },
   finance(){
     const contracted=data.contracts.filter(c=>c.status!=='cancelled').reduce((s,c)=>s+(c.value||0),0);
@@ -1743,7 +1760,8 @@ Object.assign(App,{
       '<div class="field"><label>Status</label><select id="f_estatus">'+sts+'</select></div>'+
       '<div class="field"><label>Observações</label><textarea id="f_eobs">'+U.esc(e.observations)+'</textarea></div>'+
       (id?'<button class="btn btn-ghost btn-block mb" onclick="App.openEventGuests(\''+id+'\')"><i class="fas fa-clipboard-check"></i> Lista de convidados / check-in</button>':'')+
-      (id?'<button class="btn btn-ghost btn-block mb" onclick="App.eventCostReport(\''+id+'\')"><i class="fas fa-chart-pie"></i> Relatório de custos do evento</button>':''),
+      (id?'<button class="btn btn-ghost btn-block mb" onclick="App.eventCostReport(\''+id+'\')"><i class="fas fa-chart-pie"></i> Relatório de custos do evento</button>':'')+
+      (id?'<button class="btn btn-ghost btn-block mb" onclick="App.closeSheet();App.custodyModal(null,\''+id+'\')"><i class="fas fa-vault"></i> Verba de terceiros para fornecedores</button>':''),
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveEvent()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
   },
   saveEvent(){
@@ -1785,7 +1803,9 @@ Object.assign(App,{
     const evPayments=(data.supplierPayments||[]).filter(p=>p.eventId===eventId);
     const paidToSuppliers=evPayments.reduce((s,p)=>s+(p.installments||[]).filter(i=>i.paid).reduce((a,i)=>a+(i.value||0),0),0);
     const dueToSuppliers=evPayments.reduce((s,p)=>{const sm=this.paySummary(p);return s+sm.pending;},0);
-    return {e,cl,basis,contract,suppliers,supplierCost,clientValue,received,pending,result,margin,paidToSuppliers,dueToSuppliers,evPayments};
+    const custodyFunds=(data.custodyFunds||[]).filter(f=>f.eventId===eventId);
+    const custody=custodyFunds.length?custodyFunds.map(f=>({f,b:this.custodyBalance(f)})).reduce((acc,x)=>({received:acc.received+x.b.received,spent:acc.spent+x.b.spent,balance:acc.balance+x.b.balance}),{received:0,spent:0,balance:0}):null;
+    return {e,cl,basis,contract,suppliers,supplierCost,clientValue,received,pending,result,margin,paidToSuppliers,dueToSuppliers,evPayments,custodyFunds,custody};
   },
   eventCostReport(eventId){
     const d=this.costReportData(eventId); if(!d)return;
@@ -1801,6 +1821,12 @@ Object.assign(App,{
       '<div style="height:10px"></div>'+
       row('Recebido até agora',U.money(d.received),false,'var(--ok)')+
       row('A receber',U.money(d.pending),false,d.pending>0?'var(--warn)':'var(--ok)')+
+      (d.custody?'<div style="height:10px"></div><div style="padding:8px 0;border-bottom:1px solid var(--line2)"><div style="font-size:13.5px;color:var(--muted);font-weight:700;color:var(--plum);margin-bottom:2px"><i class="fas fa-vault"></i> Verba de terceiros (não entra na margem acima)</div>'+
+        '<div class="hint" style="margin-bottom:4px">Dinheiro que o cliente passou separadamente só para pagar fornecedores.</div>'+
+        row('Recebido do cliente p/ fornecedores',U.money(d.custody.received))+
+        row('Já pago a fornecedores com essa verba',U.money(d.custody.spent))+
+        row('Saldo em mãos',U.money(d.custody.balance),true,d.custody.balance>=0?'var(--ok)':'var(--danger)')+
+      '</div>':'')+
       (d.contract?'':'<div class="hint" style="margin-top:8px">Dica: vincule um contrato e os recibos a este evento para um cálculo mais preciso.</div>');
     this.openSheet('Relatório de custos',body,
       '<button class="btn btn-ghost" onclick="App.eventModal(\''+eventId+'\')">Voltar</button><button class="btn btn-primary" onclick="App.pdfEventReport(\''+eventId+'\')"><i class="fas fa-file-pdf"></i> Gerar PDF</button>');
@@ -1830,6 +1856,13 @@ Object.assign(App,{
     line('Margem',d.margin.toFixed(1).replace('.',',')+'%',false,'#2e8b57');
     y+=4;line('Recebido até agora',U.money(d.received),false,'#2e8b57');
     line('A receber',U.money(d.pending),true,d.pending>0?'#c8851b':'#2e8b57');
+    if(d.custody){
+      y+=4;doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(74,31,64);
+      doc.text('VERBA DE TERCEIROS (não entra na margem acima)',M,y);doc.setTextColor(40,35,48);y+=6;
+      line('Recebido do cliente p/ fornecedores',U.money(d.custody.received));
+      line('Já pago a fornecedores com essa verba',U.money(d.custody.spent));
+      line('Saldo em mãos',U.money(d.custody.balance),true,d.custody.balance>=0?'#2e8b57':'#b03a2e');
+    }
     y+=6;doc.setFont('times','italic');doc.setFontSize(9);doc.setTextColor(120,110,126);
     doc.text('Relatório gerencial — uso interno.',W/2,y,{align:'center'});doc.setTextColor(40,35,48);
     PDF.footer(doc);PDF.open(doc,'relatorio-custos-'+(d.e.type||'evento').toLowerCase().replace(/\s+/g,'-')+'.pdf');this.toast('PDF gerado','ok');
@@ -1973,7 +2006,7 @@ Object.assign(App,{
   },
   waSupplier(id){const s=data.suppliers.find(x=>x.id===id);window.open(U.waLink(s.phone,'Olá '+s.name+'! '),'_blank');},
   del(coll,id){
-    const labels={events:'evento',clients:'cliente',suppliers:'fornecedor',budgets:'orçamento',contracts:'contrato',receipts:'recibo',supplierPayments:'pagamento',tasks:'tarefa',guests:'convidado'};
+    const labels={events:'evento',clients:'cliente',suppliers:'fornecedor',budgets:'orçamento',contracts:'contrato',receipts:'recibo',supplierPayments:'pagamento',custodyFunds:'verba',tasks:'tarefa',guests:'convidado'};
     if(!confirm('Excluir este '+labels[coll]+'?'))return;
     data[coll]=data[coll].filter(x=>x.id!==id); saveStore();
     this.go(document.querySelector('.page.active').id.replace('page-',''));
@@ -2547,7 +2580,7 @@ Object.assign(App,{
           '<div class="li-ic" style="background:var(--gold-soft);color:var(--gold-deep)"><i class="fas fa-store"></i></div>'+
           '<div class="li-body" onclick="App.paymentModal(\''+p.id+'\')">'+
             '<div class="li-title">'+U.esc(sup.name||'Fornecedor')+(p.number?' <span class="muted" style="font-weight:500;font-size:12px">'+U.esc(p.number)+'</span>':'')+'</div>'+
-            '<div class="li-sub">'+U.esc(p.description||sup.category||'Pagamento')+(ev?' · '+U.esc(ev.type):'')+'</div>'+
+            '<div class="li-sub">'+U.esc(p.description||sup.category||'Pagamento')+(ev?' · '+U.esc(ev.type):'')+(p.fundId?' · <span style="color:var(--plum);font-weight:600"><i class="fas fa-vault"></i> verba de terceiros</span>':'')+'</div>'+
             '<div class="pay-prog"><i style="width:'+pct+'%"></i></div>'+
             '<div class="flex spread" style="font-size:12px"><span class="muted">'+U.money(s.paid)+' de '+U.money(s.contracted)+'</span><span style="font-weight:700;color:'+(s.pending>0?'var(--warn)':'var(--ok)')+'">'+(s.pending>0?U.money(s.pending)+' restante':'Quitado')+'</span></div>'+
             nextLine+
@@ -2574,10 +2607,16 @@ Object.assign(App,{
     };
     const sup=data.suppliers.map(su=>'<option value="'+su.id+'" '+(p.supplierId===su.id?'selected':'')+'>'+U.esc(su.name)+' ('+U.esc(su.category||'Geral')+')</option>').join('');
     const evs=data.events.map(e=>{const cl=data.clients.find(c=>c.id===e.clientId);return '<option value="'+e.id+'" '+(p.eventId===e.id?'selected':'')+'>'+U.esc(e.type)+(cl?' - '+U.esc(cl.name):'')+'</option>';}).join('');
+    const fundOpts=(eid)=>{
+      const funds=data.custodyFunds.filter(f=>!eid||f.eventId===eid);
+      if(!funds.length)return '<option value="">— nenhuma verba para este evento —</option>';
+      return '<option value="">— não usar verba de terceiros —</option>'+funds.map(f=>{const b=this.custodyBalance(f);return '<option value="'+f.id+'" '+(p.fundId===f.id?'selected':'')+'>'+U.esc(f.label||'Verba')+' · saldo '+U.money(b.balance)+'</option>';}).join('');
+    };
     this.openSheet(id?'Gerenciar pagamento':'Novo pagamento a fornecedor',
       '<input type="hidden" id="f_pid" value="'+(p.id||'')+'">'+
       '<div class="field"><label>Fornecedor <span class="req">*</span></label><select id="f_psup"><option value="">— selecione —</option>'+sup+'</select></div>'+
-      '<div class="field"><label>Evento <span class="muted" style="font-weight:400">(p/ relatório de custos)</span></label><select id="f_pevent"><option value="">— opcional —</option>'+evs+'</select></div>'+
+      '<div class="field"><label>Evento <span class="muted" style="font-weight:400">(p/ relatório de custos)</span></label><select id="f_pevent" onchange="App._payFundRefresh()"><option value="">— opcional —</option>'+evs+'</select></div>'+
+      '<div class="field"><label>Pago com verba de terceiros? <span class="muted" style="font-weight:400">(dinheiro que o cliente te passou p/ esse fim)</span></label><select id="f_pfund">'+fundOpts(p.eventId)+'</select><div class="hint">Selecione o evento acima para ver as verbas de custódia disponíveis. <a style="color:var(--plum);font-weight:600" onclick="App.closeSheet();App.custodyModal(null,document.getElementById(\'f_pevent\')?.value)">Cadastrar verba</a></div></div>'+
       '<div class="field"><label>Referência</label><input id="f_pdesc" value="'+U.esc(p.description||'')+'" placeholder="Ex.: Buffet 120 convidados — casamento"></div>'+
       '<div class="field"><label>Valor total acordado (R$)</label><input type="number" step="0.01" min="0" id="f_pcontract" value="'+(p.contractedValue||'')+'" placeholder="Valor fechado com o fornecedor" oninput="App._payRecalc()"></div>'+
       '<div class="hint" style="margin-bottom:6px">Deixe em branco para somar automaticamente as parcelas abaixo.</div>'+
@@ -2707,6 +2746,15 @@ Object.assign(App,{
     el.innerHTML='<div class="pay-tot"><span>Pago <b>'+U.money(paid)+'</b></span><span>A pagar <b style="color:var(--warn)">'+U.money(pending)+'</b></span><span>Total <b>'+U.money(contracted)+'</b></span></div>'+warn;
   },
 
+  _payFundRefresh(){
+    const eid=document.getElementById('f_pevent').value;
+    const sel=document.getElementById('f_pfund'); if(!sel)return;
+    const cur=sel.value;
+    const funds=data.custodyFunds.filter(f=>!eid||f.eventId===eid);
+    sel.innerHTML=!funds.length?'<option value="">— nenhuma verba para este evento —</option>':
+      '<option value="">— não usar verba de terceiros —</option>'+funds.map(f=>{const b=this.custodyBalance(f);return '<option value="'+f.id+'" '+(cur===f.id?'selected':'')+'>'+U.esc(f.label||'Verba')+' · saldo '+U.money(b.balance)+'</option>';}).join('');
+  },
+
   savePayment(){
     this._payReadInst();
     const id=document.getElementById('f_pid').value;
@@ -2719,6 +2767,7 @@ Object.assign(App,{
     const o={
       supplierId,
       eventId:document.getElementById('f_pevent').value,
+      fundId:document.getElementById('f_pfund')?document.getElementById('f_pfund').value:'',
       description:document.getElementById('f_pdesc').value.trim(),
       contractedValue:contracted,
       installments:inst,
@@ -2822,6 +2871,268 @@ Object.assign(App,{
     if(sm.next)msg+='Lembrete do pagamento agendado: '+U.money(sm.next.value)+' em '+U.date(sm.next.dueDate)+'.\n';
     msg+='Resumo: pago '+U.money(sm.paid)+' de '+U.money(sm.contracted)+(sm.pending>0?' · restante '+U.money(sm.pending):' · quitado')+'.\n— '+data.settings.companyName;
     window.open(U.waLink(sup.phone,msg),'_blank');
+  },
+});
+
+/* ===== CUSTODY FUNDS (Verba de Terceiros) =====
+   Dinheiro que o cliente entrega ao cerimonialista especificamente
+   para que ele pague fornecedores em seu nome — não é honorário/receita
+   própria. Cada "fundo" pertence a um evento/cliente, recebe aportes
+   (entradas) e tem saídas via pagamentos a fornecedores vinculados
+   (data.supplierPayments com fundId === este fundo).
+============================================================ */
+Object.assign(App,{
+  PAY_METHODS_FUND:['Pix','Dinheiro','Transferência','Cartão','Cheque','Outro'],
+
+  // Saldo de um fundo: aportes recebidos − parcelas já pagas dos pagamentos vinculados
+  custodyBalance(f){
+    const received=(f.contributions||[]).reduce((s,c)=>s+(c.value||0),0);
+    const linked=data.supplierPayments.filter(p=>p.fundId===f.id);
+    let spent=0,committed=0;
+    linked.forEach(p=>{
+      (p.installments||[]).forEach(it=>{
+        if(it.paid)spent+=(it.value||0);
+        else committed+=(it.value||0);
+      });
+    });
+    const balance=received-spent;
+    return {received,spent,committed,balance,linkedCount:linked.length};
+  },
+
+  renderCustody(){
+    const q=(document.getElementById('cfSearch').value||'').toLowerCase();
+    const all=data.custodyFunds||[];
+    let kReceived=0,kSpent=0,kBalance=0;
+    all.forEach(f=>{const b=this.custodyBalance(f);kReceived+=b.received;kSpent+=b.spent;kBalance+=b.balance;});
+    const kp=document.getElementById('cfKpis');
+    if(kp)kp.innerHTML=
+      '<div class="pk paid"><div class="pv">'+U.moneyShort(kReceived)+'</div><div class="pl">Recebido</div></div>'+
+      '<div class="pk due"><div class="pv">'+U.moneyShort(kSpent)+'</div><div class="pl">Pago a fornecedores</div></div>'+
+      '<div class="pk '+(kBalance>=0?'ovd':'ovd')+'" style="background:var(--surface)"><div class="pv" style="color:'+(kBalance>=0?'var(--ok)':'var(--danger)')+'">'+U.moneyShort(kBalance)+'</div><div class="pl">Em mãos</div></div>';
+
+    let list=all.slice();
+    if(q)list=list.filter(f=>{
+      const ev=data.events.find(e=>e.id===f.eventId), cl=data.clients.find(c=>c.id===f.clientId);
+      return (f.label||'').toLowerCase().includes(q)||(ev&&ev.type.toLowerCase().includes(q))||(cl&&cl.name.toLowerCase().includes(q));
+    });
+    list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+    document.getElementById('cfCount').textContent=all.length+' verba(s) cadastrada(s)';
+    const el=document.getElementById('custodyList');
+    if(!all.length){el.innerHTML=this.emptyState('fa-vault','Nenhuma verba de terceiros','Quando um cliente te passar um valor para você administrar e pagar fornecedores em seu nome, registre aqui — você terá um extrato completo de entradas e saídas para prestar contas.','<button class="btn btn-primary btn-sm" onclick="App.custodyModal()">Nova verba</button>');return;}
+    if(!list.length){el.innerHTML=this.emptyState('fa-filter','Nada encontrado','Nenhuma verba corresponde à busca.','');return;}
+    el.innerHTML=list.map(f=>{
+      const ev=data.events.find(e=>e.id===f.eventId), cl=data.clients.find(c=>c.id===f.clientId)||(ev?data.clients.find(c=>c.id===ev.clientId):null);
+      const b=this.custodyBalance(f);
+      const pct=b.received>0?Math.min(100,Math.round(b.spent/b.received*100)):0;
+      return '<div class="card pay-card">'+
+        '<div class="list-item" style="border-bottom:none;align-items:flex-start">'+
+          '<div class="li-ic" style="background:var(--plum-soft);color:var(--plum)"><i class="fas fa-vault"></i></div>'+
+          '<div class="li-body" onclick="App.custodyDetail(\''+f.id+'\')">'+
+            '<div class="li-title">'+U.esc(f.label||'Verba de terceiros')+'</div>'+
+            '<div class="li-sub">'+(cl?U.esc(cl.name):'Sem cliente')+(ev?' · '+U.esc(ev.type):'')+'</div>'+
+            '<div class="pay-prog"><i style="width:'+pct+'%"></i></div>'+
+            '<div class="flex spread" style="font-size:12px"><span class="muted">'+U.money(b.spent)+' pago de '+U.money(b.received)+'</span><span style="font-weight:700;color:'+(b.balance>=0?'var(--ok)':'var(--danger)')+'">'+U.money(b.balance)+' em mãos</span></div>'+
+          '</div>'+
+          '<div class="li-end">'+(b.committed>0?'<span class="badge b-warn">'+U.moneyShort(b.committed)+' agendado</span>':(b.balance>=0?'<span class="badge b-ok">Em dia</span>':'<span class="badge b-danger">Saldo negativo</span>'))+'</div>'+
+        '</div>'+
+        '<div class="flex" style="gap:7px;padding:0 14px 13px;flex-wrap:wrap">'+
+          '<button class="btn btn-ghost btn-sm" onclick="App.custodyDetail(\''+f.id+'\')"><i class="fas fa-list"></i> Extrato</button>'+
+          '<button class="btn btn-ghost btn-sm" onclick="App.custodyModal(\''+f.id+'\')"><i class="fas fa-pen"></i> Editar</button>'+
+          '<button class="btn btn-ghost btn-sm" onclick="App.pdfCustodyReport(\''+f.id+'\')"><i class="fas fa-file-pdf"></i> Prestar contas</button>'+
+          (cl&&cl.phone?'<button class="btn btn-ghost btn-sm" onclick="App.waCustodyReport(\''+f.id+'\')"><i class="fab fa-whatsapp"></i></button>':'')+
+          '<button class="btn btn-ghost btn-sm" style="margin-left:auto;color:var(--danger)" onclick="App.del(\'custodyFunds\',\''+f.id+'\')"><i class="fas fa-trash"></i></button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  },
+
+  /* ---- Create / edit fund ---- */
+  custodyModal(id,presetEventId){
+    const f=id?data.custodyFunds.find(x=>x.id===id):{};
+    this._cf={id:f.id||'',contributions:JSON.parse(JSON.stringify(f.contributions||[]))};
+    const evs=data.events.map(e=>{const cl=data.clients.find(c=>c.id===e.clientId);return '<option value="'+e.id+'" '+((f.eventId||presetEventId)===e.id?'selected':'')+'>'+U.esc(e.type)+(cl?' - '+U.esc(cl.name):'')+'</option>';}).join('');
+    const cls=data.clients.map(c=>'<option value="'+c.id+'" '+(f.clientId===c.id?'selected':'')+'>'+U.esc(c.name)+'</option>').join('');
+    this.openSheet(id?'Gerenciar verba de terceiros':'Nova verba de terceiros',
+      '<input type="hidden" id="f_cfid" value="'+(f.id||'')+'">'+
+      '<div class="hint" style="margin-bottom:10px">Use quando o cliente te entregar um valor especificamente para você administrar e pagar fornecedores em seu nome — esse dinheiro <b>não é seu honorário</b>.</div>'+
+      '<div class="field"><label>Evento <span class="req">*</span></label><select id="f_cfevent" onchange="App._cfAutoClient()">'+(evs||'<option value="">— cadastre um evento primeiro —</option>')+'</select></div>'+
+      '<div class="field"><label>Cliente</label><select id="f_cfclient"><option value="">— selecione —</option>'+cls+'</select></div>'+
+      '<div class="field"><label>Identificação <span class="muted" style="font-weight:400">(opcional)</span></label><input id="f_cflabel" value="'+U.esc(f.label||'')+'" placeholder="Ex.: Verba para buffet e decoração"></div>'+
+      '<label style="font-size:13px;font-weight:700;margin:10px 0 8px;display:block"><i class="fas fa-hand-holding-dollar" style="color:var(--plum)"></i> Valores recebidos do cliente</label>'+
+      '<div id="f_cfcontrib"></div>'+
+      '<div class="inst-form">'+
+        '<div class="inst-ed ie3" style="margin-bottom:7px">'+
+          '<input type="date" id="f_cfcdate" value="'+new Date().toISOString().slice(0,10)+'">'+
+          '<input type="number" step="0.01" min="0" id="f_cfcvalue" placeholder="Valor R$">'+
+          '<select id="f_cfcmethod">'+this.PAY_METHODS_FUND.map(m=>'<option>'+m+'</option>').join('')+'</select>'+
+        '</div>'+
+        '<input id="f_cfcnote" placeholder="Observação (ex.: sinal entregue na assinatura do contrato)" style="margin-bottom:7px">'+
+        '<button class="btn btn-ghost btn-sm btn-block" onclick="App.addCustodyContribution()"><i class="fas fa-plus"></i> Registrar entrada</button>'+
+      '</div>'+
+      '<div id="f_cftot"></div>',
+      '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.saveCustody()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
+    this._cfRenderContrib();
+  },
+
+  _cfAutoClient(){
+    const eid=document.getElementById('f_cfevent').value;
+    const ev=data.events.find(e=>e.id===eid);
+    if(ev&&ev.clientId)document.getElementById('f_cfclient').value=ev.clientId;
+  },
+
+  _cfRenderContrib(){
+    const el=document.getElementById('f_cfcontrib'); if(!el)return;
+    const arr=this._cf.contributions;
+    if(!arr.length){el.innerHTML='<div class="hint" style="margin-bottom:8px">Nenhuma entrada registrada ainda. Adicione abaixo o(s) valor(es) que o cliente já te passou.</div>';this._cfRecalc();return;}
+    el.innerHTML=arr.map((c,i)=>{
+      return '<div class="inst-row">'+
+        '<div class="inst-chk on" style="cursor:default"><i class="fas fa-check"></i></div>'+
+        '<div class="inst-main">'+
+          '<div class="il">'+U.date(c.date)+' · '+U.esc(c.method||'')+'</div>'+
+          '<div class="is">'+(c.note?U.esc(c.note):'<span class="muted">Entrada do cliente</span>')+'</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'+
+          '<span class="inst-v" style="color:var(--ok)">'+U.money(c.value)+'</span>'+
+          '<button class="ax" onclick="App.removeCustodyContribution('+i+')"><i class="fas fa-xmark"></i></button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    this._cfRecalc();
+  },
+
+  addCustodyContribution(){
+    const value=parseFloat(document.getElementById('f_cfcvalue').value)||0;
+    if(value<=0)return this.toast('Informe um valor maior que zero','err');
+    const date=document.getElementById('f_cfcdate').value||new Date().toISOString().slice(0,10);
+    const method=document.getElementById('f_cfcmethod').value;
+    const note=document.getElementById('f_cfcnote').value.trim();
+    this._cf.contributions.push({id:U.id('cc'),value,date,method,note});
+    document.getElementById('f_cfcvalue').value='';document.getElementById('f_cfcnote').value='';
+    this._cfRenderContrib();
+    this.toast('Entrada registrada','ok');
+  },
+
+  removeCustodyContribution(i){
+    this._cf.contributions.splice(i,1);
+    this._cfRenderContrib();
+  },
+
+  _cfRecalc(){
+    const el=document.getElementById('f_cftot'); if(!el)return;
+    const total=this._cf.contributions.reduce((s,c)=>s+(c.value||0),0);
+    let spent=0;
+    if(this._cf.id){
+      data.supplierPayments.filter(p=>p.fundId===this._cf.id).forEach(p=>{(p.installments||[]).forEach(it=>{if(it.paid)spent+=(it.value||0);});});
+    }
+    el.innerHTML='<div class="pay-tot"><span>Recebido <b style="color:var(--ok)">'+U.money(total)+'</b></span><span>Já pago <b>'+U.money(spent)+'</b></span><span>Saldo <b style="color:'+(total-spent>=0?'var(--ok)':'var(--danger)')+'">'+U.money(total-spent)+'</b></span></div>';
+  },
+
+  saveCustody(){
+    const id=document.getElementById('f_cfid').value;
+    const eventId=document.getElementById('f_cfevent').value;
+    if(!eventId)return this.toast('Selecione o evento','err');
+    if(!this._cf.contributions.length)return this.toast('Registre ao menos uma entrada recebida do cliente','err');
+    const o={
+      eventId,
+      clientId:document.getElementById('f_cfclient').value,
+      label:document.getElementById('f_cflabel').value.trim(),
+      contributions:this._cf.contributions,
+      updatedAt:new Date().toISOString()
+    };
+    if(id){const i=data.custodyFunds.findIndex(x=>x.id===id);data.custodyFunds[i]={...data.custodyFunds[i],...o};}
+    else{o.id=U.id('cf');o.createdAt=new Date().toISOString();data.custodyFunds.push(o);}
+    saveStore();this.closeSheet();this.renderCustody();this.toast('Verba salva','ok');
+  },
+
+  /* ---- Extrato detalhado (entradas + saídas vinculadas) ---- */
+  custodyExtract(fid){
+    const f=data.custodyFunds.find(x=>x.id===fid); if(!f)return null;
+    const ev=data.events.find(e=>e.id===f.eventId)||{};
+    const cl=data.clients.find(c=>c.id===f.clientId)||(ev.clientId?data.clients.find(c=>c.id===ev.clientId):{})||{};
+    const movs=[];
+    (f.contributions||[]).forEach(c=>movs.push({date:c.date,type:'in',label:'Entrada — '+(c.note||'Recebido do cliente')+(c.method?' ('+c.method+')':''),value:c.value}));
+    data.supplierPayments.filter(p=>p.fundId===fid).forEach(p=>{
+      const sup=data.suppliers.find(s=>s.id===p.supplierId)||{};
+      (p.installments||[]).filter(it=>it.paid).forEach(it=>{
+        movs.push({date:it.paidDate||it.dueDate||p.createdAt,type:'out',label:'Pagamento — '+(sup.name||'Fornecedor')+' · '+(it.label||'Parcela')+(p.description?' ('+p.description+')':''),value:it.value});
+      });
+    });
+    movs.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const b=this.custodyBalance(f);
+    return {f,ev,cl,movs,b};
+  },
+
+  custodyDetail(fid){
+    const d=this.custodyExtract(fid); if(!d)return;
+    const row=(m)=>'<div class="flex spread" style="padding:9px 0;border-bottom:1px solid var(--line2)">'+
+      '<span style="font-size:13px"><i class="fas '+(m.type==='in'?'fa-arrow-down" style="color:var(--ok);margin-right:6px':'fa-arrow-up" style="color:var(--danger);margin-right:6px')+'"></i>'+U.esc(m.label)+'<div class="muted" style="font-size:11.5px;margin-left:20px">'+U.date(m.date)+'</div></span>'+
+      '<span style="font-weight:700;color:'+(m.type==='in'?'var(--ok)':'var(--danger)')+'">'+(m.type==='in'?'+ ':'− ')+U.money(m.value)+'</span></div>';
+    const body='<div style="font-size:14px;font-weight:700;margin-bottom:2px">'+U.esc(d.f.label||'Verba de terceiros')+'</div>'+
+      '<div class="small muted mb">'+(d.cl.name?U.esc(d.cl.name)+' · ':'')+U.esc(d.ev.type||'')+(d.ev.date?' · '+U.dateLong(d.ev.date):'')+'</div>'+
+      (d.movs.length?d.movs.map(row).join(''):'<div class="hint" style="margin:10px 0">Nenhum lançamento ainda.</div>')+
+      '<div class="dre-row total" style="margin-top:10px"><span>Saldo em mãos</span><span style="color:'+(d.b.balance>=0?'var(--ok)':'var(--danger)')+'">'+U.money(d.b.balance)+'</span></div>'+
+      (d.b.committed>0?'<div class="hint" style="margin-top:8px"><i class="fas fa-triangle-exclamation" style="color:var(--warn)"></i> Há '+U.money(d.b.committed)+' em parcelas agendadas e ainda não pagas vinculadas a esta verba.</div>':'');
+    this.openSheet('Extrato da verba',body,
+      '<button class="btn btn-ghost" onclick="App.custodyModal(\''+fid+'\')">Editar</button><button class="btn btn-primary" onclick="App.pdfCustodyReport(\''+fid+'\')"><i class="fas fa-file-pdf"></i> Prestar contas</button>');
+  },
+
+  /* ---- PDF de prestação de contas para o cliente ---- */
+  pdfCustodyReport(fid){
+    const d=this.custodyExtract(fid); if(!d)return;
+    const {jsPDF}=window.jspdf; const doc=new jsPDF(); const W=doc.internal.pageSize.getWidth(), M=18;
+    PDF.decorate(doc); let y=PDF.header(doc,'Prestação de contas',d.f.label||'Verba de terceiros');
+    const [r,g,b]=PDF.rgb(data.settings.accent);
+    doc.setFont('times','bold');doc.setFontSize(13);doc.setTextColor(r,g,b);
+    doc.text('PRESTAÇÃO DE CONTAS — VALORES PARA FORNECEDORES',W/2,y,{align:'center'});doc.setTextColor(40,35,48);y+=4;
+    doc.setDrawColor(189,154,60);doc.setLineWidth(0.3);doc.line(W/2-65,y,W/2+65,y);y+=9;
+    doc.setFont('helvetica','normal');doc.setFontSize(10);
+    if(d.cl.name){doc.text('Cliente: '+d.cl.name,M,y);y+=6;}
+    doc.text('Evento: '+(d.ev.type||'—')+(d.ev.date?' · '+U.dateLong(d.ev.date):''),M,y);y+=6;
+    if(d.f.label){doc.text('Referente a: '+d.f.label,M,y);y+=6;}
+    y+=2;
+    doc.setFont('helvetica','bold');doc.setFontSize(9.5);doc.setTextColor(74,31,64);
+    doc.text('MOVIMENTAÇÕES',M,y);doc.setTextColor(40,35,48);y+=7;
+
+    const ensureSpace=(need)=>{ if(y+need>doc.internal.pageSize.getHeight()-30){ PDF.footer(doc); doc.addPage(); PDF.decorate(doc); y=PDF.header(doc,'Prestação de contas',d.f.label||'Verba de terceiros'); } };
+
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(110,100,118);
+    doc.text('DATA',M,y);doc.text('DESCRIÇÃO',M+24,y);doc.text('ENTRADA',W-M-46,y,{align:'right'});doc.text('SAÍDA',W-M,y,{align:'right'});
+    doc.setTextColor(40,35,48);y+=2;doc.setDrawColor(220,212,222);doc.setLineWidth(0.2);doc.line(M,y,W-M,y);y+=6;
+    doc.setFont('helvetica','normal');doc.setFontSize(9);
+
+    if(!d.movs.length){doc.setTextColor(120,110,126);doc.text('Nenhum lançamento registrado.',M,y);doc.setTextColor(40,35,48);y+=8;}
+    d.movs.forEach(m=>{
+      ensureSpace(10);
+      doc.text(U.date(m.date),M,y);
+      const lab=doc.splitTextToSize(m.label,W-2*M-90);
+      doc.text(lab[0]||'',M+24,y);
+      if(m.type==='in'){doc.setTextColor(46,139,87);doc.text(U.money(m.value),W-M-46,y,{align:'right'});doc.setTextColor(40,35,48);}
+      else{doc.setTextColor(192,57,43);doc.text(U.money(m.value),W-M,y,{align:'right'});doc.setTextColor(40,35,48);}
+      y+=6.5;
+      if(lab.length>1){ for(let k=1;k<lab.length;k++){ensureSpace(6);doc.text(lab[k],M+24,y);y+=5.5;} }
+    });
+    y+=3;doc.setDrawColor(189,154,60);doc.setLineWidth(0.4);doc.line(M,y,W-M,y);y+=8;
+    ensureSpace(28);
+    const line=(lbl,val,bold,col)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(10.5);
+      if(col){const c=PDF.rgb(col);doc.setTextColor(c[0],c[1],c[2]);}else doc.setTextColor(40,35,48);
+      doc.text(lbl,M,y);doc.text(val,W-M,y,{align:'right'});doc.setTextColor(40,35,48);y+=8;};
+    line('Total recebido do cliente',U.money(d.b.received),false,'#2e8b57');
+    line('Total pago a fornecedores',U.money(d.b.spent),false,'#b03a2e');
+    line('SALDO EM MÃOS',U.money(d.b.balance),true,d.b.balance>=0?'#2e8b57':'#b03a2e');
+    if(d.b.committed>0)line('Compromissos agendados (não pagos)',U.money(d.b.committed),false,'#c8851b');
+    y+=6;doc.setFont('times','italic');doc.setFontSize(9);doc.setTextColor(120,110,126);
+    doc.text('Documento de prestação de contas dos valores recebidos para pagamento a fornecedores.',W/2,y,{align:'center'});doc.setTextColor(40,35,48);
+    PDF.footer(doc);
+    PDF.open(doc,'prestacao-contas-'+(d.ev.type||'evento').toLowerCase().replace(/\s+/g,'-')+'.pdf');
+    this.toast('PDF de prestação de contas gerado','ok');
+  },
+
+  waCustodyReport(fid){
+    const d=this.custodyExtract(fid); if(!d)return;
+    if(!d.cl.phone)return this.toast('Cliente sem WhatsApp cadastrado','err');
+    this.pdfCustodyReport(fid);
+    const msg='Olá '+(d.cl.name||'')+'! 😊\\nSegue a prestação de contas dos valores que você me passou para pagamento de fornecedores.\\nRecebido: '+U.money(d.b.received)+'\\nPago a fornecedores: '+U.money(d.b.spent)+'\\nSaldo em mãos: '+U.money(d.b.balance)+'\\n— '+data.settings.companyName;
+    setTimeout(()=>{window.open(U.waLink(d.cl.phone,msg),'_blank');setTimeout(()=>this.toast('📎 Anexe o PDF baixado na conversa',''),1200);},400);
   },
 });
 
@@ -3103,7 +3414,7 @@ Object.assign(App,{
     if(!confirm('Isso apaga TODOS os dados deste dispositivo. Continuar?'))return;
     if(!confirm('Tem certeza? Esta ação não pode ser desfeita.'))return;
     const set=data.settings;
-    data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],tasks:[],guests:[],settings:set,updatedAt:new Date().toISOString()};
+    data={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],custodyFunds:[],tasks:[],guests:[],settings:set,updatedAt:new Date().toISOString()};
     saveStore();this.renderAll();this.go('dashboard');this.toast('Dados apagados','ok');
   },
 });
