@@ -2711,7 +2711,7 @@ Object.assign(App,{
         '<div class="list-item" style="border-bottom:none;align-items:flex-start">'+
           '<div class="li-ic" style="background:var(--gold-soft);color:var(--gold-deep)"><i class="fas fa-store"></i></div>'+
           '<div class="li-body" onclick="App.paymentModal(\''+p.id+'\')">'+
-            '<div class="li-title">'+U.esc(sup.name||'Fornecedor')+(p.number?' <span class="muted" style="font-weight:500;font-size:12px">'+U.esc(p.number)+'</span>':'')+'</div>'+
+            '<div class="li-title">'+U.esc(sup.name||'Fornecedor')+(p.number?' <span class="muted" style="font-weight:500;font-size:12px">'+U.esc(p.number)+'</span>':'')+(p.fromFund?' <span class="badge b-info" style="font-size:9.5px">Verba</span>':'')+'</div>'+
             '<div class="li-sub">'+U.esc(p.description||sup.category||'Pagamento')+(ev?' · '+U.esc(ev.type):'')+'</div>'+
             '<div class="pay-prog"><i style="width:'+pct+'%"></i></div>'+
             '<div class="flex spread" style="font-size:12px"><span class="muted">'+U.money(s.paid)+' de '+U.money(s.contracted)+'</span><span style="font-weight:700;color:'+(s.pending>0?'var(--warn)':'var(--ok)')+'">'+(s.pending>0?U.money(s.pending)+' restante':'Quitado')+'</span></div>'+
@@ -2742,9 +2742,15 @@ Object.assign(App,{
     this.openSheet(id?'Gerenciar pagamento':'Novo pagamento a fornecedor',
       '<input type="hidden" id="f_pid" value="'+(p.id||'')+'">'+
       '<div class="field"><label>Fornecedor <span class="req">*</span></label><select id="f_psup"><option value="">— selecione —</option>'+sup+'</select></div>'+
-      '<div class="field"><label>Evento <span class="muted" style="font-weight:400">(p/ relatório de custos)</span></label><select id="f_pevent"><option value="">— opcional —</option>'+evs+'</select></div>'+
+      '<div class="field"><label>Fonte do dinheiro deste pagamento</label>'+
+        '<div id="f_pfundseg" style="display:flex;gap:8px">'+
+          '<button type="button" class="btn btn-ghost btn-sm" style="flex:1" onclick="App._setPayFund(0)"><i class="fas fa-wallet"></i> Meu caixa</button>'+
+          '<button type="button" class="btn btn-ghost btn-sm" style="flex:1" onclick="App._setPayFund(1)"><i class="fas fa-hand-holding-dollar"></i> Verba do cliente</button>'+
+        '</div>'+
+        '<input type="hidden" id="f_pfund" value="'+(p.fromFund?'1':'0')+'">'+
+        '<div class="hint" id="f_pfundhint" style="margin-top:6px"></div></div>'+
+      '<div class="field" id="f_peventwrap" style="border-radius:10px;padding:2px;transition:outline .15s"><label>Evento <span class="muted" style="font-weight:400" id="f_peventreq">(p/ relatório de custos)</span></label><select id="f_pevent"><option value="">— opcional —</option>'+evs+'</select></div>'+
       '<div class="field"><label>Referência</label><input id="f_pdesc" value="'+U.esc(p.description||'')+'" placeholder="Ex.: Buffet 120 convidados — casamento"></div>'+
-      '<label class="field" style="display:flex;align-items:flex-start;gap:9px;cursor:pointer;background:var(--info-bg);padding:10px 12px;border-radius:10px;margin-bottom:10px"><input type="checkbox" id="f_pfund" '+(p.fromFund?'checked':'')+' style="width:18px;height:18px;margin-top:1px;flex-shrink:0"><span style="font-size:12.5px;line-height:1.35"><b>Pago com a verba repassada pelo cliente</b><br><span class="muted">Marque quando o cliente adiantou o dinheiro para você administrar. Entra na <b>prestação de contas</b> do evento (não sai do seu caixa).</span></span></label>'+
       '<div class="field"><label>Valor total acordado (R$)</label><input type="number" step="0.01" min="0" id="f_pcontract" value="'+(p.contractedValue||'')+'" placeholder="Valor fechado com o fornecedor" oninput="App._payRecalc()"></div>'+
       '<div class="hint" style="margin-bottom:6px">Deixe em branco para somar automaticamente as parcelas abaixo.</div>'+
       '<label style="font-size:13px;font-weight:700;margin:10px 0 8px;display:block"><i class="fas fa-calendar-day" style="color:var(--plum)"></i> Parcelas & agendamento</label>'+
@@ -2763,6 +2769,33 @@ Object.assign(App,{
       '<div id="f_ptot"></div>',
       '<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button><button class="btn btn-primary" onclick="App.savePayment()"><i class="fas fa-floppy-disk"></i> Salvar</button>');
     this._payRenderInst();
+    this._setPayFund(p.fromFund?1:0);
+  },
+
+  // Toggle the money source (own cash vs client fund) for the open payment modal
+  _setPayFund(v){
+    v=v?1:0;
+    const hid=document.getElementById('f_pfund'); if(hid)hid.value=v?'1':'0';
+    const seg=document.getElementById('f_pfundseg');
+    if(seg){Array.prototype.forEach.call(seg.children,(b,i)=>{
+      const on=(i===1)===!!v;
+      b.style.background=on?(i===1?'var(--info)':'var(--plum)'):'';
+      b.style.color=on?'#fff':'';
+      b.style.borderColor=on?'transparent':'';
+      b.style.fontWeight=on?'700':'';
+    });}
+    const h=document.getElementById('f_pfundhint');
+    const wrap=document.getElementById('f_peventwrap');
+    const req=document.getElementById('f_peventreq');
+    if(v){
+      if(h)h.innerHTML='💼 Ao dar baixa nas parcelas, elas entram como <b>pagas com a verba do cliente</b> na <b>prestação de contas</b>. Não saem do seu caixa. <b>Vincule o evento</b> abaixo.';
+      if(wrap)wrap.style.outline='2px solid var(--info)';
+      if(req){req.textContent='(obrigatório p/ a verba do cliente)';req.style.color='var(--info)';}
+    }else{
+      if(h)h.innerHTML='💰 Pagamento sai do <b>seu caixa</b> (você cobra do cliente e paga os fornecedores por conta própria).';
+      if(wrap)wrap.style.outline='none';
+      if(req){req.textContent='(p/ relatório de custos)';req.style.color='';}
+    }
   },
 
   // Read installment rows back from the DOM into _pay.installments
@@ -2880,13 +2913,16 @@ Object.assign(App,{
     if(!supplierId)return this.toast('Selecione o fornecedor','err');
     const inst=this._pay.installments.filter(i=>i.value>0||i.label);
     if(!inst.length)return this.toast('Adicione ao menos uma parcela','err');
+    const fromFund=!!(document.getElementById('f_pfund')&&document.getElementById('f_pfund').value==='1');
+    const eventId=document.getElementById('f_pevent').value;
+    if(fromFund&&!eventId)return this.toast('Para pagar com a verba, vincule o evento (para a prestação de contas)','err');
     const contractEl=document.getElementById('f_pcontract');
     const contracted=parseFloat(contractEl.value)||inst.reduce((s,i)=>s+(i.value||0),0);
     const o={
       supplierId,
-      eventId:document.getElementById('f_pevent').value,
+      eventId:eventId,
       description:document.getElementById('f_pdesc').value.trim(),
-      fromFund:!!(document.getElementById('f_pfund')&&document.getElementById('f_pfund').checked),
+      fromFund:fromFund,
       contractedValue:contracted,
       installments:inst,
       updatedAt:new Date().toISOString()
