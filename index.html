@@ -17,9 +17,12 @@
 <!-- ===== Firebase SDK v12.14.0 (Auth Google + Firestore em nuvem) ===== -->
 <script type="module">
   import { initializeApp }   from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+           signInWithEmailAndPassword, createUserWithEmailAndPassword,
+           sendPasswordResetEmail, updateProfile,
+           setPersistence, browserLocalPersistence }
     from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, onSnapshot }
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, deleteDoc }
     from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -38,9 +41,15 @@
     const db          = getFirestore(firebaseApp);
     const provider    = new GoogleAuthProvider();
 
+    // Mantém a sessão salva no aparelho (login persiste entre recargas/dias)
+    try { await setPersistence(auth, browserLocalPersistence); } catch(e){}
+
     // Expõe para o código global
     window._firebase = { auth, db, provider, signInWithPopup, signOut,
-                         onAuthStateChanged, doc, setDoc, getDoc, onSnapshot };
+                         onAuthStateChanged, signInWithEmailAndPassword,
+                         createUserWithEmailAndPassword, sendPasswordResetEmail,
+                         updateProfile, doc, setDoc, getDoc, onSnapshot,
+                         updateDoc, deleteDoc };
     document.dispatchEvent(new Event('firebase-ready'));
   } catch (e) {
     console.error('Falha ao iniciar Firebase:', e);
@@ -767,7 +776,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
       Entrar com Google
     </button>
 
-    <p class="small muted" style="margin:16px 0 0">Seus dados ficam salvos neste dispositivo.<br>Ative a sincronização para acessá-los em qualquer lugar.</p>
+    <p class="small muted" style="margin:16px 0 0">Seus dados ficam salvos na nuvem e sincronizam em <strong>tempo real</strong> entre todos os aparelhos.<br>Membros da equipe entram com o próprio e-mail.</p>
   </div>
 </div>
 
@@ -1524,7 +1533,7 @@ const Auth={
   _initials(name){const p=(name||'').trim().split(/\s+/);return ((p[0]?.[0]||'')+(p.length>1?p[p.length-1][0]:'')).toUpperCase()||'?';},
 
   init(){
-    // Migration: if old single-account system exists, convert it
+    // Migração: converte sistema antigo de conta única, se existir (mantém dados locais)
     const oldPass=localStorage.getItem('cp_pass');
     const oldLoggedIn=localStorage.getItem('cp_loggedin');
     const oldData=localStorage.getItem(STORE_KEY);
@@ -1538,18 +1547,20 @@ const Auth={
       if(oldData) localStorage.setItem('cpData_'+migratedEmail, oldData);
       localStorage.removeItem('cp_pass');
       localStorage.removeItem('cp_loggedin');
-      // If user was already logged in OR had no password set, restore session automatically
-      if(oldLoggedIn==='1' || !oldPass){
-        localStorage.setItem(SESSION_KEY, migratedEmail);
-        this._loadSession(migratedEmail).catch(e=>console.error(e));
-        return;
-      }
     }
 
-    const session=localStorage.getItem(SESSION_KEY);
-    if(session){ this._loadSession(session).catch(e=>console.error(e)); return; }
-
+    // A sessão é controlada pelo Firebase (login persiste no aparelho e sincroniza).
+    // A tela de login já está visível por padrão. Mostramos o seletor de contas locais
+    // apenas como apoio offline.
     this._renderLoginUI();
+
+    // Fallback OFFLINE: se o Firebase não responder, restaura a última sessão local.
+    setTimeout(()=>{
+      if(FB._authResolved || window._fbUser) return;        // Firebase no comando
+      if(document.getElementById('app').style.display==='flex') return; // já iniciado
+      const session=localStorage.getItem(SESSION_KEY);
+      if(session){ this._loadSession(session).catch(e=>console.error(e)); }
+    }, 4500);
   },
 
   _renderLoginUI(){
@@ -1624,17 +1635,21 @@ const Auth={
   },
 
   login(){
-    const errEl=document.getElementById('loginErr'); errEl.style.display='none';
+    const errEl=document.getElementById('loginErr'); errEl.style.display='none'; errEl.style.background='var(--danger-bg)'; errEl.style.color='var(--danger)';
     const email=document.getElementById('loginEmail').value.trim().toLowerCase();
     const pass=document.getElementById('loginPass').value;
     if(!email){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Informe o e-mail.';return;}
     if(!pass){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Informe a senha.';return;}
-    const accounts=this._accounts();
-    const acc=accounts.find(a=>a.email===email);
-    if(!acc){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Conta não encontrada. <button type="button" onclick="Auth.switchTab(\'register\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Criar conta?</button>';return;}
-    if(this._hash(pass)!==acc.hash){errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Senha incorreta. Tente novamente.';return;}
-    localStorage.setItem(SESSION_KEY,email);
-    this._loadSession(email).catch(e=>console.error(e));
+    // Entrar SEMPRE pelo Firebase → funciona em qualquer aparelho, com sincronização
+    if(window._firebase){
+      const btn=document.querySelector('#loginPanel .btn-primary'); if(btn){btn.disabled=true;btn.style.opacity=.7;}
+      FB.loginEmail(email,pass).finally(()=>{ if(btn){btn.disabled=false;btn.style.opacity=1;} });
+      return;
+    }
+    // Fallback offline: tenta conta local antiga
+    const acc=this._accounts().find(a=>a.email===email);
+    if(acc && this._hash(pass)===acc.hash){ localStorage.setItem(SESSION_KEY,email); this._loadSession(email).catch(e=>console.error(e)); return; }
+    errEl.style.display='block';errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Sem conexão com o servidor. Verifique a internet e tente novamente.';
   },
 
   register(){
@@ -1649,18 +1664,13 @@ const Auth={
     if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showErr('Informe um e-mail válido.');return;}
     if(pass.length<6){showErr('A senha deve ter pelo menos 6 caracteres.');return;}
     if(pass!==pass2){showErr('As senhas não coincidem.');return;}
-    const accounts=this._accounts();
-    if(accounts.find(a=>a.email===email)){showErr('Este e-mail já está cadastrado. <button type="button" onclick="Auth.switchTab(\'login\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Entrar?</button>');return;}
-    const newAcc={email,name:company,userName:user||company,hash:this._hash(pass),role:'owner',createdAt:new Date().toISOString()};
-    accounts.push(newAcc);
-    this._saveAccounts(accounts);
-    // Pre-populate settings for new account
-    const accData={events:[],clients:[],suppliers:[],budgets:[],contracts:[],receipts:[],supplierPayments:[],expenses:[],tasks:[],guests:[],
-      settings:{companyName:company,userName:user||company,email:'',phone:'',doc:'',address:'',logo:'',slogan:'',docLayout:'header',watermark:true,accent:'#6b2d5c',signature:'',budgetReminderMsg:'Olá {cliente}! 😊 Passando para lembrar que o orçamento {numero} é válido até {validade}. Caso tenha ficado alguma dúvida, estou à disposição para conversar e seguir com a contratação. — {empresa}',protect:{contextMenu:true,selection:true,devKeys:true,drag:true,devtoolsWarn:false}},
-      updatedAt:new Date().toISOString()};
-    localStorage.setItem('cpData_'+email,JSON.stringify(accData));
-    localStorage.setItem(SESSION_KEY,email);
-    this._loadSession(email).catch(e=>console.error(e));
+    // Cria a conta de dono no Firebase → acessível em qualquer aparelho
+    if(window._firebase){
+      const btn=document.querySelector('#registerPanel .btn-primary'); if(btn){btn.disabled=true;btn.style.opacity=.7;}
+      FB.registerEmail(company,user,email,pass).finally(()=>{ if(btn){btn.disabled=false;btn.style.opacity=1;} });
+      return;
+    }
+    showErr('Sem conexão com o servidor. Conecte-se à internet para criar sua conta.');
   },
 
   async _loadSession(email){
@@ -1688,28 +1698,10 @@ const Auth={
 
   forgotPass(){
     const email=document.getElementById('loginEmail').value.trim().toLowerCase();
-    if(!email){
-      document.getElementById('loginErr').style.display='block';
-      document.getElementById('loginErr').innerHTML='<i class="fas fa-circle-exclamation"></i> Informe o e-mail da conta para redefinir a senha.';
-      return;
-    }
-    const accounts=this._accounts();
-    const idx=accounts.findIndex(a=>a.email===email);
-    if(idx===-1){
-      document.getElementById('loginErr').style.display='block';
-      document.getElementById('loginErr').innerHTML='<i class="fas fa-circle-exclamation"></i> Conta não encontrada com esse e-mail.';
-      return;
-    }
-    if(confirm('Redefinir senha da conta "'+accounts[idx].name+'" ('+email+')?\n\nVocê precisará criar uma nova senha. Os dados permanecem intactos.')){
-      accounts.splice(idx,1);
-      this._saveAccounts(accounts);
-      // Keep data, just remove account so user re-registers with same email
-      // Actually let them re-create password only:
-      // Re-add with blank hash so they can re-register
-      alert('Senha removida. Crie sua conta novamente com o mesmo e-mail para acessar seus dados.');
-      this.switchTab('register');
-      document.getElementById('regEmail').value=email;
-    }
+    if(window._firebase){ FB.resetPassword(email); return; }
+    const errEl=document.getElementById('loginErr');
+    errEl.style.display='block';
+    errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Sem conexão para redefinir a senha. Tente novamente com internet.';
   },
 
   logout(){
@@ -1732,8 +1724,8 @@ const Auth={
 const App={
   curFilter:'all',
   init(){
-    Auth.init();
     FB.init();
+    Auth.init();
   },
   // Legacy stubs kept for any inline onclick references
   togglePassVis(){ Auth.toggleVis('loginPass','passEyeIcon'); },
@@ -3373,15 +3365,19 @@ Object.assign(App,{
   /* ---- Usuários & acessos (somente dono) ---- */
   renderUsers(){
     const el=document.getElementById('usersList'); if(!el) return;
-    const owner=(window._sessionAccount&&window._sessionAccount.email)||window._currentEmail;
-    const subs=Auth._accounts().filter(a=>a.role==='limited'&&a.owner===owner);
-    if(!subs.length){ el.innerHTML='<div class="hint" style="margin:0">Nenhum usuário adicional ainda. Crie acessos para sua equipe com permissões específicas.</div>'; return; }
+    if(!window._fbUser){
+      el.innerHTML='<div class="hint" style="margin:0"><i class="fas fa-circle-info"></i> Entre com sua conta na nuvem (e-mail ou Google) para criar acessos de equipe que funcionam em qualquer aparelho.</div>';
+      return;
+    }
+    const subs=Team.list();
+    if(!subs.length){ el.innerHTML='<div class="hint" style="margin:0">Nenhum usuário adicional ainda. Crie acessos para sua equipe com permissões específicas — cada um entra com o próprio e-mail, em qualquer celular ou computador.</div>'; return; }
     el.innerHTML=subs.map(a=>{
       const labels=(a.perms||[]).map(k=>{const s=ACCESS_SECTIONS.find(x=>x.k===k);return s?s.label:k;});
       const permTxt=labels.length?labels.join(' · '):'Sem áreas liberadas';
+      const joined=a.uid?'<span style="color:var(--ok);font-size:11px"><i class="fas fa-circle-check"></i> Ativo</span>':'<span style="color:var(--warn);font-size:11px"><i class="fas fa-hourglass-half"></i> Aguardando 1º acesso</span>';
       return '<div class="usr-item">'+
         '<div class="usr-av">'+U.initials(a.name||a.email)+'</div>'+
-        '<div class="usr-meta"><div class="usr-nm">'+U.esc(a.name||a.email)+'</div>'+
+        '<div class="usr-meta"><div class="usr-nm">'+U.esc(a.name||a.email)+' &nbsp;'+joined+'</div>'+
         '<div class="usr-em">'+U.esc(a.email)+'</div>'+
         '<div class="usr-perms"><i class="fas fa-lock" style="font-size:10px"></i> '+U.esc(permTxt)+'</div></div>'+
         '<button class="abtn" onclick="App.userModal(\''+a.email+'\')" title="Editar"><i class="fas fa-pen"></i></button>'+
@@ -3390,8 +3386,9 @@ Object.assign(App,{
     }).join('');
   },
   userModal(email){
-    if(Access.isLimited()){ this.toast('Apenas o dono pode gerenciar usuários.','err'); return; }
-    const editing=email?Auth._accounts().find(a=>a.email===email&&a.role==='limited'):null;
+    if(Access.isLimited()){ this.toast('Apenas o administrador pode gerenciar usuários.','err'); return; }
+    if(!window._fbUser){ this.toast('Conecte-se à nuvem para gerenciar usuários.','err'); return; }
+    const editing=email?Team.list().find(a=>a.email===FB._emailKey(email)):null;
     const perms=new Set(editing?(editing.perms||[]):['guests']);
     const presets='<div class="perm-presets">'+
       '<button onclick="App._userPreset([\'guests\'])"><i class="fas fa-clipboard-check"></i> Só convidados</button>'+
@@ -3403,10 +3400,11 @@ Object.assign(App,{
         '<i class="fas '+s.icon+' pic"></i><span class="pl">'+U.esc(s.label)+'</span>'+
         '<span class="pchk"><i class="fas fa-check" style="font-size:11px"></i></span>'+
       '</div>').join('');
+    const howto='<div style="background:var(--info-bg);color:var(--info);border-radius:10px;padding:9px 13px;font-size:12.5px;margin:4px 0 12px;line-height:1.45"><i class="fas fa-circle-info"></i> O usuário entrará com <strong>este e-mail</strong> em qualquer aparelho. No primeiro acesso ele mesmo define a senha (mínimo 6 caracteres) na tela de login. Tudo sincroniza em tempo real.</div>';
     const body=
       '<div class="field"><label>Nome do usuário</label><input id="u_name" value="'+U.esc(editing?editing.name:'')+'" placeholder="Ex.: Maria — Recepção"></div>'+
       '<div class="field"><label>E-mail de acesso</label><input id="u_email" type="email" value="'+U.esc(editing?editing.email:'')+'" placeholder="recepcao@email.com" '+(editing?'disabled style="opacity:.6;background:var(--line2)"':'')+'></div>'+
-      '<div class="field"><label>Senha'+(editing?' <span class="muted small">(em branco mantém a atual)</span>':'')+'</label><input id="u_pass" type="password" placeholder="'+(editing?'••••••':'Mínimo 4 caracteres')+'"></div>'+
+      howto+
       '<label class="small muted" style="display:block;margin:6px 0 6px">Áreas que este usuário pode acessar</label>'+
       presets+
       '<div class="perm-grid" id="permGrid">'+rows+'</div>'+
@@ -3421,36 +3419,35 @@ Object.assign(App,{
     document.querySelectorAll('#permGrid .perm-row').forEach(r=>r.classList.toggle('on',set.includes(r.dataset.k)));
   },
   _userTogglePerm(el){ el.classList.toggle('on'); },
-  saveUser(email){
+  async saveUser(email){
     const err=document.getElementById('u_err');
     const show=m=>{err.style.display='block';err.innerHTML='<i class="fas fa-circle-exclamation"></i> '+m;};
     const name=document.getElementById('u_name').value.trim();
-    const mail=email||document.getElementById('u_email').value.trim().toLowerCase();
-    const pass=document.getElementById('u_pass').value;
+    const mail=FB._emailKey(email||document.getElementById('u_email').value);
     const perms=[...document.querySelectorAll('#permGrid .perm-row.on')].map(r=>r.dataset.k);
     if(!name) return show('Informe o nome do usuário.');
+    if(!email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return show('Informe um e-mail válido.');
     if(!perms.length) return show('Selecione pelo menos uma área de acesso.');
-    const accounts=Auth._accounts();
-    const owner=(window._sessionAccount&&window._sessionAccount.email)||window._currentEmail;
-    if(email){
-      const acc=accounts.find(a=>a.email===email);
-      if(!acc) return show('Usuário não encontrado.');
-      acc.name=name; acc.userName=name; acc.perms=perms;
-      if(pass){ if(pass.length<4) return show('A senha deve ter ao menos 4 caracteres.'); acc.hash=Auth._hash(pass); }
-    }else{
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return show('Informe um e-mail válido.');
-      if(accounts.some(a=>a.email===mail)) return show('Este e-mail já está em uso.');
-      if(pass.length<4) return show('A senha deve ter ao menos 4 caracteres.');
-      accounts.push({email:mail,name,userName:name,hash:Auth._hash(pass),role:'limited',owner,perms,createdAt:new Date().toISOString()});
-    }
-    Auth._saveAccounts(accounts);
-    this.closeSheet(); this.renderUsers();
-    this.toast('Usuário salvo','ok');
+    if(mail===FB._emailKey(FB.user&&FB.user.email)) return show('Este é o e-mail do administrador (acesso total).');
+    if(!email && Team.list().some(a=>a.email===mail)) return show('Este e-mail já está cadastrado.');
+    const btn=document.querySelector('#sheet .btn-primary'); if(btn){btn.disabled=true;btn.style.opacity=.7;}
+    try{
+      await Team.addOrUpdate(mail, name, perms);
+      this.closeSheet(); this.renderUsers();
+      this.toast(email?'Usuário atualizado':'Usuário criado — ele já pode entrar com o e-mail informado','ok');
+    }catch(e){
+      console.error(e);
+      show('Não foi possível salvar: '+(e.message||e.code||'erro de conexão'));
+    }finally{ if(btn){btn.disabled=false;btn.style.opacity=1;} }
   },
-  delUser(email){
-    if(!confirm('Remover este usuário? Ele perderá o acesso ao sistema.\n\nOs dados do evento NÃO são apagados.')) return;
-    Auth._saveAccounts(Auth._accounts().filter(a=>a.email!==email));
-    this.renderUsers(); this.toast('Usuário removido','ok');
+  async delUser(email){
+    if(!confirm('Remover este usuário? Ele perderá o acesso ao sistema.\n\nOs dados dos eventos NÃO são apagados.')) return;
+    try{
+      await Team.remove(email);
+      this.renderUsers(); this.toast('Usuário removido','ok');
+    }catch(e){
+      console.error(e); this.toast('Não foi possível remover: '+(e.message||'erro'),'err');
+    }
   },
 
   loadSettings(){
@@ -4080,12 +4077,17 @@ const FB={
   _lastPush:null,
   _saveTimer:null,
   _booted:false,
+  _authResolved:false,
+  _role:'owner',          // 'owner' | 'limited'
+  _workspaceUid:null,     // doc id em 'usuarios' que este aparelho lê/grava
+  _meta:{_ownerUid:null,_ownerEmail:'',_memberEmails:[],_members:{}},
 
   init(){
     const begin=()=>{
       if(!window._firebase){ this._disableGoogleBtn(); return; }
       const { auth, onAuthStateChanged }=window._firebase;
       onAuthStateChanged(auth, async user=>{
+        this._authResolved=true;
         if(user){ await this.onLogin(user); }
         else { this.onLogout(); }
       });
@@ -4093,8 +4095,8 @@ const FB={
     if(window._firebase) begin();
     else {
       document.addEventListener('firebase-ready', begin, { once:true });
-      // se o módulo nunca carregar (offline/bloqueado), desabilita o botão
-      setTimeout(()=>{ if(!window._firebase) this._disableGoogleBtn(); }, 6000);
+      // se o módulo nunca carregar (offline/bloqueado), libera o modo local
+      setTimeout(()=>{ if(!window._firebase){ this._authResolved=true; this._disableGoogleBtn(); } }, 6000);
     }
   },
 
@@ -4103,67 +4105,196 @@ const FB={
     if(b){ b.disabled=true; b.style.opacity=.55; b.title='Firebase indisponível (verifique a conexão)'; }
   },
 
+  _loginErr(msg){
+    const errEl=document.getElementById('loginErr');
+    if(errEl){ errEl.style.display='block'; errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> '+msg; }
+    else alert(msg);
+  },
+
+  // ---- Entrar com Google (dono) ----
   async loginGoogle(){
     if(!window._firebase){ alert('Firebase ainda está carregando. Tente novamente em instantes.'); return; }
     try{
       const { auth, provider, signInWithPopup }=window._firebase;
       await signInWithPopup(auth, provider);
-      // o restante acontece em onAuthStateChanged → onLogin
+      // segue em onAuthStateChanged → onLogin
     }catch(e){
       console.error(e);
+      this._loginErr('Erro ao entrar com Google: '+(e.code||e.message));
+    }
+  },
+
+  // ---- Entrar com e-mail e senha (dono OU usuário de equipe) ----
+  // Primeiro login de um e-mail convidado cria automaticamente a conta.
+  async loginEmail(email,pass){
+    if(!window._firebase){ this._loginErr('Conexão com o servidor indisponível. Verifique a internet.'); return; }
+    const { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword }=window._firebase;
+    try{
+      await signInWithEmailAndPassword(auth, email, pass);
+    }catch(e){
+      if(e.code==='auth/user-not-found' || e.code==='auth/invalid-credential'){
+        // pode ser um usuário convidado entrando pela 1ª vez → tenta criar
+        try{
+          await createUserWithEmailAndPassword(auth, email, pass);
+        }catch(e2){
+          if(e2.code==='auth/email-already-in-use'){ this._loginErr('Senha incorreta. Tente novamente ou use “Esqueci a senha”.'); }
+          else if(e2.code==='auth/weak-password'){ this._loginErr('A senha deve ter pelo menos 6 caracteres.'); }
+          else if(e2.code==='auth/invalid-email'){ this._loginErr('Informe um e-mail válido.'); }
+          else this._loginErr('Não foi possível entrar: '+(e2.code||e2.message));
+          return;
+        }
+      } else if(e.code==='auth/wrong-password'){ this._loginErr('Senha incorreta. Tente novamente.'); return; }
+      else if(e.code==='auth/invalid-email'){ this._loginErr('Informe um e-mail válido.'); return; }
+      else if(e.code==='auth/too-many-requests'){ this._loginErr('Muitas tentativas. Aguarde alguns minutos e tente de novo.'); return; }
+      else { this._loginErr('Não foi possível entrar: '+(e.code||e.message)); return; }
+    }
+    // segue em onAuthStateChanged → onLogin
+  },
+
+  // ---- Criar conta de DONO (empresa) com e-mail e senha ----
+  async registerEmail(company,userName,email,pass){
+    if(!window._firebase){ const e=document.getElementById('registerErr'); if(e){e.style.display='block';e.innerHTML='<i class="fas fa-circle-exclamation"></i> Conexão indisponível. Verifique a internet.';} return; }
+    const { auth, createUserWithEmailAndPassword, updateProfile }=window._firebase;
+    const showErr=msg=>{const e=document.getElementById('registerErr'); if(e){e.style.display='block';e.innerHTML='<i class="fas fa-circle-exclamation"></i> '+msg;} else alert(msg);};
+    try{
+      const cred=await createUserWithEmailAndPassword(auth, email, pass);
+      try{ await updateProfile(cred.user, { displayName: company }); }catch(_){}
+      // semente de configurações para a nova empresa
+      window._pendingOwnerSeed={ companyName:company, userName:userName||company };
+      // segue em onAuthStateChanged → onLogin
+    }catch(e){
+      if(e.code==='auth/email-already-in-use'){ showErr('Este e-mail já está cadastrado. <button type="button" onclick="Auth.switchTab(\'login\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Entrar?</button>'); }
+      else if(e.code==='auth/weak-password'){ showErr('A senha deve ter pelo menos 6 caracteres.'); }
+      else if(e.code==='auth/invalid-email'){ showErr('Informe um e-mail válido.'); }
+      else showErr('Não foi possível criar a conta: '+(e.code||e.message));
+    }
+  },
+
+  async resetPassword(email){
+    if(!window._firebase){ this._loginErr('Conexão indisponível.'); return; }
+    if(!email){ this._loginErr('Informe o e-mail da conta para redefinir a senha.'); return; }
+    try{
+      await window._firebase.sendPasswordResetEmail(window._firebase.auth, email);
       const errEl=document.getElementById('loginErr');
-      if(errEl){ errEl.style.display='block'; errEl.innerHTML='<i class="fas fa-circle-exclamation"></i> Erro ao entrar com Google: '+(e.code||e.message); }
-      else alert('Erro ao entrar com Google: '+e.message);
+      if(errEl){ errEl.style.display='block'; errEl.style.background='var(--ok-bg)'; errEl.style.color='var(--ok)'; errEl.innerHTML='<i class="fas fa-circle-check"></i> Enviamos um link de redefinição para '+U.esc(email)+'. Verifique sua caixa de entrada.'; }
+    }catch(e){
+      this._loginErr('Não foi possível enviar o e-mail: '+(e.code||e.message));
     }
   },
 
   async logout(){
-    if(confirm('Sair da conta Google? Seus dados permanecem salvos na nuvem.')){
-      try{
-        // garante último salvamento antes de sair
-        await this._pushNow();
-      }catch(e){}
+    if(confirm('Deseja sair? Seus dados permanecem salvos na nuvem.')){
+      try{ await this._pushNow(); }catch(e){}
       try{ if(this._unsub){ this._unsub(); this._unsub=null; } }catch(e){}
       try{ const { auth, signOut }=window._firebase; await signOut(auth); }catch(e){}
       location.reload();
     }
   },
 
+  _emailKey(e){ return (e||'').trim().toLowerCase(); },
+
+  // ---- Após autenticar: descobre se é dono ou membro e abre o workspace ----
   async onLogin(user){
     this.user=user;
     window._fbUser=user;
-    Access.acc=null; window._sessionAccount=null; // Google = acesso total (dono)
-    window._currentEmail=user.email||user.uid; // cache local namespeado por e-mail
-    // Atualiza o cabeçalho do menu com identidade Google
+    const email=this._emailKey(user.email);
+    window._currentEmail=email||user.uid;
+
+    let role='owner', workspaceUid=user.uid, perms=null, ownerEmail=email, memberName=user.displayName;
+
+    // procura convite/membership por e-mail (permite login em qualquer aparelho)
+    try{
+      if(email){
+        const { db, doc, getDoc, setDoc }=window._firebase;
+        const snap=await getDoc(doc(db,'memberships',email));
+        if(snap.exists()){
+          const m=snap.data();
+          if(m.ownerUid && m.ownerUid!==user.uid){
+            role='limited'; workspaceUid=m.ownerUid; perms=m.perms||[];
+            ownerEmail=m.ownerEmail||''; memberName=m.name||user.displayName||email;
+            // registra o uid do membro (melhor esforço)
+            try{ await setDoc(doc(db,'memberships',email),{uid:user.uid,lastLogin:new Date().toISOString()},{merge:true}); }catch(_){}
+          }
+        }
+      }
+    }catch(e){ console.warn('Falha ao verificar permissões do usuário:', e); }
+
+    this._role=role;
+    this._workspaceUid=workspaceUid;
+
+    if(role==='limited'){
+      Access.acc={ role:'limited', email, name:memberName, perms:(perms||[]), owner:ownerEmail };
+      window._sessionAccount=Access.acc;
+    }else{
+      Access.acc=null; window._sessionAccount=null;
+      // dono: pré-carrega cache local deste e-mail para migrar p/ nuvem no 1º acesso
+      try{
+        const raw=localStorage.getItem('cpData_'+email);
+        if(raw){ const p=JSON.parse(raw); data=Object.assign(data,p);
+          ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','expenses','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];}); }
+      }catch(_){}
+      // semente de cadastro recém-criado
+      if(window._pendingOwnerSeed){
+        data.settings=Object.assign({}, data.settings||{}, {
+          companyName:window._pendingOwnerSeed.companyName,
+          userName:window._pendingOwnerSeed.userName
+        });
+        window._pendingOwnerSeed=null;
+      }
+    }
+
+    // header do menu
     const drCo=document.getElementById('drCompany');
-    if(drCo && (!data.settings.companyName || data.settings.companyName==='CerimonialPro'))
+    if(drCo && role==='owner' && (!data.settings.companyName || data.settings.companyName==='CerimonialPro'))
       drCo.textContent=user.displayName||user.email;
+
     this._renderUserCard();
     this.setStatus('syncing','Sincronizando…');
     this.subscribe();
   },
 
   onLogout(){
-    // só relevante se estávamos em modo Firebase
     if(window._fbUser){ window._fbUser=null; this.user=null; }
+    // se o firebase resolveu e não há usuário, garante que a tela de login apareça
+    const appEl=document.getElementById('app');
+    if(appEl && appEl.style.display==='flex'){ /* já estava logado e saiu: o reload trata */ }
+  },
+
+  _captureMeta(remote){
+    this._meta={
+      _ownerUid:    remote._ownerUid    || this._workspaceUid,
+      _ownerEmail:  remote._ownerEmail  || (this._role==='owner' ? this._emailKey(this.user&&this.user.email) : (this._meta&&this._meta._ownerEmail)||''),
+      _memberEmails:Array.isArray(remote._memberEmails)?remote._memberEmails:[],
+      _members:     (remote._members && typeof remote._members==='object') ? remote._members : {}
+    };
   },
 
   subscribe(){
     const { db, doc, onSnapshot }=window._firebase;
-    const ref=doc(db,'usuarios',this.user.uid);
+    const ref=doc(db,'usuarios',this._workspaceUid);
     if(this._unsub){ this._unsub(); }
     this._unsub=onSnapshot(ref, snap=>{
       if(snap.exists()){
         const remote=snap.data();
-        // ignora o "eco" da nossa própria gravação
+        this._captureMeta(remote);
+        // ignora o "eco" da nossa própria gravação de dados
         if(remote.updatedAt && remote.updatedAt===this._lastPush){
-          this.setStatus('on','Sincronizado'); this._ensureBooted(); return;
+          this.setStatus('on','Sincronizado'); this._ensureBooted();
+          if(!Access.isLimited() && document.getElementById('usersList')) App.renderUsers();
+          return;
         }
         this._applyRemote(remote);
         this.setStatus('on','Sincronizado');
+        if(!Access.isLimited() && document.getElementById('usersList')) App.renderUsers();
       }else{
-        // primeiro acesso deste usuário: envia os dados atuais (migra local → nuvem)
-        this._pushNow().catch(e=>console.error(e));
+        // 1º acesso do dono: cria o workspace na nuvem (migra dados locais)
+        if(this._role==='limited'){
+          // membro sem workspace: convite ainda não propagou
+          this.setStatus('err','Aguardando liberação do administrador');
+          this._ensureBooted();
+        }else{
+          this._seedWorkspace().catch(e=>console.error(e));
+        }
       }
       this._ensureBooted();
     }, err=>{
@@ -4174,16 +4305,33 @@ const FB={
   },
 
   _applyRemote(remote){
-    data=Object.assign(data, remote);
-    data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''}, remote.settings||{});
+    const clean=Object.assign({}, remote);
+    ['_members','_memberEmails','_ownerUid','_ownerEmail'].forEach(k=>delete clean[k]);
+    data=Object.assign(data, clean);
+    data.settings=Object.assign({companyName:'CerimonialPro',userName:'Cerimonialista',email:'',phone:'',doc:'',address:'',logo:''}, clean.settings||{});
     ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','expenses','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
     // cache offline
     try{ saveToIndexedDB(IDB_KEY,data); }catch(e){}
     if(window._currentEmail){ try{ localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data)); }catch(e){} }
     if(this._booted){
-      const cur=document.querySelector('.page.active')?.id?.replace('page-','')||'dashboard';
+      const cur=document.querySelector('.page.active')?.id?.replace('page-','')||Access.firstAllowed();
       App.refreshChrome(); App.renderAll(); App.go(cur);
     }
+  },
+
+  async _seedWorkspace(){
+    // grava os dados atuais + metadados do workspace pela primeira vez
+    const { db, doc, setDoc }=window._firebase;
+    if(!data.updatedAt) data.updatedAt=new Date().toISOString();
+    this._lastPush=data.updatedAt;
+    const payload=Object.assign({}, data, {
+      _ownerUid:this._workspaceUid,
+      _ownerEmail:this._emailKey(this.user&&this.user.email),
+      _memberEmails:(this._meta&&this._meta._memberEmails)||[],
+      _members:(this._meta&&this._meta._members)||{}
+    });
+    try{ await setDoc(doc(db,'usuarios',this._workspaceUid), payload, {merge:true}); this.setStatus('on','Salvo ✓'); }
+    catch(e){ console.error(e); this.setStatus('err','Erro ao salvar'); }
   },
 
   _ensureBooted(){
@@ -4202,12 +4350,18 @@ const FB={
   },
 
   async _pushNow(){
-    if(!window._fbUser || !window._firebase) return;
+    if(!window._fbUser || !window._firebase || !this._workspaceUid) return;
     const { db, doc, setDoc }=window._firebase;
     if(!data.updatedAt) data.updatedAt=new Date().toISOString();
     this._lastPush=data.updatedAt;
+    // grava só os dados (merge preserva metadados de membros); dono reafirma _ownerUid/_ownerEmail
+    const payload=Object.assign({}, data);
+    if(this._role!=='limited'){
+      payload._ownerUid=this._workspaceUid;
+      payload._ownerEmail=this._emailKey(this.user&&this.user.email);
+    }
     try{
-      await setDoc(doc(db,'usuarios',this.user.uid), data);
+      await setDoc(doc(db,'usuarios',this._workspaceUid), payload, {merge:true});
       this.setStatus('on','Salvo ✓');
     }catch(e){
       console.error(e);
@@ -4223,10 +4377,10 @@ const FB={
       if(state==='syncing'){ pill.classList.add('syncing','spin'); }
       else if(state==='err'){ pill.classList.add('err'); }
       else { pill.classList.add('on'); }
-      const lbl=document.getElementById('syncLabel'); if(lbl) lbl.textContent='Google';
+      const lbl=document.getElementById('syncLabel'); if(lbl) lbl.textContent='Nuvem';
       const ic=pill.querySelector('i'); if(ic) ic.className=state==='err'?'fas fa-cloud-exclamation':state==='syncing'?'fas fa-cloud-arrow-up':'fas fa-cloud';
     }
-    const dr=document.getElementById('drSync'); if(dr) dr.textContent=state==='err'?'Erro':state==='syncing'?'Sincronizando…':'Nuvem (Google)';
+    const dr=document.getElementById('drSync'); if(dr) dr.textContent=state==='err'?'Erro':state==='syncing'?'Sincronizando…':'Nuvem · tempo real';
     const fs=document.getElementById('fbStatus'); if(fs) fs.innerHTML='<i class="fas fa-clock"></i> '+label+(this._lastPush?' · '+new Date(this._lastPush).toLocaleString('pt-BR'):'');
   },
 
@@ -4240,9 +4394,55 @@ const FB={
         ? '<img src="'+this.user.photoURL+'" alt="">'
         : '<div class="fb-av">'+U.initials(this.user.displayName||this.user.email)+'</div>';
     }
-    const nm=document.getElementById('fbUserName'); if(nm) nm.textContent=this.user.displayName||'Usuário Google';
+    const nm=document.getElementById('fbUserName'); if(nm) nm.textContent=(Access.isLimited()&&Access.acc&&Access.acc.name)||this.user.displayName||'Usuário';
     const em=document.getElementById('fbUserEmail'); if(em) em.textContent=this.user.email||'';
   },
+};
+
+/* ============================================================
+   Team — gestão de usuários de equipe (acesso limitado)
+   Persistido no Firestore para login em qualquer aparelho:
+     • memberships/{email}     → índice e-mail → workspace
+     • usuarios/{ownerUid}._members / ._memberEmails → lista + permissões
+============================================================ */
+const Team={
+  list(){
+    const m=(FB._meta&&FB._meta._members)||{};
+    return Object.keys(m).map(email=>Object.assign({email}, m[email]));
+  },
+  async addOrUpdate(email, name, perms, opts){
+    if(!window._firebase || !window._fbUser) throw new Error('Conecte-se à internet para gerenciar usuários.');
+    const key=FB._emailKey(email);
+    const ownerUid=FB._workspaceUid;
+    const ownerEmail=(FB._meta&&FB._meta._ownerEmail)||FB._emailKey(FB.user&&FB.user.email);
+    const { db, doc, setDoc }=window._firebase;
+    // índice de membership (login cross-device)
+    await setDoc(doc(db,'memberships',key), {
+      email:key, ownerUid, ownerEmail, role:'limited', perms, name,
+      updatedAt:new Date().toISOString()
+    }, {merge:true});
+    // metadados no workspace
+    const members=Object.assign({}, (FB._meta&&FB._meta._members)||{});
+    const prev=members[key]||{};
+    members[key]={ name, perms, role:'limited', createdAt:prev.createdAt||new Date().toISOString() };
+    const emails=Object.keys(members);
+    await setDoc(doc(db,'usuarios',ownerUid), {
+      _members:members, _memberEmails:emails, _ownerUid:ownerUid, _ownerEmail:ownerEmail
+    }, {merge:true});
+    FB._meta._members=members; FB._meta._memberEmails=emails;
+  },
+  async remove(email){
+    if(!window._firebase || !window._fbUser) throw new Error('Conecte-se à internet para gerenciar usuários.');
+    const key=FB._emailKey(email);
+    const ownerUid=FB._workspaceUid;
+    const { db, doc, setDoc, deleteDoc }=window._firebase;
+    const members=Object.assign({}, (FB._meta&&FB._meta._members)||{});
+    delete members[key];
+    const emails=Object.keys(members);
+    await setDoc(doc(db,'usuarios',ownerUid), { _members:members, _memberEmails:emails }, {merge:true});
+    try{ await deleteDoc(doc(db,'memberships',key)); }catch(e){}
+    FB._meta._members=members; FB._meta._memberEmails=emails;
+  }
 };
 
 
