@@ -3452,12 +3452,14 @@ Object.assign(App,{
       accounts.push({email:mail,name,userName:name,hash:Auth._hash(pass),role:'limited',owner,perms,createdAt:new Date().toISOString()});
     }
     Auth._saveAccounts(accounts);
+    if(window._fbUser) FB.save(); // Força sincronização imediata das permissões na nuvem
     this.closeSheet(); this.renderUsers();
     this.toast('Usuário salvo','ok');
   },
   delUser(email){
     if(!confirm('Remover este usuário? Ele perderá o acesso ao sistema.\n\nOs dados do evento NÃO são apagados.')) return;
     Auth._saveAccounts(Auth._accounts().filter(a=>a.email!==email));
+    if(window._fbUser) FB.save(); // Sincroniza remoção na nuvem
     this.renderUsers(); this.toast('Usuário removido','ok');
   },
 
@@ -4157,11 +4159,11 @@ const FB={
             role: 'limited',
             owner: mapping.ownerEmail,
             ownerId: mapping.ownerId,
-            perms: mapping.perms || ['guests']
+            perms: mapping.perms || ['guests'],
+            name: mapping.name || user.displayName
           };
           window._sessionAccount = Access.acc;
           window._currentEmail = mapping.ownerEmail;
-          // We will subscribe to the OWNER'S document
           this.ownerId = mapping.ownerId;
         }
       }
@@ -4217,6 +4219,10 @@ const FB={
     // cache offline
     try{ saveToIndexedDB(IDB_KEY,data); }catch(e){}
     if(window._currentEmail){ try{ localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data)); }catch(e){} }
+    
+    // Importante: Aplicar permissões após carregar dados remotos
+    Access.apply();
+
     if(this._booted){
       const cur=document.querySelector('.page.active')?.id?.replace('page-','')||'dashboard';
       App.refreshChrome(); App.renderAll(); App.go(cur);
