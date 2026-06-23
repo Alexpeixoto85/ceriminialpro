@@ -767,7 +767,7 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
       Entrar com Google
     </button>
 
-    <p class="small muted" style="margin:16px 0 0"><b>Sincronização em Nuvem:</b> Acesse seus dados de qualquer dispositivo. Usuários convidados também podem logar pelo Google após serem cadastrados pelo administrador.</p>
+    <p class="small muted" style="margin:16px 0 0">Seus dados ficam salvos neste dispositivo.<br>Ative a sincronização para acessá-los em qualquer lugar.</p>
   </div>
 </div>
 
@@ -1672,14 +1672,6 @@ const Auth={
     window._sessionAccount=acc;
     // usuários limitados compartilham os dados do dono que os criou
     const dataEmail=(acc && acc.role==='limited' && acc.owner) ? acc.owner : email;
-    
-    // Se estivermos em modo Firebase (Google Login), o carregamento de dados é feito pelo FB.subscribe
-    if(window._fbUser) {
-      window._currentEmail = dataEmail;
-      // App.start() será chamado pelo FB._ensureBooted()
-      return;
-    }
-
     const raw=localStorage.getItem('cpData_'+dataEmail);
     if(raw){
       try{
@@ -3452,14 +3444,12 @@ Object.assign(App,{
       accounts.push({email:mail,name,userName:name,hash:Auth._hash(pass),role:'limited',owner,perms,createdAt:new Date().toISOString()});
     }
     Auth._saveAccounts(accounts);
-    if(window._fbUser) FB.save(); // Força sincronização imediata das permissões na nuvem
     this.closeSheet(); this.renderUsers();
     this.toast('Usuário salvo','ok');
   },
   delUser(email){
     if(!confirm('Remover este usuário? Ele perderá o acesso ao sistema.\n\nOs dados do evento NÃO são apagados.')) return;
     Auth._saveAccounts(Auth._accounts().filter(a=>a.email!==email));
-    if(window._fbUser) FB.save(); // Sincroniza remoção na nuvem
     this.renderUsers(); this.toast('Usuário removido','ok');
   },
 
@@ -4142,33 +4132,9 @@ const FB={
   async onLogin(user){
     this.user=user;
     window._fbUser=user;
-    Access.acc=null; window._sessionAccount=null; 
-    window._currentEmail=user.email||user.uid; 
-    
-    // Check if this Google user is actually a sub-account (invited)
-    const { db, doc, getDoc }=window._firebase;
-    try {
-      const globalUserRef = doc(db, 'global_accounts', user.email.toLowerCase());
-      const globalSnap = await getDoc(globalUserRef);
-      if(globalSnap.exists()){
-        const mapping = globalSnap.data();
-        if(mapping.role === 'limited' && mapping.ownerId){
-          // It's a limited user logging in via Google!
-          Access.acc = {
-            email: user.email,
-            role: 'limited',
-            owner: mapping.ownerEmail,
-            ownerId: mapping.ownerId,
-            perms: mapping.perms || ['guests'],
-            name: mapping.name || user.displayName
-          };
-          window._sessionAccount = Access.acc;
-          window._currentEmail = mapping.ownerEmail;
-          this.ownerId = mapping.ownerId;
-        }
-      }
-    } catch(e) { console.warn('Global account check failed:', e); }
-
+    Access.acc=null; window._sessionAccount=null; // Google = acesso total (dono)
+    window._currentEmail=user.email||user.uid; // cache local namespeado por e-mail
+    // Atualiza o cabeçalho do menu com identidade Google
     const drCo=document.getElementById('drCompany');
     if(drCo && (!data.settings.companyName || data.settings.companyName==='CerimonialPro'))
       drCo.textContent=user.displayName||user.email;
@@ -4184,25 +4150,20 @@ const FB={
 
   subscribe(){
     const { db, doc, onSnapshot }=window._firebase;
-    // Se for usuário limitado, usa o ID do dono, senão usa o próprio UID
-    const targetUid = (Access.acc && Access.acc.ownerId) ? Access.acc.ownerId : this.user.uid;
-    const ref=doc(db,'usuarios',targetUid);
-    
+    const ref=doc(db,'usuarios',this.user.uid);
     if(this._unsub){ this._unsub(); }
     this._unsub=onSnapshot(ref, snap=>{
       if(snap.exists()){
         const remote=snap.data();
+        // ignora o "eco" da nossa própria gravação
         if(remote.updatedAt && remote.updatedAt===this._lastPush){
           this.setStatus('on','Sincronizado'); this._ensureBooted(); return;
         }
         this._applyRemote(remote);
         this.setStatus('on','Sincronizado');
       }else{
-        if(!Access.isLimited()){
-          this._pushNow().catch(e=>console.error(e));
-        } else {
-          this.setStatus('err', 'Dados do administrador não encontrados');
-        }
+        // primeiro acesso deste usuário: envia os dados atuais (migra local → nuvem)
+        this._pushNow().catch(e=>console.error(e));
       }
       this._ensureBooted();
     }, err=>{
@@ -4219,10 +4180,6 @@ const FB={
     // cache offline
     try{ saveToIndexedDB(IDB_KEY,data); }catch(e){}
     if(window._currentEmail){ try{ localStorage.setItem('cpData_'+window._currentEmail,JSON.stringify(data)); }catch(e){} }
-    
-    // Importante: Aplicar permissões após carregar dados remotos
-    Access.apply();
-
     if(this._booted){
       const cur=document.querySelector('.page.active')?.id?.replace('page-','')||'dashboard';
       App.refreshChrome(); App.renderAll(); App.go(cur);
@@ -4247,29 +4204,10 @@ const FB={
   async _pushNow(){
     if(!window._fbUser || !window._firebase) return;
     const { db, doc, setDoc }=window._firebase;
-    
-    // Usuários limitados podem salvar apenas se tiverem permissão de escrita (aqui simplificamos permitindo se logado)
-    const targetUid = (Access.acc && Access.acc.ownerId) ? Access.acc.ownerId : this.user.uid;
-    
     if(!data.updatedAt) data.updatedAt=new Date().toISOString();
     this._lastPush=data.updatedAt;
     try{
-      await setDoc(doc(db,'usuarios',targetUid), data);
-      
-      // Se for o dono, também sincroniza a lista de contas/usuários convidados para o "global_accounts"
-      if(!Access.isLimited()){
-        const accounts = Auth._accounts().filter(a => a.role === 'limited');
-        for(const acc of accounts){
-          await setDoc(doc(db, 'global_accounts', acc.email.toLowerCase()), {
-            ownerId: this.user.uid,
-            ownerEmail: this.user.email,
-            role: 'limited',
-            perms: acc.perms,
-            name: acc.name
-          }, { merge: true });
-        }
-      }
-
+      await setDoc(doc(db,'usuarios',this.user.uid), data);
       this.setStatus('on','Salvo ✓');
     }catch(e){
       console.error(e);
