@@ -518,6 +518,27 @@ a{color:inherit; text-decoration:none}
 .acc-name{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acc-email{font-size:12px;color:var(--muted)}
 
+/* ===== users & access ===== */
+.usr-item{display:flex;align-items:center;gap:12px;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:var(--bg);margin-bottom:9px}
+.usr-item .usr-av{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--plum),var(--plum-deep));color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0}
+.usr-item .usr-meta{flex:1;min-width:0}
+.usr-item .usr-nm{font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usr-item .usr-em{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usr-item .usr-perms{font-size:11px;color:var(--plum);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.usr-item .abtn{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:grid;place-items:center;flex-shrink:0;font-size:13px}
+.usr-item .abtn.del{color:var(--danger)}
+.perm-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
+.perm-row{display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;cursor:pointer;background:var(--bg);transition:.12s}
+.perm-row.on{border-color:var(--plum);background:var(--plum-soft)}
+.perm-row i.pic{width:22px;text-align:center;color:var(--muted);font-size:15px}
+.perm-row.on i.pic{color:var(--plum)}
+.perm-row .pl{flex:1;font-size:14px;font-weight:600;color:var(--ink)}
+.perm-row .pchk{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;flex-shrink:0}
+.perm-row.on .pchk{background:var(--plum);border-color:var(--plum)}
+.perm-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.perm-presets button{flex:1;min-width:130px;border:1px solid var(--line);border-radius:11px;padding:9px 10px;font-size:12.5px;font-weight:600;background:var(--surface);color:var(--plum)}
+.access-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--gold-soft);color:var(--gold-deep)}
+
 /* ===== reports ===== */
 .chart-wrap{position:relative;height:240px}
 .stat-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line2);font-size:14px}
@@ -1058,6 +1079,15 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
     <section class="page" id="page-settings">
       <div class="page-head"><div><h1>Configurações</h1></div></div>
 
+      <div class="card" id="usersCard">
+        <div class="card-h"><h3><i class="fas fa-users-gear" style="color:var(--plum);margin-right:7px"></i>Usuários e acessos</h3><span class="link" onclick="App.userModal()"><i class="fas fa-user-plus"></i> Novo</span></div>
+        <div class="card-pad">
+          <p class="small muted mb">Crie acessos para sua equipe com permissões limitadas. Por exemplo, dê acesso somente ao <b>Controle de convidados</b> para a recepção fazer o check-in, sem ver finanças, contratos ou clientes.</p>
+          <div id="usersList"></div>
+          <button class="btn btn-primary btn-block mt" onclick="App.userModal()"><i class="fas fa-user-plus"></i> Adicionar usuário</button>
+        </div>
+      </div>
+
       <div class="card" id="fbSettingsCard" style="display:none">
         <div class="card-h"><h3><i class="fas fa-cloud" style="color:var(--gold-deep);margin-right:7px"></i>Conta Google · Sincronização automática</h3></div>
         <div class="card-pad">
@@ -1274,8 +1304,9 @@ body.protect-drag img, body.protect-drag canvas{ -webkit-user-drag:none; user-dr
     <a data-target="reports" onclick="App.go('reports')"><i class="fas fa-chart-pie"></i> Relatórios</a>
     <div class="grp">Sistema</div>
     <a data-target="settings" onclick="App.go('settings')"><i class="fas fa-gear"></i> Configurações</a>
+    <a id="navLogout" onclick="App.logout()" style="color:var(--danger)"><i class="fas fa-right-from-bracket" style="color:var(--danger)"></i> Sair da conta</a>
   </nav>
-  <div class="drawer-foot" style="display:flex;align-items:center;justify-content:space-between">CerimonialPro v2 · <span id="drSync">Local</span></div>
+  <div class="drawer-foot" style="display:flex;align-items:center;justify-content:space-between"><span id="drRole">CerimonialPro v2</span> · <span id="drSync">Local</span></div>
 </aside>
 
 <!-- DYNAMIC SHEET (modal) -->
@@ -1411,6 +1442,78 @@ const CSTATUS={draft:{t:'Rascunho',c:'b-muted'},sent:{t:'Enviado',c:'b-info'},si
 ============================================================ */
 const ACCOUNTS_KEY='cp_accounts';
 const SESSION_KEY='cp_session';
+
+/* ============================================================
+   Access — controle de permissões por usuário
+   Donos (role 'owner') têm acesso total. Usuários 'limited'
+   só enxergam as seções listadas em perms[]. Settings é
+   sempre exclusivo do dono.
+============================================================ */
+const ACCESS_SECTIONS=[
+  {k:'dashboard', label:'Painel inicial',        icon:'fa-house'},
+  {k:'events',    label:'Eventos',               icon:'fa-calendar-days'},
+  {k:'guests',    label:'Controle de convidados', icon:'fa-clipboard-check'},
+  {k:'agenda',    label:'Agenda',                icon:'fa-calendar-check'},
+  {k:'clients',   label:'Clientes',              icon:'fa-users'},
+  {k:'suppliers', label:'Fornecedores',          icon:'fa-handshake'},
+  {k:'gestao',    label:'Gestão Empresarial',    icon:'fa-building'},
+  {k:'payments',  label:'Pagamentos',            icon:'fa-money-check-dollar'},
+  {k:'budgets',   label:'Orçamentos',            icon:'fa-file-invoice-dollar'},
+  {k:'contracts', label:'Contratos',             icon:'fa-file-signature'},
+  {k:'receipts',  label:'Recibos',               icon:'fa-receipt'},
+  {k:'reports',   label:'Relatórios',            icon:'fa-chart-pie'},
+];
+// quais ações do botão "+" cada seção habilita
+const QUICKADD_SECTION={eventModal:'events',budgetModal:'budgets',contractModal:'contracts',receiptModal:'receipts',paymentModal:'payments',expenseModal:'gestao',clientModal:'clients',taskModal:'agenda'};
+
+const Access={
+  acc:null,                 // conta da sessão atual (null = dono via Google ou legado)
+  isLimited(){ return !!(this.acc && this.acc.role==='limited'); },
+  perms(){ return this.isLimited() ? (this.acc.perms||[]) : null; }, // null = tudo liberado
+  can(section){
+    if(!this.isLimited()) return true;
+    if(section==='settings') return false; // configurações: só dono
+    return (this.acc.perms||[]).includes(section);
+  },
+  firstAllowed(){
+    if(!this.isLimited()) return 'dashboard';
+    const p=this.acc.perms||[];
+    const found=ACCESS_SECTIONS.find(s=>p.includes(s.k));
+    return found?found.k:'settings';
+  },
+  // aplica restrições na interface após o login
+  apply(){
+    const limited=this.isLimited();
+    // mostra/esconde itens de navegação (bottom + drawer) conforme permissão
+    document.querySelectorAll('.bottomnav a[data-target],.drawer-nav a[data-target]').forEach(a=>{
+      const t=a.dataset.target;
+      a.style.display=this.can(t)?'':'none';
+    });
+    // botão "+" (FAB): some se o usuário não pode criar nada
+    const fab=document.querySelector('.bottomnav a.fab-tab');
+    if(fab){ const anyCreate=Object.values(QUICKADD_SECTION).some(s=>this.can(s)); fab.style.display=anyCreate?'':'none'; }
+    // grupos vazios do drawer
+    document.querySelectorAll('.drawer-nav .grp').forEach(g=>{
+      let n=g.nextElementSibling, visible=false;
+      while(n && !n.classList.contains('grp')){ if(n.tagName==='A' && n.style.display!=='none' && n.id!=='navLogout') visible=true; n=n.nextElementSibling; }
+      g.style.display=visible?'':'none';
+    });
+    // card de usuários: só dono
+    const uc=document.getElementById('usersCard'); if(uc) uc.style.display=limited?'none':'';
+    // se a barra inferior ficar vazia, esconde-a (usuário navega pelo menu lateral)
+    const bn=document.querySelector('.bottomnav');
+    if(bn){ const anyNav=[...bn.querySelectorAll('a')].some(a=>a.style.display!=='none'); bn.style.display=anyNav?'':'none'; }
+    // cabeçalho do drawer mostra o nome de quem entrou + selo
+    const drRole=document.getElementById('drRole');
+    if(drRole) drRole.innerHTML = limited
+      ? '<span class="access-badge"><i class="fas fa-lock"></i> Acesso limitado</span>'
+      : 'CerimonialPro v2';
+    if(limited){
+      const dru=document.getElementById('drUser');
+      if(dru && this.acc.name) dru.textContent=this.acc.name;
+    }
+  },
+};
 
 const Auth={
   _accounts(){
@@ -1548,7 +1651,7 @@ const Auth={
     if(pass!==pass2){showErr('As senhas não coincidem.');return;}
     const accounts=this._accounts();
     if(accounts.find(a=>a.email===email)){showErr('Este e-mail já está cadastrado. <button type="button" onclick="Auth.switchTab(\'login\')" style="background:none;border:none;color:var(--plum);font-size:13px;cursor:pointer;font-weight:600;text-decoration:underline">Entrar?</button>');return;}
-    const newAcc={email,name:company,userName:user||company,hash:this._hash(pass),createdAt:new Date().toISOString()};
+    const newAcc={email,name:company,userName:user||company,hash:this._hash(pass),role:'owner',createdAt:new Date().toISOString()};
     accounts.push(newAcc);
     this._saveAccounts(accounts);
     // Pre-populate settings for new account
@@ -1563,7 +1666,13 @@ const Auth={
   async _loadSession(email){
     // Load per-account data store
     await loadStore();
-    const raw=localStorage.getItem('cpData_'+email);
+    // identifica a conta da sessão e define permissões
+    const acc=this._accounts().find(a=>a.email===email)||null;
+    Access.acc=acc;
+    window._sessionAccount=acc;
+    // usuários limitados compartilham os dados do dono que os criou
+    const dataEmail=(acc && acc.role==='limited' && acc.owner) ? acc.owner : email;
+    const raw=localStorage.getItem('cpData_'+dataEmail);
     if(raw){
       try{
         const p=JSON.parse(raw);
@@ -1572,8 +1681,8 @@ const Auth={
         ['events','clients','suppliers','budgets','contracts','receipts','supplierPayments','expenses','tasks','guests','despesasFixas','metas','fluxoExtra'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[];});
       }catch(e){console.warn(e);}
     }
-    // Override saveStore to use namespaced key
-    window._currentEmail=email;
+    // grava sempre no armazenamento compartilhado (dono)
+    window._currentEmail=dataEmail;
     App.start();
   },
 
@@ -1635,7 +1744,9 @@ const App={
     document.getElementById('login').style.display='none';
     document.getElementById('app').style.display='flex';
     Protect.apply();
-    this.refreshChrome(); this.renderAll(); this.go('dashboard');
+    this.refreshChrome(); this.renderAll();
+    Access.apply();
+    this.go(Access.firstAllowed());
     if(window._fbUser){ FB.setStatus('on','Sincronizado'); FB._renderUserCard(); }
     else if(syncCfg.token&&syncCfg.gistId){ Sync.updatePill(); }
   },
@@ -1650,6 +1761,12 @@ const App={
     this.refreshAlerts();
   },
   go(t){
+    if(!Access.can(t)){
+      this.toast('Você não tem acesso a esta área.','err');
+      this.closeDrawer();
+      t=Access.firstAllowed();
+      if(!Access.can(t)) return;
+    }
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     const pg=document.getElementById('page-'+t); if(pg)pg.classList.add('active');
     document.querySelectorAll('.bottomnav a[data-target],.drawer-nav a[data-target]').forEach(a=>a.classList.toggle('active',a.dataset.target===t));
@@ -1688,9 +1805,12 @@ const App={
   },
   renderAll(){this.renderDashboard();this.renderEvents();this.renderClients();this.renderSuppliers();this.renderPayments();this.renderBudgets();this.renderContracts();this.renderReceipts();},
   quickAdd(){
+    const opts=['eventModal|fa-calendar-plus|Evento|var(--plum)','budgetModal|fa-file-invoice-dollar|Orçamento|var(--gold-deep)','contractModal|fa-file-signature|Contrato|var(--info)','receiptModal|fa-receipt|Recibo / repasse|var(--ok)','paymentModal|fa-money-check-dollar|Pagamento a fornecedor|var(--gold-deep)','expenseModal|fa-cart-shopping|Custo da verba|var(--danger)','clientModal|fa-user-plus|Cliente|var(--plum)','taskModal|fa-list-check|Tarefa|var(--warn)']
+      .filter(x=>{const f=x.split('|')[0];const sec=QUICKADD_SECTION[f];return !sec||Access.can(sec);});
+    if(!opts.length){ this.toast('Nenhuma ação disponível para o seu acesso.','err'); return; }
     this.openSheet('Criar novo',
       '<div style="display:grid;gap:10px">'+
-      ['eventModal|fa-calendar-plus|Evento|var(--plum)','budgetModal|fa-file-invoice-dollar|Orçamento|var(--gold-deep)','contractModal|fa-file-signature|Contrato|var(--info)','receiptModal|fa-receipt|Recibo / repasse|var(--ok)','paymentModal|fa-money-check-dollar|Pagamento a fornecedor|var(--gold-deep)','expenseModal|fa-cart-shopping|Custo da verba|var(--danger)','clientModal|fa-user-plus|Cliente|var(--plum)','taskModal|fa-list-check|Tarefa|var(--warn)']
+      opts
       .map(x=>{const[f,i,l,c]=x.split('|');return '<button class="btn btn-ghost" style="justify-content:flex-start;gap:13px" onclick="App.closeSheet();App.'+f+'()"><span style="width:34px;height:34px;border-radius:10px;background:'+c+'1a;color:'+c+';display:grid;place-items:center"><i class=\'fas '+i+'\'></i></span>'+l+'</button>';}).join('')+
       '</div>','');
   },
@@ -3250,6 +3370,89 @@ const Extenso={
 
 /* ===== SETTINGS ===== */
 Object.assign(App,{
+  /* ---- Usuários & acessos (somente dono) ---- */
+  renderUsers(){
+    const el=document.getElementById('usersList'); if(!el) return;
+    const owner=(window._sessionAccount&&window._sessionAccount.email)||window._currentEmail;
+    const subs=Auth._accounts().filter(a=>a.role==='limited'&&a.owner===owner);
+    if(!subs.length){ el.innerHTML='<div class="hint" style="margin:0">Nenhum usuário adicional ainda. Crie acessos para sua equipe com permissões específicas.</div>'; return; }
+    el.innerHTML=subs.map(a=>{
+      const labels=(a.perms||[]).map(k=>{const s=ACCESS_SECTIONS.find(x=>x.k===k);return s?s.label:k;});
+      const permTxt=labels.length?labels.join(' · '):'Sem áreas liberadas';
+      return '<div class="usr-item">'+
+        '<div class="usr-av">'+U.initials(a.name||a.email)+'</div>'+
+        '<div class="usr-meta"><div class="usr-nm">'+U.esc(a.name||a.email)+'</div>'+
+        '<div class="usr-em">'+U.esc(a.email)+'</div>'+
+        '<div class="usr-perms"><i class="fas fa-lock" style="font-size:10px"></i> '+U.esc(permTxt)+'</div></div>'+
+        '<button class="abtn" onclick="App.userModal(\''+a.email+'\')" title="Editar"><i class="fas fa-pen"></i></button>'+
+        '<button class="abtn del" onclick="App.delUser(\''+a.email+'\')" title="Remover"><i class="fas fa-trash"></i></button>'+
+      '</div>';
+    }).join('');
+  },
+  userModal(email){
+    if(Access.isLimited()){ this.toast('Apenas o dono pode gerenciar usuários.','err'); return; }
+    const editing=email?Auth._accounts().find(a=>a.email===email&&a.role==='limited'):null;
+    const perms=new Set(editing?(editing.perms||[]):['guests']);
+    const presets='<div class="perm-presets">'+
+      '<button onclick="App._userPreset([\'guests\'])"><i class="fas fa-clipboard-check"></i> Só convidados</button>'+
+      '<button onclick="App._userPreset([\'guests\',\'events\',\'agenda\'])"><i class="fas fa-headset"></i> Recepção & agenda</button>'+
+      '<button onclick="App._userPreset(\'all\')"><i class="fas fa-list-check"></i> Tudo</button>'+
+    '</div>';
+    const rows=ACCESS_SECTIONS.map(s=>
+      '<div class="perm-row'+(perms.has(s.k)?' on':'')+'" data-k="'+s.k+'" onclick="App._userTogglePerm(this)">'+
+        '<i class="fas '+s.icon+' pic"></i><span class="pl">'+U.esc(s.label)+'</span>'+
+        '<span class="pchk"><i class="fas fa-check" style="font-size:11px"></i></span>'+
+      '</div>').join('');
+    const body=
+      '<div class="field"><label>Nome do usuário</label><input id="u_name" value="'+U.esc(editing?editing.name:'')+'" placeholder="Ex.: Maria — Recepção"></div>'+
+      '<div class="field"><label>E-mail de acesso</label><input id="u_email" type="email" value="'+U.esc(editing?editing.email:'')+'" placeholder="recepcao@email.com" '+(editing?'disabled style="opacity:.6;background:var(--line2)"':'')+'></div>'+
+      '<div class="field"><label>Senha'+(editing?' <span class="muted small">(em branco mantém a atual)</span>':'')+'</label><input id="u_pass" type="password" placeholder="'+(editing?'••••••':'Mínimo 4 caracteres')+'"></div>'+
+      '<label class="small muted" style="display:block;margin:6px 0 6px">Áreas que este usuário pode acessar</label>'+
+      presets+
+      '<div class="perm-grid" id="permGrid">'+rows+'</div>'+
+      '<div id="u_err" style="display:none;background:var(--danger-bg);color:var(--danger);border-radius:10px;padding:9px 13px;font-size:13px;margin-top:12px"></div>';
+    const foot='<button class="btn btn-ghost" onclick="App.closeSheet()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="App.saveUser('+(editing?'\''+editing.email+'\'':'null')+')"><i class="fas fa-floppy-disk"></i> Salvar</button>';
+    this.openSheet(editing?'Editar usuário':'Novo usuário',body,foot);
+  },
+  _userPreset(which){
+    const all=ACCESS_SECTIONS.map(s=>s.k);
+    const set=which==='all'?all:which;
+    document.querySelectorAll('#permGrid .perm-row').forEach(r=>r.classList.toggle('on',set.includes(r.dataset.k)));
+  },
+  _userTogglePerm(el){ el.classList.toggle('on'); },
+  saveUser(email){
+    const err=document.getElementById('u_err');
+    const show=m=>{err.style.display='block';err.innerHTML='<i class="fas fa-circle-exclamation"></i> '+m;};
+    const name=document.getElementById('u_name').value.trim();
+    const mail=email||document.getElementById('u_email').value.trim().toLowerCase();
+    const pass=document.getElementById('u_pass').value;
+    const perms=[...document.querySelectorAll('#permGrid .perm-row.on')].map(r=>r.dataset.k);
+    if(!name) return show('Informe o nome do usuário.');
+    if(!perms.length) return show('Selecione pelo menos uma área de acesso.');
+    const accounts=Auth._accounts();
+    const owner=(window._sessionAccount&&window._sessionAccount.email)||window._currentEmail;
+    if(email){
+      const acc=accounts.find(a=>a.email===email);
+      if(!acc) return show('Usuário não encontrado.');
+      acc.name=name; acc.userName=name; acc.perms=perms;
+      if(pass){ if(pass.length<4) return show('A senha deve ter ao menos 4 caracteres.'); acc.hash=Auth._hash(pass); }
+    }else{
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return show('Informe um e-mail válido.');
+      if(accounts.some(a=>a.email===mail)) return show('Este e-mail já está em uso.');
+      if(pass.length<4) return show('A senha deve ter ao menos 4 caracteres.');
+      accounts.push({email:mail,name,userName:name,hash:Auth._hash(pass),role:'limited',owner,perms,createdAt:new Date().toISOString()});
+    }
+    Auth._saveAccounts(accounts);
+    this.closeSheet(); this.renderUsers();
+    this.toast('Usuário salvo','ok');
+  },
+  delUser(email){
+    if(!confirm('Remover este usuário? Ele perderá o acesso ao sistema.\n\nOs dados do evento NÃO são apagados.')) return;
+    Auth._saveAccounts(Auth._accounts().filter(a=>a.email!==email));
+    this.renderUsers(); this.toast('Usuário removido','ok');
+  },
+
   loadSettings(){
     const s=data.settings;
     document.getElementById('setCompany').value=s.companyName||'';
@@ -3268,6 +3471,7 @@ Object.assign(App,{
     this.renderLogoPrev(); this.renderDocOpts(); this.renderProtectOpts(); this.renderSigCurrent(); this.sigInit();
     Sync.updateStatus();
     FB._renderUserCard();
+    this.renderUsers();
   },
   renderSigCurrent(){
     const el=document.getElementById('sigCurrent'); if(!el)return;
@@ -3928,6 +4132,7 @@ const FB={
   async onLogin(user){
     this.user=user;
     window._fbUser=user;
+    Access.acc=null; window._sessionAccount=null; // Google = acesso total (dono)
     window._currentEmail=user.email||user.uid; // cache local namespeado por e-mail
     // Atualiza o cabeçalho do menu com identidade Google
     const drCo=document.getElementById('drCompany');
